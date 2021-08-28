@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "target": "es6",
+    "module": "commonjs",
+    "lib": ["DOM", "ES2017"],
+    "declaration": true,
+    "removeComments": true,
+
+    "moduleResolution": "node",
+    "baseUrl": "files",
+    "paths": {
+        "library/*": ["library/*"]
+    }
+  }
+}
