@@ -1,0 +1,5 @@
+# remove NodeJS modules
+node_modules/**
+
+# remove output directory
+public/**
