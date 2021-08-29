@@ -109,4 +109,41 @@ export class RGBA extends BaseColor {
                 Math.round(a * 255)
         );
     }
+
+    private static fromHSVA(hsva: Components): RGBA {
+        let r:number, g:number, b:number
+        let h:number, s:number, v:number
+        let c:number, x:number, m:number
+
+        [ h, s, v ] = [ hsva.x, hsva.y, hsva.z ];
+
+        // temporary values
+        c = v * s;
+        m = v - c;
+        x = c * (1 - Math.abs( ((h/60) % 2) - 1 ) );
+
+        // map each color from its position on the circle
+        if( (h >= 0) && (h < 60) ) {
+            [ r, g, b ] = [ c, x, 0 ]
+        } else if( (h >= 60) && (h < 120) ) {
+            [ r, g, b ] = [ x, c, 0 ]
+        } else if( (h >= 120) && (h < 180) ) {
+            [ r, g, b ] = [ 0, c, x ]
+        } else if( (h >= 180) && (h < 240) ) {
+            [ r, g, b ] = [ 0, x, c ]
+        } else if( (h >= 240) && (h < 300) ) {
+            [ r, g, b ] = [ x, 0, c ]
+        } else if( (h >= 300) && (h < 360) ) {
+            [ r, g, b ] = [ c, 0, x ]
+        } else {
+            [ r, g, b ] = [0, 0, 0]
+        }
+
+        return new RGBA(
+                Math.round((r + m) * 255),
+                Math.round((g + m) * 255),
+                Math.round((b + m) * 255),
+                Math.round(hsva.a * 255)
+        );
+    }
 }
