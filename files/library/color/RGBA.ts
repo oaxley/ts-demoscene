@@ -50,5 +50,63 @@ export class RGBA extends BaseColor {
         return new RGBA(rgba.x, rgba.y, rgba.z, rgba.a);
     }
 
+    private static fromHSLA(hsla: Components): RGBA {
+        let h: number, s: number, l: number, a: number;
+        let t1: number, t2: number;
+        let tr: number, tg: number, tb: number;
 
+        // function to compute HSL values
+        function _computeValues(x:number):number {
+            let y: number = 0.0;
+
+            if ( (6 * x) < 1.0 ) {
+                y = t2 + ((t1 - t2) * 6 * x);
+            }
+            else {
+                if ( (2 * x) < 1.0 ) {
+                    y = t1;
+                }
+                else {
+                    if ( (3 * x) < 2.0 ) {
+                        y = t2 + ((t1 - t2) * (0.666 - x) * 6);
+                    }
+                    else {
+                        y = t2;
+                    }
+                }
+            }
+
+            return y;
+        };
+
+        // setup local values for easy readiness
+        [ h, s, l, a ]= [ hsla.x, hsla.y, hsla.z, hsla.a ];
+
+
+        // no saturation, just use the luminance
+        if ( s == 0 ) {
+            l = Math.round(255 * l)
+            return new RGBA(l, l, l, Math.round(a*255));
+        }
+
+        // compute the temporay values
+        t1 = ( l < 0.5 ) ? (l * (1.0 + s)) : ((l + s) - (l * s));
+        t2 = (2 * l) - t1;
+
+        // convert hue to [0..1]
+        h = h / 360.0;
+
+        // temporary R,G,B
+        tr = ((h + 0.333) > 1.0) ? (h + 0.333 - 1.0) : (h + 0.333);
+        tg = h;
+        tb = ((h - 0.333) < 0.0) ? (h - 0.333 + 1.0) : (h - 0.333);
+
+        // set RGB values
+        return new RGBA(
+                Math.round(255 * _computeValues(tr)),
+                Math.round(255 * _computeValues(tg)),
+                Math.round(255 * _computeValues(tb)),
+                Math.round(a * 255)
+        );
+    }
 }
