@@ -22,6 +22,13 @@ export class RGBA extends BaseColor {
         if ( color.model == COLOR_MODEL.RGBA ) {
             return this.fromRGBA(color.values);
         }
+        else if ( color.model == COLOR_MODEL.HSLA ) {
+            return this.fromHSLA(color.values);
+        }
+        else if ( color.model == COLOR_MODEL.HSVA ) {
+            return this.fromHSVA(color.values);
+        }
+
     }
 
     public dump(): void {
