@@ -85,8 +85,8 @@ export class RGBA extends BaseColor {
 
         // no saturation, just use the luminance
         if ( s == 0 ) {
-            l = Math.round(255 * l)
-            return new RGBA(l, l, l, Math.round(a*255));
+            l = Math.floor(255 * l)
+            return new RGBA(l, l, l, Math.floor(a*255));
         }
 
         // compute the temporay values
@@ -103,10 +103,10 @@ export class RGBA extends BaseColor {
 
         // set RGB values
         return new RGBA(
-                Math.round(255 * _computeValues(tr)),
-                Math.round(255 * _computeValues(tg)),
-                Math.round(255 * _computeValues(tb)),
-                Math.round(a * 255)
+                Math.floor(255 * _computeValues(tr)),
+                Math.floor(255 * _computeValues(tg)),
+                Math.floor(255 * _computeValues(tb)),
+                Math.floor(a * 255)
         );
     }
 
@@ -140,10 +140,10 @@ export class RGBA extends BaseColor {
         }
 
         return new RGBA(
-                Math.round((r + m) * 255),
-                Math.round((g + m) * 255),
-                Math.round((b + m) * 255),
-                Math.round(hsva.a * 255)
+                Math.floor((r + m) * 255),
+                Math.floor((g + m) * 255),
+                Math.floor((b + m) * 255),
+                Math.floor(hsva.a * 255)
         );
     }
 }
