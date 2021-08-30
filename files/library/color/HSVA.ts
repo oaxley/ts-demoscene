@@ -59,4 +59,49 @@ export class HSVA extends BaseColor {
         return new HSVA(Math.round(h), this.clamp(s), this.clamp(v), hsla.a);
     }
 
+    private static fromRGBA(rgba: Components): HSVA {
+        let r:number, g:number, b:number
+        let h:number, s:number, v:number
+        let min:number, max:number, delta:number
+
+        [ r, g, b ] = [ (rgba.x / 255.0), (rgba.y / 255.0), (rgba.z / 255.0) ];
+
+        min = Math.min(r, g, b);
+        max = Math.max(r, g, b);
+        delta = max - min;
+
+        // hue
+        if( (delta - this.EPSILON) < 0 ) {
+            h = 0;      // no hue if no saturation
+        } else {
+            if( (max - r) < this.EPSILON ) {
+                h = (g - b) / delta;
+            } else {
+                if( (max - g) < this.EPSILON ) {
+                    h = 2.0 + (b - r) / delta;
+                } else {
+                    h = 4.0 + (r - g) / delta;
+                }
+            }
+
+            h = h * 60;
+            while (h < 0) {
+                h = h + 360;
+            }
+        }
+
+        // saturation
+        if( (max - this.EPSILON) < 0) {
+            s = 0;
+        } else {
+            s = delta / max;
+        }
+
+        // value
+        v = max;
+
+        // encode the object - keep 3 decimals for precision
+        return new HSVA(Math.round(h), this.clamp(s), this.clamp(v), this.clamp(rgba.a / 255.0));
+    }
+
 }
