@@ -40,5 +40,23 @@ export class HSVA extends BaseColor {
         return new HSVA(hsva.x, hsva.y, hsva.z, hsva.a);
     }
 
+    private static fromHSLA(hsla: Components): HSVA {
+        let h:number, s:number, l:number
+        let v:number, x:number
+
+        [ h, s, l ] = [ hsla.x, hsla.y, hsla.z ];
+
+        if( l < 0.5 ) {
+            x = s * l;
+        } else {
+            x = s * (1 - l);
+        }
+
+        v = l + x;
+        s = (2 * x) / v;
+
+        // encode the object - keep 3 decimals for precision
+        return new HSVA(Math.round(h), this.clamp(s), this.clamp(v), hsla.a);
+    }
 
 }
