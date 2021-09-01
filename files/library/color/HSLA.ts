@@ -43,5 +43,25 @@ export class HSLA extends BaseColor {
         return new HSLA(hsla.x, hsla.y, hsla.z, hsla.a);
     }
 
+    private static fromHSVA(hsva: Components): HSLA {
+        let h: number, s: number, l: number;
+        let v: number, x: number;
 
+        [ h, s, v ] = [ hsva.x, hsva.y, hsva.z ];
+
+        // saturation
+        x = (2 - s) * v;
+        if ( x < 1 ) {
+            s = (s * v) / x;
+        }
+        else {
+            s = (s * v) / (2 - x);
+        }
+
+        // luminance
+        l = x / 2;
+
+        // set the values (keep 3 decimals)
+        return new HSLA(this.clamp(h), this.clamp(s), this.clamp(l), hsva.a);
+    }
 }
