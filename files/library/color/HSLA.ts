@@ -64,4 +64,64 @@ export class HSLA extends BaseColor {
         // set the values (keep 3 decimals)
         return new HSLA(this.clamp(h), this.clamp(s), this.clamp(l), hsva.a);
     }
+
+    private static fromRGBA(rgba: Components): HSLA {
+        let tr: number, tg: number, tb: number;
+        let h: number, s: number, l: number;
+        let min: number, max: number, delta: number;
+
+        // convert the RGB to [0..1]
+        [ tr, tg, tb ] = [ (rgba.x / 255.0), (rgba.y / 255.0), (rgba.z / 255.0) ]
+
+        min = Math.min(tr, tg, tb);
+        max = Math.max(tr, tg, tb);
+        delta = max - min;
+
+        // luminance
+        l = (max + min) / 2.0;
+
+        // saturation
+        if ( delta < this.EPSILON ) {
+            s = 0;      // no saturation
+        }
+        else {
+            if ( l > 0.5) {
+                s = delta / (2.0 - max - min);
+            }
+            else {
+                s = delta / (max + min);
+            }
+        }
+
+        // hue
+        if ( delta < this.EPSILON ) {
+            h = 0;      // no saturation = no hue
+        }
+        else {
+            // RED is the maximum
+            if ( (max - tr) < this.EPSILON ) {
+                h = (tg - tb) / delta;
+            }
+            // GREEN is the maximum
+            else if ( (max - tg) < this.EPSILON ) {
+                h = 2.0 + (tb - tr) / delta;
+            }
+            // BLUE is the maximum
+            else {
+                h = 4.0 + (tr - tg) / delta;
+            }
+        }
+
+        // convert the hue to degree
+        h = h * 60;
+
+        // take care of negative values
+        while ( h < 0 ) {
+            h = h + 360;
+        }
+
+        // set the values (keep 3 decimals)
+        return new HSLA(Math.round(h), this.clamp(s), this.clamp(l), this.clamp(rgba.a / 255.0));
+    }
+
 }
