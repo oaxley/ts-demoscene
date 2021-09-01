@@ -36,8 +36,8 @@ export class HSLA extends BaseColor {
 
     public css(): string {
         // saturation and luminance should be percentages
-        let s: number = Math.round(this.y_ * 100);
-        let l: number = Math.round(this.z_ * 100);
+        let s: number = Math.floor(this.y_ * 100);
+        let l: number = Math.floor(this.z_ * 100);
         return `hsla(${this.x_}, ${s}, ${l}, ${this.a_})`;
     }
 
@@ -127,6 +127,6 @@ export class HSLA extends BaseColor {
         }
 
         // set the values (keep 3 decimals)
-        return new HSLA(Math.round(h), this.clamp(s), this.clamp(l), this.clamp(rgba.a / 255.0));
+        return new HSLA(Math.floor(h), this.clamp(s), this.clamp(l), this.clamp(rgba.a / 255.0));
     }
 }

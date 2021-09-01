@@ -62,7 +62,7 @@ export class HSVA extends BaseColor {
         s = (2 * x) / v;
 
         // encode the object - keep 3 decimals for precision
-        return new HSVA(Math.round(h), this.clamp(s), this.clamp(v), hsla.a);
+        return new HSVA(Math.floor(h), this.clamp(s), this.clamp(v), hsla.a);
     }
 
     private static fromRGBA(rgba: Components): HSVA {
@@ -107,7 +107,7 @@ export class HSVA extends BaseColor {
         v = max;
 
         // encode the object - keep 3 decimals for precision
-        return new HSVA(Math.round(h), this.clamp(s), this.clamp(v), this.clamp(rgba.a / 255.0));
+        return new HSVA(Math.floor(h), this.clamp(s), this.clamp(v), this.clamp(rgba.a / 255.0));
     }
 
 }
