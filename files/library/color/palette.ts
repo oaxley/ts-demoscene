@@ -44,4 +44,24 @@ export class Palette {
     public setColor(i: number, c: Color): void {
         this.colors_[i] = c;
     }
+
+    public swap(i1: number, i2: number): void {
+
+        // check indexes values are within the authorized range
+        if ( (i1 < 0) || (i1 > this.colors_.length) ) {
+            throw RangeError("swap(): Index #1 is out of range.");
+        }
+
+        if ( (i2 < 0) || (i2 > this.colors_.length) ) {
+            throw RangeError("swap(): Index #2 is out of range.");
+        }
+
+        // nothing to be done if both indexes are equals
+        if ( i1 == i2 ) {
+            return;
+        }
+
+        [ this.colors_[i1], this.colors_[i2] ] = [ this.colors_[i2], this.colors_[i1] ];
+    }
+
 }
