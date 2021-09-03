@@ -33,14 +33,17 @@ export class Surface {
         this.context_ = this.canvas_.getContext("2d");
     }
 
+    // return the context for this Surface
     public get context(): CanvasRenderingContext2D {
         return this.context_;
     }
 
+    // return the canvas element for this Surface
     public get canvas(): HTMLCanvasElement {
         return this.canvas_;
     }
 
+    // return the dimensions for this Surface
     public get size(): Size {
         return {
             width: this.width_,
@@ -48,22 +51,27 @@ export class Surface {
         }
     }
 
+    // return the width for this Surface
     public get width(): number {
         return this.width;
     }
 
+    // return the height for this Surface
     public get height(): number {
         return this.height;
     }
 
+    // return the pixels data for this Surface
     public get data(): ImageData {
         return this.context_.getImageData(0, 0, this.width_, this.height_);
     }
 
+    // set the pixels data for this Surface
     public set data(image: ImageData) {
         this.context_.putImageData(image, 0, 0);
     }
 
+    // clear the surface
     public clear(r?: Rect): void;
     public clear(xr?: number|Rect, y?: number, w?: number, h?:number): void {
         switch(typeof xr) {
@@ -77,4 +85,10 @@ export class Surface {
                 this.context_.clearRect(xr.x, xr.y, xr.w, xr.h);
         }
     }
+
+    // copy the data from another surface
+    public copy(other: Surface): void {
+        this.context_.drawImage(other.canvas_, 0, 0);
+    }
+
 }
