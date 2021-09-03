@@ -63,4 +63,18 @@ export class Surface {
     public set data(image: ImageData) {
         this.context_.putImageData(image, 0, 0);
     }
+
+    public clear(r?: Rect): void;
+    public clear(xr?: number|Rect, y?: number, w?: number, h?:number): void {
+        switch(typeof xr) {
+            case "undefined":
+                this.context_.clearRect(0, 0, this.width_, this.height_);
+                break;
+            case "number":
+                this.context_.clearRect(xr, y, w, h);
+                break;
+            default:
+                this.context_.clearRect(xr.x, xr.y, xr.w, xr.h);
+        }
+    }
 }
