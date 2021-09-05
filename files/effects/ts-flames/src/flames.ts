@@ -124,7 +124,7 @@ export class Flames extends Animation {
                 value += this.flames_[offset + this.width_ + x];
 
                 // artificially reduce the flames
-                value = value - 4;
+                value = value - 3;
                 value = (value < 0) ? 0 : value;
 
                 // store the new value above the current pixel
