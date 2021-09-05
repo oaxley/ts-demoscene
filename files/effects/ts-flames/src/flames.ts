@@ -171,6 +171,9 @@ export class Flames extends Animation {
         this.update(timestamp);
         this.render(timestamp);
 
+        // generate the bottom line again
+        this.generate();
+
         requestAnimationFrame(this.main.bind(this));
     }
 }
