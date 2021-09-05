@@ -4,6 +4,7 @@
     "module": "commonjs",
     "lib": ["DOM", "ES2017"],
     "declaration": true,
+    "declarationDir": "./types",
     "removeComments": true,
 
     "moduleResolution": "node",
