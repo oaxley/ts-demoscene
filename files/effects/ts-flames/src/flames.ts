@@ -112,6 +112,25 @@ export class Flames extends Animation {
     protected update(timestamp: number): void{
         if (!this.isAnimated)
             return;
+
+        // create the flame effect
+        for (let y = 1; y < this.height_ - 1; y++) {
+            let offset = y * this.width_;
+            for (let x = 1; x < this.width_ - 1; x++) {
+                let value = 0;
+                value += this.flames_[offset - this.width_ + x];
+                value += this.flames_[offset + x - 1];
+                value += this.flames_[offset + x + 1];
+                value += this.flames_[offset + this.width_ + x];
+
+                // artificially reduce the flames
+                value = value - 4;
+                value = (value < 0) ? 0 : value;
+
+                // store the new value above the current pixel
+                this.flames_[offset - this.width_ + x] = value >> 2;
+            }
+        }
     }
 
     // render the animation on the screen
