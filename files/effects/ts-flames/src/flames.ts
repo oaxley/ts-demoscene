@@ -13,6 +13,12 @@ import { Color } from "library/color/color";
 import { RGBA } from "library/color/RGBA";
 
 
+//----- globals
+const WHITE_COLOR_INDEX = 255;
+const BLACK_COLOR_INDEX = 0;
+const WHITE_PERCENTAGE = 0.55;
+
+
 //----- class
 export class Flames extends Animation {
 
@@ -56,6 +62,27 @@ export class Flames extends Animation {
             this.palette_.setColor(i + 160, Color.from(new RGBA(255, 255, 128 + (i << 2))));
             this.palette_.setColor(i + 192, Color.from(new RGBA(255, 255, 192 + i )));
             this.palette_.setColor(i + 224, Color.from(new RGBA(255, 255, 224 + i )));
+        }
+    }
+
+    // generate the flames at the bottom
+    private generate(): void {
+        if ( !this.isAnimated ) {
+            return;
+        }
+
+        for (let y = this.height_ - 2; y < this.height_; y++) {
+            let offset = y * this.width_;
+            for (let x = 0; x < this.width_; x+=2) {
+                let color = BLACK_COLOR_INDEX;
+
+                if ( Math.random() > WHITE_PERCENTAGE ) {
+                    color = WHITE_COLOR_INDEX;
+                }
+
+                this.flames_[offset + x] = color;
+                this.flames_[offset + (x+1)] = color;
+            }
         }
     }
 
