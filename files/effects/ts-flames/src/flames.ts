@@ -40,6 +40,14 @@ export class Flames extends Animation {
         this.width_   = display.width;
         this.height_  = display.height;
         this.flames_  = [];
+
+        // create the palette
+        this.createPalette();
+
+        // initialize flames buffer
+        for (let i = 0; i < this.width_ * this.height_; i++) {
+            this.flames_[i] = BLACK_COLOR_INDEX;
+        }
     }
 
     // create the Fire palette
@@ -93,6 +101,9 @@ export class Flames extends Animation {
         // toggle the animation
         this.toggle();
 
+        // generate the data
+        this.generate();
+
         // run the animation on the next frame
         requestAnimationFrame(this.main.bind(this));
     }
@@ -107,6 +118,33 @@ export class Flames extends Animation {
     protected render(timestamp: number): void{
         if (!this.isAnimated)
             return;
+
+        // retrieve the backbuffer image data
+        let img_data = this.display_.surface.data;
+
+        // copy the flames
+        for (let y = 0; y < this.height_; y++) {
+            let offset = y * this.width_;
+            for (let x = 0; x < this.width_; x++) {
+
+                // retrieve rgba components
+                let index = this.flames_[offset + x];
+                let rgba  = this.palette_.getColor(index).color.values;
+
+                // set the corresponding pixel in the buffer
+                let position = (offset + x)  << 2;
+                img_data.data[position + 0] = rgba.x;
+                img_data.data[position + 1] = rgba.y;
+                img_data.data[position + 2] = rgba.z;
+                img_data.data[position + 3] = rgba.a;
+            }
+        }
+
+        // put back the image data on the backbuffer
+        this.display_.surface.data = img_data;
+
+        // flip the back-buffer onto the screen
+        this.display_.draw();
     }
 
     // animation main function
