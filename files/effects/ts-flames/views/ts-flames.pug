@@ -1,0 +1,25 @@
+doctype html
+html
+    head
+        title= title
+        link(rel='stylesheet' type="text/css" href='/css/ts-flames.css')
+    body
+        .content
+            .left-pane
+                p.guide -- click to stop the animation --
+
+            .center-pane
+                .top-pane
+                    h1#title #{title}
+
+                .middle-pane
+                    canvas#output(width="640", height="480")
+                        p Your browser does not support canvas
+
+                .bottom-pane
+                    h3#text presented by
+                    img#logo(src="/images/oaxley.png", alt="flames by Oaxley")
+
+            .right-pane
+
+        script(src='/js/ts-flames.bundle.js')
