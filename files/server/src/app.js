@@ -14,6 +14,7 @@ const fs = require('fs');
 //----- globals
 const PORT=8080;
 const PUBLIC_DIR = path.join(__dirname, "../../../public");
+const EFFECTS_DIR = path.join(__dirname, "../../effects");
 
 
 //----- begin
@@ -26,13 +27,26 @@ try {
     process.exit(1);
 }
 
-// setup the PUG view configuration
+// ExpressJS configuration arrays
 var cfg_views = [ path.join(__dirname, "../views") ];
+var cfg_routes = [];
+
+// go through all the effects and set the configuration arrays
 config['effects'].forEach(effect => {
+
+    // PUG views
     cfg_views.push(
-        path.join(__dirname, "../../effects", effect['name'], 'views')
+        path.join(EFFECTS_DIR, effect['name'], 'views')
     )
+
+    // ExpressJS dynamic routes
+    cfg_routes.push({
+        name: effect['name'],
+        endpoint: "/" + effect['name'],
+        title: effect['title'],
+    })
 });
+
 
 // ExpressJS instance
 var app = express();
@@ -44,12 +58,22 @@ app.set('view engine', 'pug');
 // static pages
 app.use(express.static(PUBLIC_DIR));
 
+// add effects routes
+cfg_routes.forEach(data => {
+    app.get(data['endpoint'], (req, res) => {
+        res.render(data['name'], {
+            title: data['title']
+        });
+    });
+});
+
 // default route
 app.get('/', (req, res) => {
     res.render('index', {
         title: 'Oldskool demoscene effects'
     });
 });
+
 
 // start the ExpressJS server
 app.listen(PORT, () => {
