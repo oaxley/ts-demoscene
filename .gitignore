@@ -3,3 +3,6 @@ node_modules/**
 
 # remove output directory
 public/**
+
+# remove declaration type directory
+types/**
