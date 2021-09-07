@@ -29,6 +29,9 @@ export class Flames extends Animation {
     private width_  : number;
     private height_ : number;
 
+    private costable_: number[];            // precomputed cosinus table
+    private sintable_: number[];            // precomputed sinus table
+
 
     //----- methods
     // constructor
@@ -48,6 +51,9 @@ export class Flames extends Animation {
         for (let i = 0; i < this.width_ * this.height_; i++) {
             this.flames_[i] = BLACK_COLOR_INDEX;
         }
+
+        // create the cos/sin precompute tables
+        this.createTables();
     }
 
     // create the Fire palette
@@ -92,6 +98,25 @@ export class Flames extends Animation {
                 this.flames_[offset + (x+1)] = color;
             }
         }
+    }
+
+    private createTables(): void {
+        this.costable_ = [];
+        this.sintable_ = [];
+
+        for (let i = 0; i < 360; i++) {
+            let angle = (i * Math.PI) / 180.0;
+            this.costable_[i] = Math.cos(angle);
+            this.sintable_[i] = Math.sin(angle);
+        }
+    }
+
+    // set a white pixel in the flame buffer
+    private setPixel(x: number, y: number): void {
+        if ( (x > this.width_) || (x < 0) || (y > this.height_) || (y < 0) )
+            return;
+
+        this.flames_[(y * this.width_) + x] = WHITE_COLOR_INDEX;
     }
 
     // run the animation
