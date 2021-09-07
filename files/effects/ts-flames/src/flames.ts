@@ -11,6 +11,7 @@ import { Display } from "library/core/display";
 import { Palette } from "library/color/palette";
 import { Color } from "library/color/color";
 import { RGBA } from "library/color/RGBA";
+import { Point2D, Point3D } from "library/core/interfaces";
 
 
 //----- globals
@@ -31,6 +32,13 @@ export class Flames extends Animation {
 
     private costable_: number[];            // precomputed cosinus table
     private sintable_: number[];            // precomputed sinus table
+
+    private cube3D_: Point3D[];             // the initial cube in 3D
+    private cube2D_: Point2D[];             // the cube after projecting on screen
+    private angle_: number;                 // current cube angle for all axis
+    private depth_: number;                 // screen depth
+    private center_: Point2D;               // cube center
+    private offset_: Point2D;               // offset to move the cube center
 
 
     //----- methods
@@ -54,6 +62,30 @@ export class Flames extends Animation {
 
         // create the cos/sin precompute tables
         this.createTables();
+
+        // initialize the 3D cube
+        this.cube3D_ = [
+            { x:-100, y:-100, z:-100 },
+            { x: 100, y:-100, z:-100 },
+            { x: 100, y: 100, z:-100 },
+            { x:-100, y: 100, z:-100 },
+            { x: 100, y:-100, z: 100 },
+            { x:-100, y:-100, z: 100 },
+            { x:-100, y: 100, z: 100 },
+            { x: 100, y: 100, z: 100 }
+        ]
+
+        // create the initial values in the array
+        this.cube2D_ = []
+        for (let i = 0; i < 8; i++) {
+            this.cube2D_.push({ x: 0, y: 0});
+        }
+
+        // default value for the cube
+        this.angle_ = 0;
+        this.depth_ = 384;
+        this.center_ = { x: 320, y: 200};
+        this.offset_ = { x: 2, y: 1};
     }
 
     // create the Fire palette
