@@ -234,6 +234,23 @@ export class Flames extends Animation {
         }
     }
 
+    // draw the cube
+    private drawCube(): void {
+        this.line(this.cube2D_[0], this.cube2D_[1]);
+        this.line(this.cube2D_[1], this.cube2D_[2]);
+        this.line(this.cube2D_[2], this.cube2D_[3]);
+        this.line(this.cube2D_[3], this.cube2D_[0]);
+
+        this.line(this.cube2D_[4], this.cube2D_[5]);
+        this.line(this.cube2D_[5], this.cube2D_[6]);
+        this.line(this.cube2D_[6], this.cube2D_[7]);
+        this.line(this.cube2D_[7], this.cube2D_[4]);
+
+        this.line(this.cube2D_[0], this.cube2D_[5]);
+        this.line(this.cube2D_[1], this.cube2D_[4]);
+        this.line(this.cube2D_[2], this.cube2D_[7]);
+        this.line(this.cube2D_[3], this.cube2D_[6]);
+    }
 
     // run the animation
     public run(): void{
