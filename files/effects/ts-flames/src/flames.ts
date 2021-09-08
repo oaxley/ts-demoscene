@@ -147,7 +147,7 @@ export class Flames extends Animation {
 
     // set a white pixel in the flame buffer
     private setPixel(x: number, y: number): void {
-        if ( (x > this.width_) || (x < 0) || (y > this.height_) || (y < 0) )
+        if ( (x > this.width_ - 2) || (x < 2) || (y > this.height_) || (y < 0) )
             return;
 
         this.flames_[(y * this.width_) + x] = WHITE_COLOR_INDEX;
