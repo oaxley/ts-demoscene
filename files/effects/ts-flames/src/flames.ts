@@ -271,6 +271,31 @@ export class Flames extends Animation {
         if (!this.isAnimated)
             return;
 
+        // move the center of the cube
+        this.center_.x += this.offset_.x;
+        this.center_.y += this.offset_.y;
+
+        if ((this.center_.x < (this.width_ * 0.20)) || (this.center_.x > (this.width_ * 0.80))) {
+            this.offset_.x *= -1;
+        }
+
+        if ((this.center_.y < (this.height_ * 0.20)) || (this.center_.y > (this.height_ * 0.70))) {
+            this.offset_.y *= -1;
+        }
+
+        // compute the projection of the cube
+        this.projection(this.angle_, this.center_);
+
+        // we draw the cube only every 3 frames to allow time for "burning"
+        if( (this.frames_ % 3) == 0 ) {
+            this.drawCube();
+        }
+
+        // increment angle value
+        this.angle_ += 2;
+        if ( this.angle_ > 360 )
+            this.angle_ = 0;
+
         // create the flame effect
         for (let y = 1; y < this.height_ - 1; y++) {
             let offset = y * this.width_;
@@ -322,6 +347,9 @@ export class Flames extends Animation {
 
         // flip the back-buffer onto the screen
         this.display_.draw();
+
+        // increment the number of frames
+        this.frames_++;
     }
 
     // animation main function
