@@ -6,34 +6,18 @@ body {
     background-color: black;
 }
 
+/* content is composed of left, center and right pane */
 .content {
     margin: auto;
     width: 768px;
     height: 650px;
 }
 
+/* left and right pane are just spacer */
 .left-pane {
     float: left;
     width: 64px;
     height: 100%;
-}
-
-.center-pane {
-    float: left;
-    width: 640px;
-    height: 100%;
-}
-
-.top-pane {
-    height: 75px;
-}
-
-.middle-pane {
-    height: 500px;
-}
-
-.bottom-pane {
-    height: 75px;
 }
 
 .right-pane {
@@ -42,46 +26,73 @@ body {
     height: 100%;
 }
 
+/* center pane is composed of top, middle and bottom pane */
+.center-pane {
+    float: left;
+    width: 640px;
+    height: 100%;
+}
+
+/* top-pane is where the title is */
+.top-pane {
+    height: 75px;
+}
+
 #title {
     display: block;
     margin: 0%;
     margin-right: auto;
     margin-left: auto;
+    padding-top: 12px;
 
+    font-family: Courier;
     font-size: 32pt;
     text-align: center;
-    color: #d80c0a;
-    text-shadow: -5px 2px #f89b29;
-}
-
-#text {
-    display: block;
-    float: left;
-    margin-left: 200px;
     color: white;
 }
 
-#logo {
+/* middle-pane is where the action is displayed */
+.middle-pane {
+    height: 500px;
+}
+
+#output {
+    margin-left: -1px;
+    display: block;
+    border: 1px solid gray;
+}
+
+
+
+/* bottom-pane is where the credits and logo are displayed*/
+.bottom-pane {
+    display: block;
+    height: 75px;
+}
+
+.credits {
+    float: left;
+    width: 50%;
+    height: 100%;
+}
+
+.logo {
+    float: left;
+    width: 50%;
+    height: 100%;
+}
+
+.logo > h3 {
+    float: left;
+    font-family: Courier;
+    padding-left: 20px;
+    color: white;
+}
+
+.logo > img {
     width: 150px;
     height: 120px;
     transform: rotate(-15deg);
     margin-top: -20px;
 }
 
-#output {
-    padding-top: 10px;
-    padding-bottom: 0px;
-    margin: auto;
-    display: block;
-    border: 1px solid gray;
-}
-
-.guide {
-    font-size: 10pt;
-    font-weight: bold;
-    color: gray;
-    writing-mode: vertical-rl;
-    transform: rotate(-180deg);
-    margin: auto;
-    margin-top: 100px;
-  }
