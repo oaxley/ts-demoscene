@@ -70,3 +70,17 @@ export function constrain(value: number, min: number, max: number): number {
             return value
     }
 }
+
+/* normalize a value between [0,1]
+ *
+ * Args
+ *  value: the value to normalize
+ *  low  : the lowest boundary of the value
+ *  high : the highest boundary for this value
+ *
+ * Returns
+ *  the value clamped between 0.0 and 1.0
+ */
+export function norm(value: number, low: number, high: number): number {
+    return (value - low) / (high - low);
+}
