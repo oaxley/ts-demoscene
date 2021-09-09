@@ -84,3 +84,17 @@ export function constrain(value: number, min: number, max: number): number {
 export function norm(value: number, low: number, high: number): number {
     return (value - low) / (high - low);
 }
+
+/* perform a linear interpolation between two values
+ *
+ * Args
+ *  source: the initial value
+ *  target: the target value
+ *  amount: a number between [0,1] where we should interpolate
+ *
+ * Returns
+ *  the interpolated value
+ */
+export function lerp(source: number, target: number, amount: number): number {
+    return source + (target - source) * amount;
+}
