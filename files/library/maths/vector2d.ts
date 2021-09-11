@@ -133,4 +133,12 @@ export class Vector2D {
     public heading(): number {
         return Math.atan2(this.y, this.x);
     }
+
+    // rotate the vector
+    public rotate(angle: number): Vector2D {
+        return new Vector2D(
+            this.x * Math.cos(angle) - this.y * Math.sin(angle),
+            this.x * Math.sin(angle) + this.y * Math.cos(angle)
+        )
+    }
 }
