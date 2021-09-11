@@ -32,4 +32,56 @@ export class Vector3D {
         return [this.x, this.y, this.z];
     }
 
+    // add a vector to us
+    public add(other: Vector3D): Vector3D {
+        return new Vector3D(
+            this.x + other.x,
+            this.y + other.y,
+            this.z + other.z
+        );
+    }
+
+    // substract a vector from us
+    public sub(other: Vector3D): Vector3D {
+        return new Vector3D(
+            this.x - other.x,
+            this.y - other.y,
+            this.z - other.z
+        );
+    }
+
+    // multiply the vector by a number
+    public mult(value: number|Vector3D): Vector3D {
+        if (value instanceof Vector3D) {
+            return new Vector3D(
+                this.x * value.x,
+                this.y * value.y,
+                this.z * value.z
+            );
+        } else {
+            return new Vector3D(
+                this.x * value,
+                this.y * value,
+                this.z * value
+            );
+        }
+    }
+
+    // divide the vector by a number or another vector
+    public div(value: number|Vector3D): Vector3D {
+        if (value instanceof Vector3D) {
+            return new Vector3D(
+                this.x / value.x,
+                this.y / value.y,
+                this.z / value.z
+            );
+        } else {
+            return new Vector3D(
+                this.x / value,
+                this.y / value,
+                this.z / value
+            );
+        }
+    }
+
 }
