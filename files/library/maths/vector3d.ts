@@ -110,4 +110,28 @@ export class Vector3D {
         return (dx * dx + dy * dy + dz * dz);
     }
 
+    // vector normalization
+    public norm(): Vector3D {
+        var mag = this.mag();
+        return new Vector3D(
+            this.x / mag,
+            this.y / mag,
+            this.z / mag
+        );
+    }
+
+    // dot product
+    public dot(other: Vector3D): number {
+        return (this.x * other.x + this.y * other.y + this.z * other.z);
+    }
+
+    // cross product
+    public cross(other: Vector3D): Vector3D {
+        return new Vector3D (
+            this.y * other.z - this.y * other.z,
+            this.z * other.x - this.z * other.x,
+            this.x * other.y - this.x * other.y
+        );
+    }
+
 }
