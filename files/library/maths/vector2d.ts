@@ -122,4 +122,15 @@ export class Vector2D {
         return (this.x * other.x + this.y * other.y);
     }
 
+    // angle with another vector
+    public angle(other: Vector2D): number {
+        let dot = this.dot(other);
+        let mag = Math.sqrt(this.mag2() * other.mag2());
+        return Math.acos(dot / mag);
+    }
+
+    // heading angle of our vector
+    public heading(): number {
+        return Math.atan2(this.y, this.x);
+    }
 }
