@@ -20,6 +20,14 @@ export class Vector2D {
         this.y = y;
     }
 
+    // create a vector from an angle
+    public fromAngle(angle: number): Vector2D {
+        return new Vector2D(
+            Math.cos(angle),
+            Math.sin(angle)
+        );
+    }
+
     // create a string out of our vector information
     public toString(): string {
         return `(${this.x}, ${this.y})`;
