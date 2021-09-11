@@ -76,4 +76,23 @@ export class Vector2D {
         }
     }
 
+    // compute the magnitude of this vector
+    public mag(): number {
+        return Math.sqrt((this.x * this.x) + (this.y * this.y));
+    }
+
+    // compute the magnitude square of this vector
+    public mag2(): number {
+        return (this.x * this.x) + (this.y * this.y);
+    }
+
+    // normalize the vector
+    public norm(): Vector2D {
+        var mag = this.mag();
+        return new Vector2D(
+            this.x / mag,
+            this.y / mag
+        );
+    }
+
 }
