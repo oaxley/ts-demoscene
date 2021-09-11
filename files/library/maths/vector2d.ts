@@ -20,6 +20,16 @@ export class Vector2D {
         this.y = y;
     }
 
+    // create a string out of our vector information
+    public toString(): string {
+        return `(${this.x}, ${this.y})`;
+    }
+
+    // create an array out of our vector information
+    public array(): Array<number> {
+        return [this.x, this.y];
+    }
+
     // add a vector to us
     public add(other: Vector2D): Vector2D {
         return new Vector2D(
