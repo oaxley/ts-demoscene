@@ -84,4 +84,30 @@ export class Vector3D {
         }
     }
 
+    // compute the magnitude of this vector
+    public mag(): number {
+        return Math.sqrt((this.x * this.x) + (this.y * this.y) + (this.z * this.z));
+    }
+
+    // compute the magnitude squared of this vector
+    public mag2(): number {
+        return (this.x * this.x) + (this.y * this.y) + (this.z * this.z);
+    }
+
+    // compute the distance with another vector
+    public dist(other: Vector3D): number {
+        let dx = this.x - other.x;
+        let dy = this.y - other.y;
+        let dz = this.z - other.z;
+        return Math.sqrt(dx * dx + dy * dy + dz * dz);
+    }
+
+    // compute the distance squared with another vector
+    public dist2(other: Vector3D): number {
+        let dx = this.x - other.x;
+        let dy = this.y - other.y;
+        let dz = this.z - other.z;
+        return (dx * dx + dy * dy + dz * dz);
+    }
+
 }
