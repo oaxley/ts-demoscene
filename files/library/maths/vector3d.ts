@@ -141,4 +141,30 @@ export class Vector3D {
         return Math.acos(dot / mag);
     }
 
+    // rotation around X axis
+    public rotateX(angle: number): Vector3D {
+        return new Vector3D (
+            this.x,
+            this.y * Math.cos(angle) - this.z * Math.sin(angle),
+            this.y * Math.sin(angle) + this.z * Math.cos(angle)
+        )
+    }
+
+    // rotation around Y axis
+    public rotateY(angle: number): Vector3D {
+        return new Vector3D (
+            this.x * Math.cos(angle) + this.z * Math.sin(angle),
+            this.y,
+            -this.x * Math.sin(angle) + this.z * Math.cos(angle)
+        )
+    }
+
+    // rotation around Z axis
+    public rotateZ(angle: number): Vector3D {
+        return new Vector3D (
+            this.x * Math.cos(angle) - this.y * Math.sin(angle),
+            this.x * Math.sin(angle) + this.y * Math.cos(angle),
+            this.z,
+        )
+    }
 }
