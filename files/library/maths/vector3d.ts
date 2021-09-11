@@ -134,4 +134,11 @@ export class Vector3D {
         );
     }
 
+    // angle between two vectors
+    public angle(other: Vector3D): number {
+        let dot = this.dot(other);
+        let mag = Math.sqrt(this.mag2() * other.mag2());
+        return Math.acos(dot / mag);
+    }
+
 }
