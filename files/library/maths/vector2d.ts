@@ -95,4 +95,23 @@ export class Vector2D {
         );
     }
 
+    // compute the distance with another vector
+    public dist(other: Vector2D): number {
+        let dx = this.x - other.x;
+        let dy = this.y - other.y;
+        return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    // compute the distance squared with another vector
+    public dist2(other: Vector2D): number {
+        let dx = this.x - other.x;
+        let dy = this.y - other.y;
+        return (dx * dx + dy * dy);
+    }
+
+    // compute the dot product with another vector
+    public dot(other: Vector2D): number {
+        return (this.x * other.x + this.y * other.y);
+    }
+
 }
