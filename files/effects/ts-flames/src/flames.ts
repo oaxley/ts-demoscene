@@ -134,6 +134,7 @@ export class Flames extends Animation {
         }
     }
 
+    // create sin/cos precompute tables
     private createTables(): void {
         this.costable_ = [];
         this.sintable_ = [];
@@ -253,7 +254,7 @@ export class Flames extends Animation {
     }
 
     // run the animation
-    public run(): void{
+    public run(): void {
         console.log("Starting Flames animation.");
 
         // toggle the animation
@@ -267,7 +268,7 @@ export class Flames extends Animation {
     }
 
     // update the animation
-    protected update(timestamp: number): void{
+    protected update(timestamp: number): void {
         if (!this.isAnimated)
             return;
 
@@ -317,7 +318,7 @@ export class Flames extends Animation {
     }
 
     // render the animation on the screen
-    protected render(timestamp: number): void{
+    protected render(timestamp: number): void {
         if (!this.isAnimated)
             return;
 
@@ -353,7 +354,7 @@ export class Flames extends Animation {
     }
 
     // animation main function
-    protected main(timestamp: number): void{
+    protected main(timestamp: number): void {
         this.update(timestamp);
         this.render(timestamp);
 
