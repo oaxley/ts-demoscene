@@ -3,6 +3,10 @@
         {
             "name": "ts-flames",
             "title": "FireCube & Flames"
+        },
+        {
+            "name": "ts-lens",
+            "title": "Elastic Lens"
         }
     ]
 }
