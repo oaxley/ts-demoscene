@@ -24,7 +24,7 @@ export abstract class Animation {
     // toggle the animation
     public toggle(): void {
         this.isAnimated_ = !this.isAnimated_;
-        if ( this.isAnimated_ ) {
+        if ( !this.isAnimated_ ) {
             console.log('Animation stopped.');
         }
         else {
