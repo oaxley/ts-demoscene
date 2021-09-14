@@ -68,12 +68,36 @@ body {
     height: 75px;
 }
 
+/* credits have an artist and website properties */
 .credits {
     float: left;
     width: 50%;
     height: 100%;
+    padding-left: 10px;
+    font-family: Courier;
+    font-size: 10pt;
+    color: white;
+    border-right: 1px solid white;
 }
 
+.credits > a {
+    padding-left: 5px;
+    padding-right: 5px;
+    font-size: 11pt;
+}
+
+.artist:link, .artist:visited, .website:link, .website:visited {
+    font-weight: bold;
+    text-decoration: none;
+    color: pink;
+}
+
+.artist:hover, .website:hover {
+    background-color: pink;
+    color: white;
+}
+
+/* logo with the text and image */
 .logo {
     float: left;
     width: 50%;
