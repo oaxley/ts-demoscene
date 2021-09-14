@@ -59,4 +59,60 @@ export class LensAnimation {
             }
         }
     }
+
+    // compute the lens effect at a certain position
+    public compute(xc: number, yc: number): void {
+        // temporary vars
+        let d = this.diameter_;
+
+        // retrieve the upper corner of the lens
+        let xl = xc - this.radius_;
+        let yl = yc - this.radius_;
+
+        // retrieve the current image data
+        let src_data: ImageData = this.context_.getImageData(xl, yl, d, d);
+
+        // destination image
+        let dst_data: ImageData = new ImageData(d, d);
+
+        // got through all the pixels in the source data
+        for(let y = 0; y < d; y++) {
+            let offset = y * d;
+
+            for(let x = 0; x < d; x++) {
+
+                // retrieve the corresponding offset from the transformation map
+                let t_offset = this.transMap_[offset];
+
+                // copy the pixels accordingly
+                dst_data.data[(offset << 2) + 0] = src_data.data[(t_offset << 2) + 0];
+                dst_data.data[(offset << 2) + 1] = src_data.data[(t_offset << 2) + 1];
+                dst_data.data[(offset << 2) + 2] = src_data.data[(t_offset << 2) + 2];
+                dst_data.data[(offset << 2) + 3] = src_data.data[(t_offset << 2) + 3];
+
+                // next pixel
+                offset++;
+            }
+        }
+
+        // apply the transformation
+        this.context_.putImageData(dst_data, xl, yl);
+
+        // create the bubble effect using the canvas drawing tools
+        // need to be changed to something more "oldkool"
+        this.context_.beginPath()
+        this.context_.arc(xc, yc, this.radius_, 0, 2*Math.PI);
+        this.context_.strokeStyle = "rgba(128,128,196,0.5)";
+        this.context_.fillStyle = "rgba(0,0,196,0.1)";
+        this.context_.fill();
+        this.context_.lineWidth = 2;
+        this.context_.stroke();
+
+        let r = this.radius_ - (this.radius_ / 4);
+        this.context_.beginPath()
+        this.context_.arc(xc, yc, r, 1.7453, 3.536);
+        this.context_.strokeStyle = "rgba(0,0,144,0.2)";
+        this.context_.lineWidth = 5;
+        this.context_.stroke();
+    }
 }
