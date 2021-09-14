@@ -8,6 +8,7 @@
 //----- imports
 import { Animation } from "library/core/animation";
 import { Display } from "library/core/display";
+import { LensAnimation } from "./lens_anim";
 
 
 //----- class
