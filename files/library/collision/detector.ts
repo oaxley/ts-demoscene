@@ -14,6 +14,13 @@ import { CollisionWall } from "./wall";
 import { CollisionCircle } from "./circle";
 
 
+//----- interfaces
+interface CollisionResult {
+    left: number,                   // left object involved in the collision
+    right: number                   // right object involved in the collision
+}
+
+
 //----- class
 export class CollisionDetector {
 
