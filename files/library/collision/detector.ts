@@ -98,4 +98,75 @@ export class CollisionDetector {
 
         return collisions;
     }
+
+    // compute the narrow collision detection
+    private narrowCollision(collisions: CollisionResult[]): void {
+        // no previous collisions found
+        if (collisions.length == 0)
+            return;
+
+        // go through all the collisions
+        for (let i = 0; i < collisions.length; i++) {
+            // objects involved in the collision
+            let left  = this.objects_[collisions[i].left];
+            let right = this.objects_[collisions[i].right];
+
+            // wall collision
+            if ( (left instanceof CollisionCircle) && (right instanceof CollisionWall) ) {
+                let x = left.center.x;
+                let y = left.center.y;
+                let box = right.rect();
+
+                // change the velocity of the circle depending on where it hits the wall
+                if ( (x < box.x) || (x > (box.x + box.w)) )
+                    left.velocity = new Vector2D(-left.velocity.x, left.velocity.y);
+
+                if ( (y < box.y) || (y > (box.y + box.h)) )
+                    left.velocity = new Vector2D(left.velocity.x, -left.velocity.y);
+            }
+
+            // circle / circle collision
+            if ( (left instanceof CollisionCircle) && (right instanceof CollisionCircle) ) {
+                // check if the collision is already done for this pair
+                if ( left.hasCollided && right.hasCollided )
+                    continue;
+
+                // ensure it's a true collision (and not bouding box just overlapping)
+                let xc1 = left.center.x;
+                let yc1 = left.center.y;
+                let rc1 = left.radius;
+
+                let xc2 = right.center.x;
+                let yc2 = right.center.y;
+                let rc2 = right.radius;
+
+                // compute the squared distance between the two circles
+                let dist = (xc2 - xc1) * (xc2 - xc1) + (yc2 - yc1) * (yc2 - yc1);
+                let r2 = (rc1 + rc2) * (rc1 + rc2);
+
+                if (dist < r2) {
+                    // collision vector normalized
+                    let norm = (new Vector2D(xc2 - xc1, yc2 - yc1)).norm();
+
+                    // p-value resulting from the collision
+                    let p = 2 * ( (left.velocity.x  * norm.x)
+                                + (left.velocity.y  * norm.y)
+                                - (right.velocity.x * norm.x)
+                                - (right.velocity.y * norm.y) ) / (left.mass + right.mass);
+
+                    // compute the new left velocity after energy transfer
+                    left.velocity.x = left.velocity.x - p * left.mass * norm.x;
+                    left.velocity.x = left.velocity.y - p * left.mass * norm.y;
+
+                    // compute the new right velocity after energy transfer
+                    right.velocity.x = right.velocity.x - p * right.mass * norm.x;
+                    right.velocity.x = right.velocity.y - p * right.mass * norm.y;
+
+                    // set the collision markers
+                    left.hasCollided  = true;
+                    right.hasCollided = true;
+                }
+            }
+        }
+    }
 }
