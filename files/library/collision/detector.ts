@@ -43,6 +43,11 @@ export class CollisionDetector {
 
     // update the collision detection for all objects
     public update(): void {
+        // compute the broader & narrow collision detection
+        let collisions = this.broaderCollision();
+        this.narrowCollision(collisions);
+
+        // update the objects after collisions
         this.objects_.forEach(element => {
             element.update();
         });
