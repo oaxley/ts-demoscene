@@ -58,9 +58,40 @@ export class CollisionCircle extends CollisionObject {
 
     // update the object
     public update(): void {
+        // move the center of the circle according to its velocity
+        this.center_ = this.center_.add(this.velocity_);
+
+        // reset the collision flag to false
+        this.hasCollided = false;
     }
 
     // render the object (to showcase simulation)
     public render(ctx: CanvasRenderingContext2D): void {
+        // draw the circle
+        ctx.beginPath();
+        ctx.strokeStyle = 'green';
+        ctx.arc(this.center_.x, this.center_.y, this.radius_, 0, 2*Math.PI);
+        ctx.stroke();
+
+        // draw the velocity vector on the circle
+        let angle = this.velocity_.heading();
+        let x = this.radius_ * Math.cos(angle);
+        let y = this.radius_ * Math.sin(angle);
+
+        ctx.beginPath();
+        ctx.strokeStyle = 'green';
+        ctx.lineWidth = 1;
+        ctx.moveTo(this.center_.x, this.center_.y);
+        ctx.lineTo(this.center_.x + x, this.center_.y + y);
+        ctx.stroke();
+
+        // draw the collision box
+        let box = this.rect();
+        ctx.beginPath();
+        ctx.strokeStyle = 'red';
+        ctx.setLineDash([5, 10]);
+        ctx.rect(box.x, box.y, box.w, box.h);
+        ctx.stroke();
+        ctx.setLineDash([]);
     }
 }
