@@ -47,6 +47,11 @@ export abstract class CollisionObject {
         return this.velocity_;
     }
 
+    // accessor to set the object velocity
+    public set velocity(value: Vector2D) {
+        this.velocity_ = value;
+    }
+
     // return the bounding box of the object
     public abstract rect(center?: Vector2D): Rect;
 
