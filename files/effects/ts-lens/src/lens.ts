@@ -146,6 +146,15 @@ export class Lens extends Animation {
         // load the background image in the back-buffer
         this.display_.loadImage(this.image_);
 
+        // compute the transformation for all the lenses
+        this.lenses_.forEach(element => {
+            // retrieve the center from the collision object
+            let center = element.circle.center;
+
+            // compute the transformation at this spot
+            element.lens.compute(center.x, center.y);
+        });
+
         // flip the back-buffer onto the screen
         this.display_.draw();
 
