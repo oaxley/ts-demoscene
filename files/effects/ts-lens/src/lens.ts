@@ -82,7 +82,7 @@ export class Lens extends Animation {
 
         // bottom wall
         this.detector_.add(
-            new CollisionWall({x: 0, y: dw - WALL_SIZE, w: dw, h: WALL_SIZE})
+            new CollisionWall({x: 0, y: dh - WALL_SIZE, w: dw, h: WALL_SIZE})
         );
     }
 
@@ -137,6 +137,10 @@ export class Lens extends Animation {
     protected update(timestamp: number): void {
         if (!this.isAnimated)
             return;
+
+        // update the collision detector
+        this.detector_.update();
+
     }
 
     // render the animation on screen
