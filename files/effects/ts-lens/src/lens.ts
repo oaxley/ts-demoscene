@@ -91,6 +91,7 @@ export class Lens extends Animation {
         let weight = RADIUS * RADIUS_TO_MASS;
         let ctx = this.display_.surface.context;
 
+        this.lenses_ = [];
         this.lenses_.push({
             circle: new CollisionCircle(new Vector2D(200, 2*RADIUS), this.randomVelocity(), RADIUS, weight),
             lens: new LensAnimation(ctx, RADIUS, LENS_MAGNIFICATION)
