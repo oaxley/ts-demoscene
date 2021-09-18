@@ -55,6 +55,7 @@ export class Lens extends Animation {
         // create an instance of the CollisionDetector and add objects to it
         this.detector_ = new CollisionDetector();
         this.createWalls();
+        this.createLenses();
 
     }
 
@@ -84,6 +85,41 @@ export class Lens extends Animation {
             new CollisionWall({x: 0, y: dw - WALL_SIZE, w: dw, h: WALL_SIZE})
         );
     }
+
+    // create lenses
+    private createLenses(): void {
+        let weight = RADIUS * RADIUS_TO_MASS;
+        let ctx = this.display_.surface.context;
+
+        this.lenses_.push({
+            circle: new CollisionCircle(new Vector2D(200, 2*RADIUS), this.randomVelocity(), RADIUS, weight),
+            lens: new LensAnimation(ctx, RADIUS, LENS_MAGNIFICATION)
+        });
+
+        this.lenses_.push({
+            circle: new CollisionCircle(new Vector2D(400, 4*RADIUS), this.randomVelocity(), 2*RADIUS, 2*weight),
+            lens: new LensAnimation(ctx, 2*RADIUS, LENS_MAGNIFICATION)
+        });
+
+        this.lenses_.push({
+            circle: new CollisionCircle(new Vector2D(400, 400), this.randomVelocity(), RADIUS, weight),
+            lens: new LensAnimation(ctx, RADIUS, LENS_MAGNIFICATION)
+        });
+
+        // add the lenses to the collision detector
+        this.lenses_.forEach(element => {
+            this.detector_.add(element.circle);
+        });
+    }
+
+    // generate a random velocity vector
+    private randomVelocity(): Vector2D {
+        let x = -5 + 10 * Math.random();
+        let y = -5 + 10 * Math.random();
+
+        return new Vector2D(x, y);
+    }
+
 
     // run the animation
     public run(): void {
