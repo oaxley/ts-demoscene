@@ -161,11 +161,11 @@ export class CollisionDetector {
 
                     // compute the new left velocity after energy transfer
                     left.velocity.x = left.velocity.x - p * left.mass * norm.x;
-                    left.velocity.x = left.velocity.y - p * left.mass * norm.y;
+                    left.velocity.y = left.velocity.y - p * left.mass * norm.y;
 
                     // compute the new right velocity after energy transfer
-                    right.velocity.x = right.velocity.x - p * right.mass * norm.x;
-                    right.velocity.x = right.velocity.y - p * right.mass * norm.y;
+                    right.velocity.x = right.velocity.x + p * right.mass * norm.x;
+                    right.velocity.y = right.velocity.y + p * right.mass * norm.y;
 
                     // set the collision markers
                     left.hasCollided  = true;
