@@ -70,6 +70,7 @@ export class CollisionCircle extends CollisionObject {
         // draw the circle
         ctx.beginPath();
         ctx.strokeStyle = 'green';
+        ctx.lineWidth = 1;
         ctx.arc(this.center_.x, this.center_.y, this.radius_, 0, 2*Math.PI);
         ctx.stroke();
 
