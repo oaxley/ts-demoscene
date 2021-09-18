@@ -8,7 +8,27 @@
 //----- imports
 import { Animation } from "library/core/animation";
 import { Display } from "library/core/display";
+import { Vector2D } from "library/maths/vector2d";
+
+import { CollisionDetector } from "library/collision/detector";
+import { CollisionWall } from "library/collision/wall";
+import { CollisionCircle } from "library/collision/circle";
+
 import { LensAnimation } from "./lens_anim";
+
+
+//----- globals
+export const RADIUS_TO_MASS = 0.1;              // radius to mass ratio
+export const RADIUS = 40;                       // default lens radius
+export const LENS_MAGNIFICATION = 20;           // lens magnification
+export const WALL_SIZE = 3;                     // wall size
+
+
+//----- interfaces
+interface LensObject {
+    circle: CollisionCircle,
+    lens: LensAnimation
+}
 
 
 //----- class
