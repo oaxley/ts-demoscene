@@ -35,8 +35,11 @@ interface LensObject {
 export class Lens extends Animation {
 
     //----- members
-    private display_: Display;
-    private image_: HTMLImageElement;
+    private display_ : Display;
+    private image_   : HTMLImageElement;
+    private lenses_  : LensObject[];            // list of lenses in the animation
+    private detector_: CollisionDetector;       // Collision detector instance
+
 
     //----- methods
     constructor(display: Display) {
@@ -48,6 +51,38 @@ export class Lens extends Animation {
         // load the background image
         this.image_ = new Image();
         this.image_.src = '/images/ts-lens.background.jpg';
+
+        // create an instance of the CollisionDetector and add objects to it
+        this.detector_ = new CollisionDetector();
+        this.createWalls();
+
+    }
+
+    // create wall around the display zone to bounce the lenses
+    private createWalls(): void {
+        let dw = this.display_.width;
+        let dh = this.display_.height;
+        let tmp = dh - (WALL_SIZE * 2) - 2;
+
+        // top wall
+        this.detector_.add(
+            new CollisionWall({x: 0, y: 0, w: dw, h: WALL_SIZE})
+        );
+
+        // left wall
+        this.detector_.add(
+            new CollisionWall({x: 0, y: WALL_SIZE + 1, w: WALL_SIZE, h: tmp})
+        );
+
+        // right wall
+        this.detector_.add(
+            new CollisionWall({x: dw - WALL_SIZE, y: WALL_SIZE + 1, w: WALL_SIZE, h: tmp})
+        );
+
+        // bottom wall
+        this.detector_.add(
+            new CollisionWall({x: 0, y: dw - WALL_SIZE, w: dw, h: WALL_SIZE})
+        );
     }
 
     // run the animation
