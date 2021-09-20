@@ -7,6 +7,10 @@
         {
             "name": "ts-lens",
             "title": "Elastic Lens"
+        },
+        {
+            "name": "ts-metaball",
+            "title": "Light Balls"
         }
     ]
 }
