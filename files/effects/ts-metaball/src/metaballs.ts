@@ -19,6 +19,7 @@ const RADIUS_INCREASE: number = 40;
 const NUM_PARTICULES: number = 10;
 const MAX_VELOCITY_X: number = 5;
 const MAX_VELOCITY_Y: number = 5;
+const COEFF: number = 40;
 
 
 //----- interfaces
@@ -121,6 +122,41 @@ export class Metaballs extends Animation {
     protected render(timestamp: number): void {
         if (!this.isAnimated)
             return;
+
+        // retrieve the pixels data from the back-buffer surface
+        let imgdata = this.display_.surface.data;
+
+        // compute the effect
+        for (let y = 0; y < this.height_; y++) {
+            for (let x = 0; x < this.width_; x++) {
+
+                // compute the interference between each particules
+                let sum = 0;
+                for (let k = 0; k < NUM_PARTICULES; k++) {
+
+                    let d = Math.sqrt( (x - this.metaballs_[k].x) * (x - this.metaballs_[k].x) + (y - this.metaballs_[k].y) * (y - this.metaballs_[k].y) );
+                    let c = Math.floor(COEFF * this.metaballs_[k].r / d);
+
+                    sum += c;
+                }
+
+                if (sum > 255)
+                    sum = 255;
+
+                // retrieve the associated color from the palette
+                let rgb = this.palette_.getColor(sum).color.values;
+
+                // set the pixel
+                let pos = (y * this.width_ + x) << 2;
+                imgdata.data[pos + 0] = rgb.x;
+                imgdata.data[pos + 1] = rgb.y;
+                imgdata.data[pos + 2] = rgb.z;
+                imgdata.data[pos + 3] = 255;
+            }
+        }
+
+        // copy back the pixels data to the surface
+        this.display_.surface.data = imgdata;
 
         // flip the back-buffer onto the screen
         this.display_.draw();
