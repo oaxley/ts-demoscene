@@ -13,12 +13,34 @@ import { Color } from "library/color/color";
 import { COLOR_MODEL } from "library/color/basecolor";
 
 
+//----- globals
+const RADIUS: number = 60;
+const RADIUS_INCREASE: number = 40;
+const NUM_PARTICULES: number = 10;
+const MAX_VELOCITY_X: number = 5;
+const MAX_VELOCITY_Y: number = 5;
+
+
+//----- interfaces
+interface MetaParticule {
+    x: number,              // X position
+    y: number,              // Y position
+    vx: number,             // X velocity
+    vy: number,             // Y velocity
+    r: number               // Radius
+}
+
+
 //----- class
 export class Metaballs extends Animation {
 
     //----- members
-    private display_ : Display;
-    private palette_ : Palette;
+    private display_  : Display;
+    private width_    : number;
+    private height_   : number;
+    private palette_  : Palette;
+    private metaballs_: MetaParticule[];
+
 
     //----- methods
     constructor(display: Display) {
@@ -26,9 +48,14 @@ export class Metaballs extends Animation {
 
         // set the vars
         this.display_ = display;
+        this.width_   = display.width;
+        this.height_  = display.height;
 
         // create the grayscale palette
         this.createPalette();
+
+        // create the metaballs particules
+        this.createParticules();
     }
 
     // ease function
@@ -42,6 +69,22 @@ export class Metaballs extends Animation {
         for (let index = 0; index < 256; index++) {
             let v = Math.floor(255.0 * this.ease(index / 256.0));
             this.palette_.setColor(index, new Color(COLOR_MODEL.RGBA, v, v, v));
+        }
+    }
+
+    // create the metaballs particules
+    private createParticules(): void {
+        this.metaballs_ = [];
+        for (let i = 0; i < NUM_PARTICULES; i++) {
+            this.metaballs_.push(
+                {
+                    x: Math.floor(this.width_ * Math.random()),
+                    y: Math.floor(this.height_ * Math.random()),
+                    vx: MAX_VELOCITY_X * Math.random(),
+                    vy: MAX_VELOCITY_Y * Math.random(),
+                    r: Math.floor(RADIUS + RADIUS_INCREASE * Math.random())
+                }
+            )
         }
     }
 
