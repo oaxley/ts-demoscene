@@ -8,6 +8,9 @@
 //----- imports
 import { Animation } from "library/core/animation";
 import { Display } from "library/core/display";
+import { Palette } from "library/color/palette";
+import { Color } from "library/color/color";
+import { COLOR_MODEL } from "library/color/basecolor";
 
 
 //----- class
@@ -15,7 +18,7 @@ export class Metaballs extends Animation {
 
     //----- members
     private display_ : Display;
-
+    private palette_ : Palette;
 
     //----- methods
     constructor(display: Display) {
@@ -23,6 +26,23 @@ export class Metaballs extends Animation {
 
         // set the vars
         this.display_ = display;
+
+        // create the grayscale palette
+        this.createPalette();
+    }
+
+    // ease function
+    private ease(x: number): number {
+        return x * x * x;
+    }
+
+    // create a grayscale palette
+    private createPalette(): void {
+        this.palette_ = new Palette();
+        for (let index = 0; index < 256; index++) {
+            let v = Math.floor(255.0 * this.ease(index / 256.0));
+            this.palette_.setColor(index, new Color(COLOR_MODEL.RGBA, v, v, v));
+        }
     }
 
     // run the animation
