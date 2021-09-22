@@ -103,6 +103,18 @@ export class Metaballs extends Animation {
     protected update(timestamp: number): void {
         if (!this.isAnimated)
             return;
+
+        // move the particules around
+        for (let k = 0; k < NUM_PARTICULES; k++) {
+            this.metaballs_[k].x += this.metaballs_[k].vx;
+            this.metaballs_[k].y += this.metaballs_[k].vy;
+
+            if ((this.metaballs_[k].x < 0) || (this.metaballs_[k].x > this.width_))
+                this.metaballs_[k].vx = -this.metaballs_[k].vx;
+
+            if ((this.metaballs_[k].y < 0) || (this.metaballs_[k].y > this.height_))
+                this.metaballs_[k].vy = -this.metaballs_[k].vy;
+        }
     }
 
     // render the animation on screen
