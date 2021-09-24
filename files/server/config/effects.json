@@ -11,6 +11,10 @@
         {
             "name": "ts-metaball",
             "title": "Light Balls"
+        },
+        {
+            "name": "ts-rotozoom",
+            "title": "Easy Rotozoomer"
         }
     ]
 }
