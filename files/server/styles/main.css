@@ -1,4 +1,41 @@
-body {
-    background-color: white;
+* {
+    box-sizing: border-box;
 }
 
+body {
+    background-color: black;
+}
+
+.content {
+    margin: auto;
+    width: 640px;
+}
+
+.title {
+    font-family: Courier;
+    color: white;
+    padding-left: 20px;
+}
+
+.item > a {
+    float: left;
+    width: 50%;
+    font-family: Courier;
+    font-weight: bold;
+}
+
+.item > a:link, a:visited {
+    padding-left: 20px;
+    margin-top: 90px;
+    color: pink;
+    text-decoration: none;
+}
+
+.item > img {
+    width: 50%;
+}
+
+.item > a:hover {
+    background-color: pink;
+    color: black;
+}
