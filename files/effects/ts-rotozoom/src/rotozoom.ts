@@ -8,6 +8,7 @@
 //----- imports
 import { Animation } from "library/core/animation";
 import { Display } from "library/core/display";
+import { Surface } from "library/core/surface";
 import { radians } from "library/maths/utils";
 
 
@@ -16,7 +17,7 @@ export class Rotozoom extends Animation {
 
     //----- members
     private display_  : Display;
-    private image_    : HTMLImageElement;
+    private image_    : Surface;
 
     private cos_ : number[];                        // cos lookup table
     private sin_ : number[];                        // sin lookup table
@@ -30,8 +31,12 @@ export class Rotozoom extends Animation {
         this.display_ = display;
 
         // load the texture image
-        this.image_ = new Image();
-        this.image_.src = '/images/ts-rotozoom.asset.jpg';
+        let img = new Image();
+        img.onload = () => {
+            this.image_ = new Surface({width: img.width, height: img.height});
+            this.image_.context.drawImage(img, 0, 0);
+        };
+        img.src = '/images/ts-rotozoom.asset.jpg';
 
         // load the lookup tables
         this.computeLUT();
