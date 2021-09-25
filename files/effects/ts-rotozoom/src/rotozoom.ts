@@ -12,6 +12,11 @@ import { Surface } from "library/core/surface";
 import { radians } from "library/maths/utils";
 
 
+//---- globals
+const FPS: number = 25;
+const TICKS: number = 1000 / FPS;
+
+
 //----- class
 export class Rotozoom extends Animation {
 
@@ -24,6 +29,8 @@ export class Rotozoom extends Animation {
     private cos_ : number[];                        // cos lookup table
     private sin_ : number[];                        // sin lookup table
 
+    private lastTs_: number;                        // last timestamp
+
 
     //----- methods
     constructor(display: Display) {
@@ -32,6 +39,7 @@ export class Rotozoom extends Animation {
         // set the vars
         this.display_ = display;
         this.angle_ = 0;
+        this.lastTs_ = null;
 
         // load the texture image
         let img = new Image();
@@ -138,8 +146,18 @@ export class Rotozoom extends Animation {
 
     // main animation function
     protected main(timestamp: number): void {
-        this.update(timestamp);
-        this.render(timestamp);
+        // initialize the value on first call
+        if (this.lastTs_ == null) {
+            this.lastTs_ = timestamp;
+        }
+
+        // ensure the animation is runned at constant frame rate
+        if ( (timestamp - this.lastTs_) > TICKS ) {
+            this.update(timestamp);
+            this.render(timestamp);
+
+            this.lastTs_ = timestamp
+        }
         requestAnimationFrame(this.main.bind(this));
     }
 }
