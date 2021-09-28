@@ -118,3 +118,29 @@ body {
     margin-top: -20px;
 }
 
+/* next & prev buttons */
+.prev, .next {
+    cursor: pointer;
+    color: white;
+    position: absolute;
+    font-size: 48pt;
+    transition: 0.6s ease;
+    user-select: none;
+}
+
+.prev {
+    margin-top: 280px;
+    margin-left: -750px;
+/*     border-radius: 3px 0 0 3px; */
+}
+
+.next {
+    margin-top: 280px;
+    margin-left: -50px;
+/*     border-radius: 0 3px 3px 0; */
+}
+
+/* On hover, add a black background color with a little bit see-through */
+.prev:hover, .next:hover {
+    color: rgba(255,70,0,1.0);
+}
