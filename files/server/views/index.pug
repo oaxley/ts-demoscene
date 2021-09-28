@@ -2,33 +2,26 @@ doctype html
 html
     head
         title= title
-        link(rel="stylesheet", type="text/css", href="/css/main.css")
-
+        link(rel='stylesheet' type="text/css" href='/css/main.css')
     body
         .content
-            .title
-                h1 Demoscene effects from the 90's
+            .left-pane
 
-            .middle
-                .left
+            .center-pane
+                .top-pane
+                    h1#title #{title}
 
-                .center
-                    .item
-                        a(href="/ts-flames") FireCube &amp; Flames
-                        img(src="/images/ts-flames.screenshot.png" with="320" height="240")
+                .middle-pane
+                    canvas#output(width="640", height="480")
+                        p Your browser does not support canvas
 
-                    .item
-                        a(href="/ts-lens") Elastic Lens
-                        img(src="/images/ts-lens.screenshot.png" with="320" height="240")
+                .bottom-pane
+                    .credits
 
-                    .item
-                        a(href="/ts-metaball") Light balls
-                        img(src="/images/ts-metaball.screenshot.png" with="320" height="240")
+                    .logo
+                        h3 presented by
+                        img(src="/images/oaxley.png", alt="by Oaxley")
 
-                    .item
-                        a(href="/ts-rotozoom") Easy Rotozoomer
-                        img(src="/images/ts-rotozoom.screenshot.png" with="320" height="240")
+            .right-pane
 
-                .right
-
-            .bottom
+        script(src='/js/main.bundle.js')
