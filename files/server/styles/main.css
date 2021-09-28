@@ -6,36 +6,115 @@ body {
     background-color: black;
 }
 
+/* content is composed of left, center and right pane */
 .content {
     margin: auto;
+    width: 768px;
+    height: 650px;
+}
+
+/* left and right pane are just spacer */
+.left-pane {
+    float: left;
+    width: 64px;
+    height: 100%;
+}
+
+.right-pane {
+    float: left;
+    width: 64px;
+    height: 100%;
+}
+
+/* center pane is composed of top, middle and bottom pane */
+.center-pane {
+    float: left;
     width: 640px;
+    height: 100%;
 }
 
-.title {
+/* top-pane is where the title is */
+.top-pane {
+    height: 75px;
+}
+
+#title {
+    display: block;
+    margin: 0%;
+    margin-right: auto;
+    margin-left: auto;
+    padding-top: 12px;
+
     font-family: Courier;
+    font-size: 32pt;
+    text-align: center;
     color: white;
-    padding-left: 20px;
 }
 
-.item > a {
+/* middle-pane is where the action is displayed */
+.middle-pane {
+    height: 500px;
+}
+
+#output {
+    margin-left: -1px;
+    display: block;
+    border: 1px solid gray;
+}
+
+/* bottom-pane is where the credits and logo are displayed*/
+.bottom-pane {
+    display: block;
+    height: 75px;
+}
+
+/* credits have an artist and website properties */
+.credits {
     float: left;
     width: 50%;
+    height: 100%;
+    padding-left: 10px;
     font-family: Courier;
+    font-size: 10pt;
+    color: white;
+    border-right: 1px solid white;
+}
+
+.credits > a {
+    padding-left: 5px;
+    padding-right: 5px;
+    font-size: 11pt;
+}
+
+.artist:link, .artist:visited, .website:link, .website:visited {
     font-weight: bold;
-}
-
-.item > a:link, a:visited {
-    padding-left: 20px;
-    margin-top: 90px;
-    color: pink;
     text-decoration: none;
+    color: pink;
 }
 
-.item > img {
-    width: 50%;
-}
-
-.item > a:hover {
+.artist:hover, .website:hover {
     background-color: pink;
-    color: black;
+    color: white;
 }
+
+/* logo with the text and image */
+.logo {
+    float: left;
+    width: 50%;
+    height: 100%;
+}
+
+.logo > h3 {
+    float: left;
+    font-family: Courier;
+    padding-left: 20px;
+    color: white;
+}
+
+.logo > img {
+    width: 150px;
+    height: 120px;
+    transform: rotate(-15deg);
+    margin-top: -20px;
+}
+
