@@ -51,7 +51,9 @@ function findStylesheets() {
 
 // find all the entry-points
 function findEntryPoints() {
-    let entry_points = {};
+    let entry_points = {
+        main: path.join(__dirname, "files/server/src/main.ts")
+    };
     let rootdir = path.join(__dirname, "files/effects");
 
     let files = glob.sync(`${rootdir}/**/main.ts`);
