@@ -70,10 +70,14 @@ cfg_routes.forEach(data => {
 // default route
 app.get('/', (req, res) => {
     res.render('index', {
-        title: 'Oldskool demoscene effects'
+        title: "90's Demoscene effects",
     });
 });
 
+// retrieve the configuration
+app.get('/config', (req, res) => {
+    res.send(config)
+});
 
 // start the ExpressJS server
 app.listen(PORT, () => {
