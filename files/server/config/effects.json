@@ -2,19 +2,23 @@
     "effects": [
         {
             "name": "ts-flames",
-            "title": "FireCube & Flames"
+            "title": "FireCube & Flames",
+            "description": "Flames effect with a rotating cube"
         },
         {
             "name": "ts-lens",
-            "title": "Elastic Lens"
+            "title": "Elastic Lens",
+            "description": "Three lens that interact with elastic collision"
         },
         {
             "name": "ts-metaball",
-            "title": "Light Balls"
+            "title": "Light Balls",
+            "description": "Revisited electrical field"
         },
         {
             "name": "ts-rotozoom",
-            "title": "Easy Rotozoomer"
+            "title": "Easy Rotozoomer",
+            "description": "Zoom and rotate a texture"
         }
     ]
 }
