@@ -80,21 +80,24 @@ body {
     border-right: 1px solid white;
 }
 
-.credits > a {
-    padding-left: 5px;
-    padding-right: 5px;
-    font-size: 11pt;
+#effect-name {
+    height: 30%;
 }
 
-.artist:link, .artist:visited, .website:link, .website:visited {
-    font-weight: bold;
-    text-decoration: none;
-    color: pink;
+#effect-desc {
+    height: 70%;
 }
 
-.artist:hover, .website:hover {
-    background-color: pink;
+.credits a, a:visited {
     color: white;
+    text-decoration: none;
+    font-size: 12pt;
+    font-weight: bold;
+    transition: 1.5s ease;
+}
+
+.credits a:hover {
+    background-color: rgba(255,70,0,1.0);
 }
 
 /* logo with the text and image */
