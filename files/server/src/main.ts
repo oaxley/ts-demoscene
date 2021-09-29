@@ -5,6 +5,7 @@
  * @brief   Typescript file for the main page
  */
 
+import { url } from "inspector";
 import { threadId } from "worker_threads";
 
 //----- imports
@@ -68,6 +69,7 @@ class Slider {
 
             // load the first image
             this.loadImage(this.curImage_);
+            this.loadCredits();
         });
 
         // set the buttons properties
@@ -128,6 +130,19 @@ class Slider {
         this.nImage_.src = '/images/' + name;
     }
 
+    // set the name and description for the effect
+    private loadCredits(): void {
+        let index = this.curImage_;
+        let name  = this.config_[index]['name'];
+        let title = this.config_[index]['title'];
+        let desc  = this.config_[index]['description'];
+
+        // set the title
+        let html = '<a href="/' + name + '">&#10095;&#10095 ' + title + '</a>';
+        document.getElementById("effect-name").innerHTML = html;
+        document.getElementById("effect-desc").innerText = desc;
+    }
+
     // next image
     public nextImage(): void {
         if (!this.buttons_[NEXT_BUTTON].enable)
@@ -143,6 +158,7 @@ class Slider {
 
         // load the new image
         this.loadImage(this.curImage_);
+        this.loadCredits();
 
         // activate the previous button
         if (!this.buttons_[PREVIOUS_BUTTON].enable) {
@@ -166,6 +182,7 @@ class Slider {
 
         // load the new image
         this.loadImage(this.curImage_);
+        this.loadCredits();
 
         // activate the next button
         if (!this.buttons_[NEXT_BUTTON].enable) {
