@@ -19,6 +19,11 @@
             "name": "ts-rotozoom",
             "title": "Easy Rotozoomer",
             "description": "Zoom and rotate a texture"
+        },
+        {
+            "name": "ts-plasma",
+            "title": "Colorful plasma",
+            "description": "Colorful sine and cosine functions"
         }
     ]
 }
