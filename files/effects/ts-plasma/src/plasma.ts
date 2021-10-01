@@ -58,6 +58,36 @@ export class Plasma extends Animation {
     protected update(timestamp: number): void {
         if (!this.isAnimated)
             return;
+
+        let imgdata = this.display_.surface.data;
+        let time = timestamp / 500;
+        let ofs = 0
+        for (let y = 0; y < this.display_.height; y++) {
+            const dy = -0.5 + (y / this.display_.height);
+            for (let x = 0; x < this.display_.width; x++) {
+                const dx = -0.5 + (x / this.display_.width);
+
+                const cx = dx + 0.5 * Math.sin(time / 7);
+                const cy = dy + 0.5 * Math.cos(time / 5);
+
+                let v = Math.sin(dx * 10 + time);
+                v += Math.sin(Math.sqrt(75 * (cx * cx + cy * cy) + 1 + time));
+                v += Math.cos(Math.sqrt(dx * dx + dy * dy) - time);
+                v /= 3;
+
+                let index = Math.floor(128 + 128 * v);
+                if (index > 255)
+                    index = 255;
+
+                let rgba = this.palette_.getColor(index).color.values;
+                imgdata.data[ofs++] = rgba.x;
+                imgdata.data[ofs++] = rgba.y;
+                imgdata.data[ofs++] = rgba.z;
+                imgdata.data[ofs++] = rgba.a;
+            }
+        }
+
+        this.display_.surface.data = imgdata;
     }
 
     // render the animation on screen
