@@ -8,7 +8,7 @@
         {
             "name": "ts-lens",
             "title": "Elastic Lens",
-            "description": "Three lens that interact with elastic collision"
+            "description": "Three lenses that interact with elastic collision"
         },
         {
             "name": "ts-metaball",
