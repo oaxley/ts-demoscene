@@ -13,6 +13,7 @@ const fs = require('fs');
 
 //----- globals
 const PORT=8080;
+const HOST="localhost";
 const PUBLIC_DIR = path.join(__dirname, "../../../public");
 const EFFECTS_DIR = path.join(__dirname, "../../effects");
 
@@ -80,6 +81,9 @@ app.get('/config', (req, res) => {
 });
 
 // start the ExpressJS server
-app.listen(PORT, () => {
-    console.log(`ExpressJS started on http://localhost:${PORT}.`);
+let host = (process.env.HOST === undefined) ? HOST : process.env.HOST;
+let port = (process.env.PORT === undefined) ? PORT : process.env.PORT;
+
+app.listen(port, host, () => {
+    console.log(`ExpressJS started on http://${host}:${port}.`);
 });
