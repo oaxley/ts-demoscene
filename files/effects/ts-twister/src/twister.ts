@@ -14,7 +14,7 @@ import { Size } from "library/core/interfaces";
 
 
 //----- globals
-const BAR_WIDTH = 200;
+const BAR_WIDTH = 240;
 
 
 //----- class
