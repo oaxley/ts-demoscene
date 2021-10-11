@@ -1,7 +1,7 @@
 /*
  * @file    twister.ts
  * @author  Sebastien LEGRAND
- * 
+ *
  * @brief   Twister effect
  */
 
@@ -9,6 +9,8 @@
 import { Animation } from "library/core/animation";
 import { Display } from "library/core/display";
 import { radians } from "library/maths/utils";
+import { Surface } from "library/core/surface";
+import { Size } from "library/core/interfaces";
 
 
 //----- globals
@@ -17,14 +19,16 @@ const BAR_WIDTH = 200;
 
 //----- class
 export class Twister extends Animation {
- 
+
     //----- members
     private display_: Display;
-    
+
     private angle_    : number;     // rotation angle
     private amplitude_: number;     // movement amplitude
     private ampway_   : number;     // movement way
 
+    private texture_ : Surface;     // texture surface
+    private slice_   : Size;        // texture slice size
 
     //----- methods
     constructor(display: Display) {
@@ -37,22 +41,47 @@ export class Twister extends Animation {
         this.ampway_ = 0.05;
     }
 
+    private loadTexture(name: string): Promise<HTMLImageElement> {
+        return new Promise((resolve, reject) => {
+            let img = new Image();
+            img.onload = () => {
+                resolve(img);
+            };
+            img.src = name;
+        });
+    }
+
     // run the animation
     public run(): void {
         console.log("Starting the Twister animation.");
 
-        // toggle the animation
-        this.toggle();
+        // load the texture
+        this.loadTexture('/images/ts-twister.asset.jpg').then(img => {
 
-        // run the animation on the next frame
-        requestAnimationFrame(this.main.bind(this));
+            // create the new surface
+            this.texture_ = new Surface({width: img.width, height: img.height});
+            this.texture_.context.drawImage(img, 0, 0);
+            console.log('Texture loaded.');
+
+            // set the slice size
+            this.slice_ = {
+                width: img.width >> 2,
+                height: img.height
+            }
+
+            // toggle the animation
+            this.toggle();
+
+            // run the animation on the next frame
+            requestAnimationFrame(this.main.bind(this));
+        });
     }
 
     // update the animation
     protected update(timestamp: number): void {
         if (!this.isAnimated)
             return;
-        
+
         // setup vars
         let x0 = this.display_.width >> 1;
         let w  = BAR_WIDTH >> 1;
@@ -63,7 +92,7 @@ export class Twister extends Animation {
 
         for (let y = 0; y < this.display_.height; y++) {
             let fv = 1.0 * y / this.display_.height;
-            
+
             // compute the position of each point
             let a = radians(90);
             let x1 = x0 + (w * Math.sin(this.amplitude_ * fv + this.angle_ + a * 0));
@@ -106,7 +135,7 @@ export class Twister extends Animation {
                 ctx.lineTo(x1, y);
                 // ctx.closePath();
                 ctx.stroke();
-            }            
+            }
         }
 
     }
@@ -125,7 +154,7 @@ export class Twister extends Animation {
             if ((this.amplitude_ <= 0) || (this.amplitude_ > 1.8))
                 this.ampway_ *= -1;
         }
-            
+
         // flip the back-buffer onto the screen
         this.display_.clear();
         this.display_.draw();
