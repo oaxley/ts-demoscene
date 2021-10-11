@@ -53,12 +53,12 @@ export class Surface {
 
     // return the width for this Surface
     public get width(): number {
-        return this.width;
+        return this.width_;
     }
 
     // return the height for this Surface
     public get height(): number {
-        return this.height;
+        return this.height_;
     }
 
     // return the pixels data for this Surface
