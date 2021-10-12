@@ -73,6 +73,9 @@ export abstract class BaseColor {
         return this.model_;
     }
 
+    // retrieve the luminance of a color
+    public abstract luminance(): number;
+
     // dump the components in the console
     public abstract dump(): void;
 
