@@ -87,8 +87,12 @@ export class Twister extends Animation {
         let w  = BAR_WIDTH >> 1;
 
         // erase the surface
-        this.display_.surface.clear();
-        let ctx = this.display_.surface.context;
+        this.display_.surface.clear({x:200, y:0, w:250, h:480});
+
+        // retrieve the backbuffer/texture data
+        let imgdata = this.display_.surface.data;
+        let texdata = this.texture_.data;
+
 
         for (let y = 0; y < this.display_.height; y++) {
             let fv = 1.0 * y / this.display_.height;
@@ -100,44 +104,85 @@ export class Twister extends Animation {
             let x3 = x0 + (w * Math.sin(this.amplitude_ * fv + this.angle_ + a * 2));
             let x4 = x0 + (w * Math.sin(this.amplitude_ * fv + this.angle_ + a * 3));
 
+            // compute the texture coordinate / offset
+            let yt = Math.floor(fv * this.texture_.height);
+            let ot = yt * this.texture_.width;
+
             // draw the lines
             if (x1 < x2) {
-                ctx.beginPath();
-                ctx.strokeStyle = 'rgb(128,0,0)';
-                ctx.moveTo(x1, y);
-                ctx.lineTo(x2, y);
-                // ctx.closePath();
-                ctx.stroke();
+                // xt begin/end for this slice
+                let xtb = this.slice_.width * 0;
+                let xte = xtb + this.slice_.width;
+
+                let offset = (y * this.display_.width + x1) << 2;
+                let ratio = (xte - xtb) / (x2 - x1);
+                let addr = ot + xtb;
+
+                for (let x = x1; x < x2; x++) {
+                    imgdata.data[offset++] = texdata.data[(addr << 2) + 0];
+                    imgdata.data[offset++] = texdata.data[(addr << 2) + 1];
+                    imgdata.data[offset++] = texdata.data[(addr << 2) + 2];
+                    imgdata.data[offset++] = texdata.data[(addr << 2) + 3];
+                    addr += ratio;
+                }
             }
 
             if (x2 < x3) {
-                ctx.beginPath();
-                ctx.strokeStyle = 'rgb(0,128,0)';
-                ctx.moveTo(x2, y);
-                ctx.lineTo(x3, y);
-                // ctx.closePath();
-                ctx.stroke();
+                // xt begin/end for this slice
+                let xtb = this.slice_.width * 1;
+                let xte = xtb + this.slice_.width;
+
+                let offset = (y * this.display_.width + x2) << 2;
+                let ratio = (xte - xtb) / (x3 - x2);
+                let addr = ot + xtb;
+
+                for (let x = x2; x < x3; x++) {
+                    imgdata.data[offset++] = texdata.data[(addr << 2) + 0];
+                    imgdata.data[offset++] = texdata.data[(addr << 2) + 1];
+                    imgdata.data[offset++] = texdata.data[(addr << 2) + 2];
+                    imgdata.data[offset++] = texdata.data[(addr << 2) + 3];
+                    addr += ratio;
+                }
             }
 
             if (x3 < x4) {
-                ctx.beginPath();
-                ctx.strokeStyle = 'rgb(0,0,128)';
-                ctx.moveTo(x3, y);
-                ctx.lineTo(x4, y);
-                // ctx.closePath();
-                ctx.stroke();
+                // xt begin/end for this slice
+                let xtb = this.slice_.width * 2;
+                let xte = xtb + this.slice_.width;
+
+                let offset = (y * this.display_.width + x3) << 2;
+                let ratio = (xte - xtb) / (x4 - x3);
+                let addr = ot + xtb;
+
+                for (let x = x3; x < x4; x++) {
+                    imgdata.data[offset++] = texdata.data[(addr << 2) + 0];
+                    imgdata.data[offset++] = texdata.data[(addr << 2) + 1];
+                    imgdata.data[offset++] = texdata.data[(addr << 2) + 2];
+                    imgdata.data[offset++] = texdata.data[(addr << 2) + 3];
+                    addr += ratio;
+                }
             }
 
             if (x4 < x1) {
-                ctx.beginPath();
-                ctx.strokeStyle = 'rgb(64,64,64)';
-                ctx.moveTo(x4, y);
-                ctx.lineTo(x1, y);
-                // ctx.closePath();
-                ctx.stroke();
+                // xt begin/end for this slice
+                let xtb = this.slice_.width * 3;
+                let xte = xtb + this.slice_.width;
+
+                let offset = (y * this.display_.width + x4) << 2;
+                let ratio = (xte - xtb) / (x1 - x4);
+                let addr = ot + xtb;
+
+                for (let x = x4; x < x1; x++) {
+                    imgdata.data[offset++] = texdata.data[(addr << 2) + 0];
+                    imgdata.data[offset++] = texdata.data[(addr << 2) + 1];
+                    imgdata.data[offset++] = texdata.data[(addr << 2) + 2];
+                    imgdata.data[offset++] = texdata.data[(addr << 2) + 3];
+                    addr += ratio;
+                }
             }
         }
 
+        this.display_.surface.data = imgdata;
     }
 
     // render the animation on the screen
