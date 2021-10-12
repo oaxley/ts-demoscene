@@ -31,6 +31,10 @@ export class RGBA extends BaseColor {
 
     }
 
+    public luminance(): number {
+        return 0.3 * this.x_ + 0.59 * this.y_ + 0.11 * this.z_;
+    }
+
     public dump(): void {
         console.log(`RGBA: R = ${this.x_}, G = ${this.y_}, B = ${this.z_}, A = ${this.a_}`);
     }

@@ -30,6 +30,10 @@ export class HSLA extends BaseColor {
         }
     }
 
+    public luminance(): number {
+        return this.z_;
+    }
+
     public dump(): void {
         console.log(`HSLA: H = ${this.x_}, S = ${this.y_}, L = ${this.z_}, A = ${this.a_}`);
     }

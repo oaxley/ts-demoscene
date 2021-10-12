@@ -30,6 +30,10 @@ export class HSVA extends BaseColor {
         }
     }
 
+    public luminance(): number {
+        return this.z_ * (1 - this.y_ / 2.0);
+    }
+
     public dump(): void {
         console.log(`HSVA: H = ${this.x_}, S = ${this.y_}, V = ${this.z_}, A = ${this.a_}`);
     }
