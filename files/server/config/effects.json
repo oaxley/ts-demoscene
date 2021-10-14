@@ -29,6 +29,11 @@
             "name": "ts-twister",
             "title": "Texture twister",
             "description": "A twisted texture around a column"
+        },
+        {
+            "name": "ts-moire",
+            "title": "Interferencia",
+            "description": "Eyes killing Moire effect"
         }
     ]
 }
