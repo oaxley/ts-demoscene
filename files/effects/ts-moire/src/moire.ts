@@ -10,11 +10,17 @@ import { Animation } from "library/core/animation";
 import { Display } from "library/core/display";
 
 
+//----- globals
+const FPS = 25;
+const TICKS = 1000 / FPS;
+
+
 //----- class
 export class Moire extends Animation {
 
     //----- members
     private display_: Display;
+    private lastTs_ : number;
 
 
     //----- methods
@@ -23,6 +29,7 @@ export class Moire extends Animation {
 
         // set the vars
         this.display_ = display;
+        this.lastTs_ = null;
     }
 
     // run the animation
@@ -56,8 +63,18 @@ export class Moire extends Animation {
 
     // main animation function
     protected main(timestamp: number): void {
-        this.update(timestamp);
-        this.render(timestamp);
+        // initialize the value on first call
+        if (this.lastTs_ == null) {
+            this.lastTs_ = timestamp;
+        }
+
+        // ensure the animation is runned at constant frame rate
+        if ( (timestamp - this.lastTs_) > TICKS ) {
+            this.update(timestamp);
+            this.render(timestamp);
+
+            this.lastTs_ = timestamp
+        }
         requestAnimationFrame(this.main.bind(this));
     }
 }
