@@ -6,17 +6,19 @@
  */
 
 //----- imports
-
+import { IStateTask } from "./manager";
 
 //----- class
-export abstract class Animation {
+export abstract class IAnimation extends IStateTask {
     //----- members
     private isAnimated_: boolean;       // =true when the animation is running
     protected frames_: number;          // number of frames rendered
 
 
     //----- methods
-    constructor() {
+    constructor(name: string) {
+        super(name);
+
         this.isAnimated_ = false;
         this.frames_ = 0;
     }
@@ -37,15 +39,9 @@ export abstract class Animation {
         return this.isAnimated_;
     }
 
-    // run the animation
-    public abstract run(): void;
-
     // update the animation
     protected abstract update(timestamp: number): void;
 
     // render the animation on the screen
     protected abstract render(timestamp: number): void;
-
-    // animation main function
-    protected abstract main(timestamp: number): void;
 }
