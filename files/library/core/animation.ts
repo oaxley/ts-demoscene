@@ -14,10 +14,13 @@ import { Display } from "./display";
 export abstract class IAnimation extends IStateTask {
 
     //----- members
-    private animated_: boolean;         // =true when the animation is running
+    private animated_ : boolean;         // =true when the animation is running
 
     protected display_: Display;        // the display screen where the animation is shown
-    protected frames_: number;          // number of frames rendered
+    protected width_  : number;         // the screen width
+    protected height_ : number;         // the screen height
+
+    protected frames_ : number;         // number of frames rendered
 
 
     //----- methods
@@ -26,8 +29,10 @@ export abstract class IAnimation extends IStateTask {
 
         // set the vars
         this.animated_ = false;
-        this.display_ = display;
-        this.frames_ = 0;
+        this.frames_   = 0;
+        this.display_  = display;
+        this.width_    = display.width;
+        this.height_   = display.height;
     }
 
     // toggle the animation
