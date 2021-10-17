@@ -6,7 +6,9 @@
  */
 
 //----- imports
-import { Animation } from "library/core/animation";
+import { IAnimation } from "library/core/animation";
+import { States } from "library/core/manager";
+
 import { Display } from "library/core/display";
 import { Vector2D } from "library/maths/vector2d";
 
@@ -32,10 +34,9 @@ interface LensObject {
 
 
 //----- class
-export class Lens extends Animation {
+export class Lens extends IAnimation {
 
     //----- members
-    private display_ : Display;
     private image_   : HTMLImageElement;
     private lenses_  : LensObject[];            // list of lenses in the animation
     private detector_: CollisionDetector;       // Collision detector instance
@@ -43,10 +44,7 @@ export class Lens extends Animation {
 
     //----- methods
     constructor(display: Display) {
-        super();
-
-        // set the vars
-        this.display_ = display;
+        super('lens', display);
 
         // load the background image
         this.image_ = new Image();
@@ -121,19 +119,7 @@ export class Lens extends Animation {
         return new Vector2D(x, y);
     }
 
-
-    // run the animation
-    public run(): void {
-        console.log("Starting the Lens animation.");
-
-        // toggle the animation
-        this.toggle();
-
-        // run the animation on the next frame
-        requestAnimationFrame(this.main.bind(this));
-    }
-
-    // update the animation
+     // update the animation
     protected update(timestamp: number): void {
         if (!this.isAnimated)
             return;
@@ -167,10 +153,30 @@ export class Lens extends Animation {
         this.frames_++;
     }
 
-    // main animation function
-    protected main(timestamp: number): void {
-        this.update(timestamp);
-        this.render(timestamp);
-        requestAnimationFrame(this.main.bind(this));
+    // run the animation
+    public run(time: number|undefined): States {
+        console.log("Starting the Lens animation.");
+
+        // update & render the animation
+        this.update(time);
+        this.render(time);
+
+        // this animation will run indefinitely
+        return States.S_RUNNING;
+    }
+
+    // setup function
+    public setup(): void {
+        // toggle the animation
+        this.toggle();
+
+        // set the click handler to pause the animation
+        window.onclick = () => {
+            this.toggle();
+        }
+    }
+
+    // cleanup function
+    public cleanup(): void {
     }
 }
