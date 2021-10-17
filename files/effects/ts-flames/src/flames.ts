@@ -6,7 +6,9 @@
  */
 
 //----- imports
-import { Animation } from "library/core/animation";
+import { IAnimation } from "library/core/animation";
+import { States } from "library/core/manager";
+
 import { Display } from "library/core/display";
 import { Palette } from "library/color/palette";
 import { Color } from "library/color/color";
@@ -23,14 +25,11 @@ const ZOOM = 256;
 
 
 //----- class
-export class Flames extends Animation {
+export class Flames extends IAnimation {
 
     //----- members
-    private display_: Display;
     private palette_: Palette;
     private flames_ : number[];
-    private width_  : number;
-    private height_ : number;
 
     private costable_: number[];            // precomputed cosinus table
     private sintable_: number[];            // precomputed sinus table
@@ -46,12 +45,9 @@ export class Flames extends Animation {
     //----- methods
     // constructor
     constructor(display: Display) {
-        super();
+        super('flames', display);
 
         // set the vars
-        this.display_ = display;
-        this.width_   = display.width;
-        this.height_  = display.height;
         this.flames_  = [];
 
         // create the palette
@@ -253,20 +249,6 @@ export class Flames extends Animation {
         this.line(this.cube2D_[3], this.cube2D_[6]);
     }
 
-    // run the animation
-    public run(): void {
-        console.log("Starting Flames animation.");
-
-        // toggle the animation
-        this.toggle();
-
-        // generate the data
-        this.generate();
-
-        // run the animation on the next frame
-        requestAnimationFrame(this.main.bind(this));
-    }
-
     // update the animation
     protected update(timestamp: number): void {
         if (!this.isAnimated)
@@ -353,14 +335,33 @@ export class Flames extends Animation {
         this.frames_++;
     }
 
-    // animation main function
-    protected main(timestamp: number): void {
-        this.update(timestamp);
-        this.render(timestamp);
+    // setup function
+    public setup(): void {
+        // toggle the animation
+        this.toggle();
 
-        // generate the bottom line again
+        // set the click handler to pause the animation
+        window.onclick = () => {
+            this.toggle();
+        }
+    }
+
+    // cleanup function
+    public cleanup(): void {
+    }
+
+    // run the animation
+    public run(time: number|undefined): States {
+        console.log("Starting Flames animation.");
+
+        // fuel the flames at the bottom
         this.generate();
 
-        requestAnimationFrame(this.main.bind(this));
+        // update & render the flames buffer
+        this.update(time);
+        this.render(time);
+
+        // this animation will run indefinitely
+        return States.S_RUNNING;
     }
 }
