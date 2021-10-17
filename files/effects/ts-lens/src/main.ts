@@ -6,8 +6,10 @@
  */
 
 //----- imports
+import { StatesManager, States } from "library/core/manager";
 import { Display } from "library/core/display";
 import { Lens } from "./lens";
+
 
 //----- begin
 // retrieve the canvas element from the page
@@ -16,10 +18,9 @@ let display = new Display(<HTMLCanvasElement> document.getElementById("output"))
 // create a new instance of the Lens
 let lens = new Lens(display);
 
-// handler to start/stop the animation
-window.onclick = (event) => {
-    lens.toggle();
-}
+// create the states manager and add a new transition to it
+let manager = new StatesManager();
+manager.add({event: States.S_BEGIN, from: undefined, to: lens});
 
-// run the animation
-lens.run();
+// start the manager
+manager.start();
