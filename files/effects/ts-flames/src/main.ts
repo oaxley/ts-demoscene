@@ -8,6 +8,7 @@
 //----- imports
 import { Display } from "library/core/display";
 import { Flames } from "./flames";
+import { StatesManager, States } from "library/core/manager"
 
 
 //----- begin
@@ -17,10 +18,11 @@ let display = new Display(<HTMLCanvasElement> document.getElementById("output"))
 // create a new instance of the flames
 let flames = new Flames(display);
 
-// handler to start/stop the animation
-window.onclick = (event) => {
-    flames.toggle();
-}
+// create states manager
+let manager = new StatesManager();
 
-// run the animation
-flames.run();
+// add a new transition
+manager.add({event: States.S_BEGIN, from: undefined, to: flames});
+
+// start
+manager.start();
