@@ -6,6 +6,7 @@
  */
 
 //----- imports
+import { StatesManager, States } from "library/core/manager"
 import { Display } from "library/core/display";
 import { Metaballs } from "./metaballs";
 
@@ -16,10 +17,11 @@ let display = new Display(<HTMLCanvasElement> document.getElementById("output"))
 // create a new instance of the effect
 let metaballs = new Metaballs(display);
 
-// handler to start/stop the animation
-window.onclick = (event) => {
-    metaballs.toggle();
-}
+// create states manager
+let manager = new StatesManager();
 
-// run the animation
-metaballs.run();
+// add a new transition
+manager.add({event: States.S_BEGIN, from: undefined, to: metaballs});
+
+// start
+manager.start();
