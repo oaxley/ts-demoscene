@@ -6,7 +6,9 @@
  */
 
 //----- imports
-import { Animation } from "library/core/animation";
+import { IAnimation } from "library/core/animation";
+import { States } from "library/core/manager";
+
 import { Display } from "library/core/display";
 import { Palette } from "library/color/palette";
 import { Color } from "library/color/color";
@@ -33,24 +35,16 @@ interface MetaParticule {
 
 
 //----- class
-export class Metaballs extends Animation {
+export class Metaballs extends IAnimation {
 
     //----- members
-    private display_  : Display;
-    private width_    : number;
-    private height_   : number;
     private palette_  : Palette;
     private metaballs_: MetaParticule[];
 
 
     //----- methods
     constructor(display: Display) {
-        super();
-
-        // set the vars
-        this.display_ = display;
-        this.width_   = display.width;
-        this.height_  = display.height;
+        super('metaballs', display);
 
         // create the grayscale palette
         this.createPalette();
@@ -87,17 +81,6 @@ export class Metaballs extends Animation {
                 }
             )
         }
-    }
-
-    // run the animation
-    public run(): void {
-        console.log("Starting the Metaballs animation.");
-
-        // toggle the animation
-        this.toggle();
-
-        // run the animation on the next frame
-        requestAnimationFrame(this.main.bind(this));
     }
 
     // update the animation
@@ -163,6 +146,33 @@ export class Metaballs extends Animation {
 
         // increase frames count
         this.frames_++;
+    }
+
+    // setup function
+    public setup(): void {
+        // toggle the animation
+        this.toggle();
+
+        // set the click handler to pause the animation
+        window.onclick = () => {
+            this.toggle();
+        }
+    }
+
+    // cleanup function
+    public cleanup(): void {
+    }
+
+    // run the animation
+    public run(time: number|undefined): States {
+        console.log("Starting the Metaballs animation.");
+
+        // update & render the flames buffer
+        this.update(time);
+        this.render(time);
+
+        // this animation will run indefinitely
+        return States.S_RUNNING;
     }
 
     // main animation function
