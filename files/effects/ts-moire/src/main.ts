@@ -6,6 +6,7 @@
  */
 
 //----- imports
+import { StatesManager, States } from "library/core/manager"
 import { Display } from "library/core/display";
 import { Moire } from "./moire";
 
@@ -16,10 +17,11 @@ let display = new Display(<HTMLCanvasElement> document.getElementById("output"))
 // create a new instance of the Moire
 let moire = new Moire(display);
 
-// handler to start/stop the animation
-window.onclick = (event) => {
-    moire.toggle();
-}
+// create states manager
+let manager = new StatesManager();
 
-// run the animation
-moire.run();
+// add a new transition
+manager.add({event: States.S_BEGIN, from: undefined, to: moire});
+
+// start
+manager.start();
