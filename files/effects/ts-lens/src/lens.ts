@@ -155,7 +155,6 @@ export class Lens extends IAnimation {
 
     // run the animation
     public run(time: number|undefined): States {
-        console.log("Starting the Lens animation.");
 
         // update & render the animation
         this.update(time);
@@ -174,6 +173,8 @@ export class Lens extends IAnimation {
         window.onclick = () => {
             this.toggle();
         }
+
+        console.log("Starting the Lens animation.");
     }
 
     // cleanup function
