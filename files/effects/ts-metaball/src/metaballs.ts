@@ -157,6 +157,8 @@ export class Metaballs extends IAnimation {
         window.onclick = () => {
             this.toggle();
         }
+
+        console.log("Starting the Metaballs animation.");
     }
 
     // cleanup function
@@ -165,7 +167,6 @@ export class Metaballs extends IAnimation {
 
     // run the animation
     public run(time: number|undefined): States {
-        console.log("Starting the Metaballs animation.");
 
         // update & render the flames buffer
         this.update(time);
