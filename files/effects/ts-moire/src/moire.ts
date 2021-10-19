@@ -6,7 +6,9 @@
  */
 
 //----- imports
-import { Animation } from "library/core/animation";
+import { IAnimation } from "library/core/animation";
+import { States } from "library/core/manager";
+
 import { Display } from "library/core/display";
 
 
@@ -16,10 +18,9 @@ const TICKS = 1000 / FPS;
 
 
 //----- class
-export class Moire extends Animation {
+export class Moire extends IAnimation {
 
     //----- members
-    private display_: Display;
     private lastTs_ : number;
 
     private sx_: number;            // screen center X
@@ -31,27 +32,15 @@ export class Moire extends Animation {
 
     //----- methods
     constructor(display: Display) {
-        super();
+        super('moire', display);
 
         // set the vars
-        this.display_ = display;
         this.lastTs_ = null;
 
         this.sx_ = display.width >> 1;
         this.sy_ = display.height >> 1;
         this.ax_ = display.width >> 2;
         this.ay_ = display.height >> 2;
-    }
-
-    // run the animation
-    public run(): void {
-        console.log("Starting the Moire animation.");
-
-        // toggle the animation
-        this.toggle();
-
-        // run the animation on the next frame
-        requestAnimationFrame(this.main.bind(this));
     }
 
     // update the animation
@@ -111,20 +100,40 @@ export class Moire extends Animation {
         this.frames_++;
     }
 
+    // setup function
+    public setup(): void {
+        // toggle the animation
+        this.toggle();
+
+        // set the click handler to pause the animation
+        window.onclick = () => {
+            this.toggle();
+        }
+
+        console.log("Starting 'Moire' animation.");
+    }
+
+    // cleanup function
+    public cleanup(): void {
+    }
+
     // main animation function
-    protected main(timestamp: number): void {
+    public run(time: number|undefined): States {
+
         // initialize the value on first call
         if (this.lastTs_ == null) {
-            this.lastTs_ = timestamp;
+            this.lastTs_ = time;
         }
 
         // ensure the animation is runned at constant frame rate
-        if ( (timestamp - this.lastTs_) > TICKS ) {
-            this.update(timestamp);
-            this.render(timestamp);
+        if ( (time - this.lastTs_) > TICKS ) {
+            this.update(time);
+            this.render(time);
 
-            this.lastTs_ = timestamp
+            this.lastTs_ = time;
         }
-        requestAnimationFrame(this.main.bind(this));
+
+        // this animation will run indefinitely
+        return States.S_RUNNING;
     }
 }
