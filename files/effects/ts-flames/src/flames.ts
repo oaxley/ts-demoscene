@@ -344,6 +344,8 @@ export class Flames extends IAnimation {
         window.onclick = () => {
             this.toggle();
         }
+
+        console.log("Starting Flames animation.");
     }
 
     // cleanup function
@@ -352,7 +354,6 @@ export class Flames extends IAnimation {
 
     // run the animation
     public run(time: number|undefined): States {
-        console.log("Starting Flames animation.");
 
         // fuel the flames at the bottom
         this.generate();
