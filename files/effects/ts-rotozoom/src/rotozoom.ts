@@ -6,7 +6,9 @@
  */
 
 //----- imports
-import { Animation } from "library/core/animation";
+import { IAnimation } from "library/core/animation";
+import { States } from "library/core/manager";
+
 import { Display } from "library/core/display";
 import { Surface } from "library/core/surface";
 import { radians } from "library/maths/utils";
@@ -18,10 +20,9 @@ const TICKS: number = 1000 / FPS;
 
 
 //----- class
-export class Rotozoom extends Animation {
+export class Rotozoom extends IAnimation {
 
     //----- members
-    private display_  : Display;
     private image_    : Surface;
 
     private angle_: number;                         // current rotation angle
@@ -34,10 +35,9 @@ export class Rotozoom extends Animation {
 
     //----- methods
     constructor(display: Display) {
-        super();
+        super('rotozoom', display);
 
         // set the vars
-        this.display_ = display;
         this.angle_ = 0;
         this.lastTs_ = null;
 
@@ -62,17 +62,6 @@ export class Rotozoom extends Animation {
             this.cos_[i] = Math.cos(radians(i));
             this.sin_[i] = Math.sin(radians(i));
         }
-    }
-
-    // run the animation
-    public run(): void {
-        console.log("Starting the Rotozoom animation.");
-
-        // toggle the animation
-        this.toggle();
-
-        // run the animation on the next frame
-        requestAnimationFrame(this.main.bind(this));
     }
 
     // update the animation
@@ -144,20 +133,40 @@ export class Rotozoom extends Animation {
         this.frames_++;
     }
 
-    // main animation function
-    protected main(timestamp: number): void {
+    // setup function
+    public setup(): void {
+        // toggle the animation
+        this.toggle();
+
+        // set the click handler to pause the animation
+        window.onclick = () => {
+            this.toggle();
+        }
+
+        console.log("Starting the Rotozoom animation.");
+    }
+
+    // cleanup function
+    public cleanup(): void {
+    }
+
+    // run the animation
+    public run(time: number|undefined): States {
+
         // initialize the value on first call
         if (this.lastTs_ == null) {
-            this.lastTs_ = timestamp;
+            this.lastTs_ = time;
         }
 
         // ensure the animation is runned at constant frame rate
-        if ( (timestamp - this.lastTs_) > TICKS ) {
-            this.update(timestamp);
-            this.render(timestamp);
+        if ( (time - this.lastTs_) > TICKS ) {
+            this.update(time);
+            this.render(time);
 
-            this.lastTs_ = timestamp
+            this.lastTs_ = time
         }
-        requestAnimationFrame(this.main.bind(this));
+
+        // this animation will run indefinitely
+        return States.S_RUNNING;
     }
 }
