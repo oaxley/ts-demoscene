@@ -6,7 +6,9 @@
  */
 
 //----- imports
-import { Animation } from "library/core/animation";
+import { IAnimation } from "library/core/animation";
+import { States } from "library/core/manager";
+
 import { Display } from "library/core/display";
 import { Palette } from "library/color/palette";
 import { Color } from "library/color/color";
@@ -14,18 +16,14 @@ import { COLOR_MODEL } from "library/color/basecolor";
 
 
 //----- class
-export class Plasma extends Animation {
+export class Plasma extends IAnimation {
 
     //----- members
-    private display_ : Display;
     private palette_ : Palette;
 
     //----- methods
     constructor(display: Display) {
-        super();
-
-        // set the vars
-        this.display_ = display;
+        super('plasma', display);
 
         // create the 256 colors palette
         this.createPalette();
@@ -41,17 +39,6 @@ export class Plasma extends Animation {
 
             this.palette_.setColor(i, new Color(COLOR_MODEL.RGBA, r, g, b));
         }
-    }
-
-    // run the animation
-    public run(): void {
-        console.log("Starting the Lens animation.");
-
-        // toggle the animation
-        this.toggle();
-
-        // run the animation on the next frame
-        requestAnimationFrame(this.main.bind(this));
     }
 
     // update the animation
@@ -102,10 +89,31 @@ export class Plasma extends Animation {
         this.frames_++;
     }
 
+    // setup function
+    public setup(): void {
+        // toggle the animation
+        this.toggle();
+
+        // set the click handler to pause the animation
+        window.onclick = () => {
+            this.toggle();
+        }
+
+        console.log("Starting 'Plasma' animation.");
+    }
+
+    // cleanup function
+    public cleanup(): void {
+    }
+
     // main animation function
-    protected main(timestamp: number): void {
-        this.update(timestamp);
-        this.render(timestamp);
-        requestAnimationFrame(this.main.bind(this));
+    public run(time: number|undefined): States {
+
+        // update & render the flames buffer
+        this.update(time);
+        this.render(time);
+
+        // this animation will run indefinitely
+        return States.S_RUNNING;
     }
 }
