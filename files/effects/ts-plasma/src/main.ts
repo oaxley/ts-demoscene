@@ -6,6 +6,7 @@
  */
 
 //----- imports
+import { StatesManager, States } from "library/core/manager"
 import { Display } from "library/core/display";
 import { Plasma } from "./plasma";
 
@@ -16,10 +17,11 @@ let display = new Display(<HTMLCanvasElement> document.getElementById("output"))
 // create a new instance of the plasma
 let plasma = new Plasma(display);
 
-// handler to stop/start the animation
-window.onclick = (event) => {
-    plasma.toggle();
-}
+// create states manager
+let manager = new StatesManager();
 
-// run the animation
-plasma.run();
+// add a new transition
+manager.add({event: States.S_BEGIN, from: undefined, to: plasma});
+
+// start
+manager.start();
