@@ -6,6 +6,7 @@
  */
 
 //----- imports
+import { StatesManager, States } from "library/core/manager"
 import { Display } from "library/core/display";
 import { Rotozoom } from "./rotozoom";
 
@@ -16,10 +17,11 @@ let display = new Display(<HTMLCanvasElement> document.getElementById("output"))
 // create a new instance of the effect
 let rotozoom = new Rotozoom(display);
 
-// handler to start/stop the animation
-window.onclick = (event) => {
-    rotozoom.toggle();
-}
+// create states manager
+let manager = new StatesManager();
 
-// run the animation
-rotozoom.run();
+// add a new transition
+manager.add({event: States.S_BEGIN, from: undefined, to: rotozoom});
+
+// start
+manager.start();
