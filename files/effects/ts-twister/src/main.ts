@@ -1,11 +1,12 @@
 /*
  * @file    main.ts
  * @author  Sebastien LEGRAND
- * 
+ *
  * @brief   Main entry point for the Twister effect
  */
 
 //----- imports
+import { StatesManager, States } from "library/core/manager"
 import { Display } from "library/core/display";
 import { Twister } from "./twister";
 
@@ -16,10 +17,11 @@ let display = new Display(<HTMLCanvasElement> document.getElementById("output"))
 // create a new instance of the Twister
 let twister = new Twister(display);
 
-// handler to start/stop the animation
-window.onclick = (event) => {
-    twister.toggle();
-}
+// create states manager
+let manager = new StatesManager();
 
-// run the animation
-twister.run();
+// add a new transition
+manager.add({event: States.S_BEGIN, from: undefined, to: twister});
+
+// start
+manager.start();
