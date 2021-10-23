@@ -6,7 +6,9 @@
  */
 
 //----- imports
-import { Animation } from "library/core/animation";
+import { IAnimation } from "library/core/animation";
+import { States } from "library/core/manager";
+
 import { Display } from "library/core/display";
 import { radians } from "library/maths/utils";
 import { Surface } from "library/core/surface";
@@ -18,11 +20,9 @@ const BAR_WIDTH = 240;
 
 
 //----- class
-export class Twister extends Animation {
+export class Twister extends IAnimation {
 
     //----- members
-    private display_: Display;
-
     private angle_    : number;     // rotation angle
     private amplitude_: number;     // movement amplitude
     private ampway_   : number;     // movement way
@@ -32,10 +32,9 @@ export class Twister extends Animation {
 
     //----- methods
     constructor(display: Display) {
-        super();
+        super('twister', display);
 
         // set the vars
-        this.display_ = display;
         this.angle_ = 0;
         this.amplitude_ = 0;
         this.ampway_ = 0.05;
@@ -48,32 +47,6 @@ export class Twister extends Animation {
                 resolve(img);
             };
             img.src = name;
-        });
-    }
-
-    // run the animation
-    public run(): void {
-        console.log("Starting the Twister animation.");
-
-        // load the texture
-        this.loadTexture('/images/ts-twister.asset.jpg').then(img => {
-
-            // create the new surface
-            this.texture_ = new Surface({width: img.width, height: img.height});
-            this.texture_.context.drawImage(img, 0, 0);
-            console.log('Texture loaded.');
-
-            // set the slice size
-            this.slice_ = {
-                width: img.width >> 2,
-                height: img.height
-            }
-
-            // toggle the animation
-            this.toggle();
-
-            // run the animation on the next frame
-            requestAnimationFrame(this.main.bind(this));
         });
     }
 
@@ -208,10 +181,47 @@ export class Twister extends Animation {
         this.frames_++;
     }
 
-    // main animation function
-    protected main(timestamp: number): void {
-        this.update(timestamp);
-        this.render(timestamp);
-        requestAnimationFrame(this.main.bind(this));
+    // setup function
+    public setup(): void {
+
+        // load the texture
+        this.loadTexture('/images/ts-twister.asset.jpg').then(img => {
+
+            // create the new surface
+            this.texture_ = new Surface({width: img.width, height: img.height});
+            this.texture_.context.drawImage(img, 0, 0);
+            console.log('Texture loaded.');
+
+            // set the slice size
+            this.slice_ = {
+                width: img.width >> 2,
+                height: img.height
+            }
+
+            // toggle the animation
+            this.toggle();
+
+            // set the click handler to pause the animation
+            window.onclick = () => {
+                this.toggle();
+            }
+
+            console.log("Starting the Twister animation.");
+        });
+    }
+
+    // cleanup function
+    public cleanup(): void {
+    }
+
+    // run the animation
+    public run(time: number|undefined): States {
+
+        // update & render the flames buffer
+        this.update(time);
+        this.render(time);
+
+        // this animation will run indefinitely
+        return States.S_RUNNING;
     }
 }
