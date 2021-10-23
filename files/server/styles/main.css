@@ -93,7 +93,7 @@ body {
     text-decoration: none;
     font-size: 12pt;
     font-weight: bold;
-    transition: 1.5s ease;
+    transition: 1.0s ease;
 }
 
 .credits a:hover {
