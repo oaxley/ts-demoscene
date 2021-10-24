@@ -49,9 +49,29 @@ function findStylesheets() {
     return css
 }
 
+// find all the PUG files in the directory structure
+function findViews() {
+    let pug = [];
+    let rootdir = path.join(__dirname, "files");
+
+    let files = glob.sync(`${rootdir}/**/*.pug`);
+
+    if (files.length > 0) {
+        files.forEach(file => {
+            pug.push({
+                from: file,
+                to: `${PUBLIC_DIR}/views`
+            });
+        });
+    }
+
+    return pug
+}
+
 // find all the entry-points
 function findEntryPoints() {
     let entry_points = {
+        express: path.join(__dirname, "files/server/src/app.ts"),
         main: path.join(__dirname, "files/server/src/main.ts")
     };
     let rootdir = path.join(__dirname, "files/effects");
@@ -74,11 +94,10 @@ function findEntryPoints() {
 
 //----- begin
 // find files for the CopyPlugins
-let copy_plugin_pattern = [].concat(findImages()).concat(findStylesheets());
+let copy_plugin_pattern = [].concat(findImages()).concat(findStylesheets()).concat(findViews());
 
 // find all the entry-points
 let entry_points = findEntryPoints();
-
 
 //----- webpack config
 module.exports = {
@@ -104,7 +123,6 @@ module.exports = {
             {
                 test: /\.ts$/i,
                 use: [ "ts-loader" ],
-                exclude: /node_modules/
             },
         ]
     },
@@ -112,6 +130,6 @@ module.exports = {
         modules: [
             path.resolve('./files/')
         ],
-        extensions: ['.tsx', '.ts', '.js'],
+        extensions: ['.ts', '.js'],
     }
 };
