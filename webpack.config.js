@@ -1,6 +1,7 @@
 
 //----- imports
 const CopyPlugin = require("copy-webpack-plugin");
+const NodeExternals = require("webpack-node-externals");
 const path = require("path");
 const glob = require("glob");
 
@@ -131,5 +132,6 @@ module.exports = {
             path.resolve('./files/')
         ],
         extensions: ['.ts', '.js'],
-    }
+    },
+    externals: [ NodeExternals() ]
 };
