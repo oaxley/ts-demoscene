@@ -34,6 +34,12 @@
             "name": "ts-moire",
             "title": "Interferencia",
             "description": "Eyes killing Moire effect"
+        },
+        {
+            "name": "ts-tunnel",
+            "title": "Endless Tunnel",
+            "description": "The light is at the end"
         }
+
     ]
 }
