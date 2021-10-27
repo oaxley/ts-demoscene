@@ -9,6 +9,7 @@
 import { IAnimation } from "library/core/animation";
 import { States } from "library/core/manager";
 import { Display } from "library/core/display";
+import { Surface } from "library/core/surface";
 
 
 //----- globals
@@ -18,11 +19,23 @@ import { Display } from "library/core/display";
 export class Tunnel extends IAnimation {
 
     //----- members
+    private texture_: Surface;
+
 
     //----- methods
     // constructor
     constructor(display: Display) {
         super('tunnel', display);
+    }
+
+    private loadTexture(name: string): Promise<HTMLImageElement> {
+        return new Promise((resolve, reject) => {
+            let img = new Image();
+            img.onload = () => {
+                resolve(img);
+            };
+            img.src = name;
+        });
     }
 
     // update the animation
@@ -45,6 +58,24 @@ export class Tunnel extends IAnimation {
 
     // setup function
     public setup(): void {
+        // load the texture
+        this.loadTexture('/images/ts-tunnel.asset.jpg').then(img => {
+
+            // create the new surface
+            this.texture_ = new Surface({width: img.width, height: img.height});
+            this.texture_.context.drawImage(img, 0, 0);
+            console.log('Texture loaded.');
+
+            // toggle the animation
+            this.toggle();
+
+            // set the click handler to pause the animation
+            window.onclick = () => {
+                this.toggle();
+            }
+
+            console.log("Starting the Tunnel animation.");
+        });
     }
 
     // cleanup function
