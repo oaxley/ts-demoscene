@@ -21,9 +21,11 @@ function findImages() {
 
     if (files.length > 0) {
         files.forEach(file => {
+            let dirs = path.dirname(file).split(path.sep);
+            let dirname = dirs[dirs.length - 1];
             images.push({
                 from: file,
-                to: `${PUBLIC_DIR}/images`
+                to: `${PUBLIC_DIR}/images/${dirname}`
             });
         });
     }
