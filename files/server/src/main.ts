@@ -127,7 +127,7 @@ class Slider {
         this.nImage_.onload = () => {
             this.display_.getContext("2d").drawImage(this.nImage_, 0, 0);
         };
-        this.nImage_.src = '/images/' + name;
+        this.nImage_.src = '/images/screenshot/' + name;
     }
 
     // set the name and description for the effect
