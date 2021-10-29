@@ -4,7 +4,7 @@
 
 ## **Screenshot**
 
-![screenshot](../../images/ts-flames.screenshot.png)
+![screenshot](../../images/screenshot/ts-flames.screenshot.png)
 
 ## **Palette**
 
