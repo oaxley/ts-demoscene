@@ -156,7 +156,7 @@ export class Tunnel extends IAnimation {
     // setup function
     public setup(): void {
         // load the texture
-        this.loadTexture('/images/ts-tunnel.asset.jpg').then(img => {
+        this.loadTexture('/images/assets/ts-tunnel.asset.jpg').then(img => {
 
             // create the new surface
             this.texture_ = new Surface({width: img.width, height: img.height});
