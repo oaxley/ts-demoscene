@@ -47,7 +47,7 @@ export class Rotozoom extends IAnimation {
             this.image_ = new Surface({width: img.width, height: img.height});
             this.image_.context.drawImage(img, 0, 0);
         };
-        img.src = '/images/ts-rotozoom.asset.jpg';
+        img.src = '/images/assets/ts-rotozoom.asset.jpg';
 
         // load the lookup tables
         this.computeLUT();
