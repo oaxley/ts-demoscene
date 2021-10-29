@@ -48,7 +48,7 @@ export class Lens extends IAnimation {
 
         // load the background image
         this.image_ = new Image();
-        this.image_.src = '/images/ts-lens.background.jpg';
+        this.image_.src = '/images/assets/ts-lens.background.jpg';
 
         // create an instance of the CollisionDetector and add objects to it
         this.detector_ = new CollisionDetector();
