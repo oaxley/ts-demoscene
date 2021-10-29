@@ -185,7 +185,7 @@ export class Twister extends IAnimation {
     public setup(): void {
 
         // load the texture
-        this.loadTexture('/images/ts-twister.asset.jpg').then(img => {
+        this.loadTexture('/images/assets/ts-twister.asset.jpg').then(img => {
 
             // create the new surface
             this.texture_ = new Surface({width: img.width, height: img.height});
