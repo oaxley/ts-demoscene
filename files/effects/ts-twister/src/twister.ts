@@ -92,10 +92,11 @@ export class Twister extends IAnimation {
                 let addr = ot + xtb;
 
                 for (let x = x1; x < x2; x++) {
-                    imgdata.data[offset++] = texdata.data[(addr << 2) + 0];
-                    imgdata.data[offset++] = texdata.data[(addr << 2) + 1];
-                    imgdata.data[offset++] = texdata.data[(addr << 2) + 2];
-                    imgdata.data[offset++] = texdata.data[(addr << 2) + 3];
+                    let soff = addr << 2;
+                    imgdata.data[offset++] = texdata.data[soff + 0];
+                    imgdata.data[offset++] = texdata.data[soff + 1];
+                    imgdata.data[offset++] = texdata.data[soff + 2];
+                    imgdata.data[offset++] = texdata.data[soff + 3];
                     addr += ratio;
                 }
             }
@@ -110,10 +111,11 @@ export class Twister extends IAnimation {
                 let addr = ot + xtb;
 
                 for (let x = x2; x < x3; x++) {
-                    imgdata.data[offset++] = texdata.data[(addr << 2) + 0];
-                    imgdata.data[offset++] = texdata.data[(addr << 2) + 1];
-                    imgdata.data[offset++] = texdata.data[(addr << 2) + 2];
-                    imgdata.data[offset++] = texdata.data[(addr << 2) + 3];
+                    let soff = addr << 2;
+                    imgdata.data[offset++] = texdata.data[soff + 0];
+                    imgdata.data[offset++] = texdata.data[soff + 1];
+                    imgdata.data[offset++] = texdata.data[soff + 2];
+                    imgdata.data[offset++] = texdata.data[soff + 3];
                     addr += ratio;
                 }
             }
@@ -128,10 +130,11 @@ export class Twister extends IAnimation {
                 let addr = ot + xtb;
 
                 for (let x = x3; x < x4; x++) {
-                    imgdata.data[offset++] = texdata.data[(addr << 2) + 0];
-                    imgdata.data[offset++] = texdata.data[(addr << 2) + 1];
-                    imgdata.data[offset++] = texdata.data[(addr << 2) + 2];
-                    imgdata.data[offset++] = texdata.data[(addr << 2) + 3];
+                    let soff = addr << 2;
+                    imgdata.data[offset++] = texdata.data[soff + 0];
+                    imgdata.data[offset++] = texdata.data[soff + 1];
+                    imgdata.data[offset++] = texdata.data[soff + 2];
+                    imgdata.data[offset++] = texdata.data[soff + 3];
                     addr += ratio;
                 }
             }
@@ -146,10 +149,11 @@ export class Twister extends IAnimation {
                 let addr = ot + xtb;
 
                 for (let x = x4; x < x1; x++) {
-                    imgdata.data[offset++] = texdata.data[(addr << 2) + 0];
-                    imgdata.data[offset++] = texdata.data[(addr << 2) + 1];
-                    imgdata.data[offset++] = texdata.data[(addr << 2) + 2];
-                    imgdata.data[offset++] = texdata.data[(addr << 2) + 3];
+                    let soff = addr << 2;
+                    imgdata.data[offset++] = texdata.data[soff + 0];
+                    imgdata.data[offset++] = texdata.data[soff + 1];
+                    imgdata.data[offset++] = texdata.data[soff + 2];
+                    imgdata.data[offset++] = texdata.data[soff + 3];
                     addr += ratio;
                 }
             }
