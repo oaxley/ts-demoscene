@@ -20,7 +20,7 @@ export class Display {
     //----- methods
     constructor(canvas: HTMLCanvasElement) {
         this.screen_  = canvas;
-        this.context_ = canvas.getContext("2d");
+        this.context_ = canvas.getContext("2d")!;
         this.surface_ = new Surface({width: canvas.width, height: canvas.height});
     }
 
