@@ -30,7 +30,7 @@ export class Surface {
         // setup vars
         this.width_   = size.width;
         this.height_  = size.height;
-        this.context_ = this.canvas_.getContext("2d");
+        this.context_ = this.canvas_.getContext("2d")!;
     }
 
     // return the context for this Surface
@@ -79,7 +79,7 @@ export class Surface {
                 this.context_.clearRect(0, 0, this.width_, this.height_);
                 break;
             case "number":
-                this.context_.clearRect(xr, y, w, h);
+                this.context_.clearRect(xr, y!, w!, h!);
                 break;
             default:
                 this.context_.clearRect(xr.x, xr.y, xr.w, xr.h);
