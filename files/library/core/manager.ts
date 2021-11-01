@@ -20,8 +20,8 @@ export enum States {
 
 interface ITransition {
     event: States,
-    from: IStateTask,
-    to: IStateTask
+    from?: IStateTask,
+    to?: IStateTask
 }
 
 
