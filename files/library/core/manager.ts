@@ -18,7 +18,7 @@ export enum States {
     S_RESUME
 }
 
-interface ITransition {
+interface IStateTransition {
     event: States,
     from?: IStateTask,
     to?: IStateTask
@@ -50,7 +50,7 @@ export abstract class IStateTask {
 export class StatesManager {
     //----- members
     private stack_: Stack<IStateTask>;          // the running stack
-    private transitions_: ITransition[];        // transition between tasks
+    private transitions_: IStateTransition[];        // transition between tasks
 
 
     //----- methods
@@ -61,12 +61,12 @@ export class StatesManager {
     }
 
     // add a new transiction
-    public add(item: ITransition): void {
+    public add(item: IStateTransition): void {
         this.transitions_.push(item);
     }
 
     // find the transition corresponding to a particular (event/task)
-    private find(event: States, from:IStateTask|undefined): ITransition|undefined {
+    private find(event: States, from:IStateTask|undefined): IStateTransition|undefined {
         // go through all the items
         for (let i = 0; i < this.transitions_.length; i++) {
             let transition = this.transitions_[i];
