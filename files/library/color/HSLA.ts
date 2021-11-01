@@ -18,7 +18,7 @@ export class HSLA extends BaseColor {
         super(COLOR_MODEL.HSLA, h, s, l, alpha);
     }
 
-    public static from(color: BaseColor): HSLA {
+    public static from(color: BaseColor): HSLA|undefined {
         if ( color.model == COLOR_MODEL.HSLA ) {
             return this.fromHSLA(color.values);
         }

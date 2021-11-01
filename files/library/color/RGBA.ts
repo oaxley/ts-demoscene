@@ -18,7 +18,7 @@ export class RGBA extends BaseColor {
         super(COLOR_MODEL.RGBA, r, g, b, alpha);
     }
 
-    public static from(color: BaseColor): RGBA {
+    public static from(color: BaseColor): RGBA|undefined {
         if ( color.model == COLOR_MODEL.RGBA ) {
             return this.fromRGBA(color.values);
         }

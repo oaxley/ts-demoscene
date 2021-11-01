@@ -18,7 +18,7 @@ export class HSVA extends BaseColor {
         super(COLOR_MODEL.HSVA, h, s, l, alpha);
     }
 
-    public static from(color: BaseColor): HSVA {
+    public static from(color: BaseColor): HSVA|undefined {
         if ( color.model == COLOR_MODEL.HSVA ) {
             return this.fromHSVA(color.values);
         }
