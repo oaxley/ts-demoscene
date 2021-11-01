@@ -89,30 +89,32 @@ export class StatesManager {
 
         // no transition defined for this pair
         if (transition === undefined) {
-            console.log(`Error: no transition defined for ${from.name} with event ${event.toString()}`);
+            let name = (from === undefined) ? "undefined" : from.name;
+            console.log(`Error: no transition defined for '${name}' with event '${event.toString()}'`);
             return;
         }
+
 
         // perform the action depending on the event and transition result
         switch(event) {
             case States.S_BEGIN: {  // add first task to the stack
-                this.stack_.push(transition.to);
-                this.stack_.top().setup();
+                this.stack_.push(transition.to!);
+                this.stack_.top()!.setup();
                 break;
             }
             case States.S_END: {    // remove previous task, push new one
-                from.cleanup();
-                this.stack_.push(transition.to);
-                this.stack_.top().setup();
+                from!.cleanup();
+                this.stack_.push(transition.to!);
+                this.stack_.top()!.setup();
                 break;
             }
             case States.S_PAUSE: {  // pause the current task, add a new one on top
-                this.stack_.push(transition.to);
-                this.stack_.top().setup();
+                this.stack_.push(transition.to!);
+                this.stack_.top()!.setup();
                 break;
             }
             case States.S_RESUME: { // remove top task
-                from.cleanup();
+                from!.cleanup();
                 this.stack_.pop();
                 break;
             }
@@ -120,13 +122,16 @@ export class StatesManager {
     }
 
     // run the states manager
-    private run(time: number|undefined): void {
+    private run(time?: number): void {
+        // retrieve the task on top of the stack
+        let task = this.stack_.top();
+
         // no task defined on the top
-        if (this.stack_.top() === undefined)
+        if (task === undefined)
             return;
 
-        // run the task on top of the stack
-        let result = this.stack_.top().run(time);
+        // run the task
+        let result = task.run(time);
 
         // move the state according to the result
         this.move(result);
