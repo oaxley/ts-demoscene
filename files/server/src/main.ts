@@ -5,9 +5,6 @@
  * @brief   Typescript file for the main page
  */
 
-import { url } from "inspector";
-import { threadId } from "worker_threads";
-
 //----- imports
 
 //----- globals
@@ -25,7 +22,8 @@ interface QueryResult {
 // configuration items
 interface Config {
     name: string,
-    title: string
+    title: string,
+    description: string
 }
 
 // button parameters
@@ -56,12 +54,17 @@ class Slider {
     //----- methods
     constructor(output: HTMLCanvasElement, prev: HTMLButtonElement, next: HTMLButtonElement) {
         // set the vars
-        this.display_ = output;
+        this.display_  = output;
+        this.nImage_   = new Image();
+        this.maxImage_ = 0;
+        this.curImage_ = 0;
 
         // retrieve the configuration from the NodeJS server
         this.config_ = [];
-        this.request().then((result) => {
-            this.config_ = result.json()['effects'];
+        this.request().then((result: QueryResult) => {
+            let json: any = result.json();
+            this.config_ = json['effects'];
+
 
             // initialize counters
             this.maxImage_ = this.config_.length;
@@ -125,7 +128,7 @@ class Slider {
 
         this.nImage_ = new Image();
         this.nImage_.onload = () => {
-            this.display_.getContext("2d").drawImage(this.nImage_, 0, 0);
+            this.display_.getContext("2d")!.drawImage(this.nImage_, 0, 0);
         };
         this.nImage_.src = '/images/screenshot/' + name;
     }
@@ -139,8 +142,8 @@ class Slider {
 
         // set the title
         let html = '<a href="/' + name + '">&#10095;&#10095 ' + title + '</a>';
-        document.getElementById("effect-name").innerHTML = html;
-        document.getElementById("effect-desc").innerText = desc;
+        document.getElementById("effect-name")!.innerHTML = html;
+        document.getElementById("effect-desc")!.innerText = desc;
     }
 
     // next image
