@@ -83,7 +83,7 @@ export class CollisionDetector {
                     continue;
 
                 // find the object (right) we might collide with
-                let right: Rect = null;
+                let right: Rect;
                 if (this.objects_[j] instanceof CollisionWall) {
                     // wall don't move
                     right = this.objects_[j].rect();
