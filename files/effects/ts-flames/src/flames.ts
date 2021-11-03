@@ -48,7 +48,10 @@ export class Flames extends IAnimation {
         super('flames', display);
 
         // set the vars
+        this.palette_ = new Palette();
         this.flames_  = [];
+        this.costable_ = [];
+        this.sintable_ = [];
 
         // create the palette
         this.createPalette();
@@ -88,7 +91,6 @@ export class Flames extends IAnimation {
 
     // create the Fire palette
     private createPalette(): void {
-        this.palette_ = new Palette();
 
         for (let i = 0; i < 32; i++) {
             // black to blue
@@ -250,7 +252,7 @@ export class Flames extends IAnimation {
     }
 
     // update the animation
-    protected update(timestamp: number): void {
+    protected update(time?: number): void {
         if (!this.isAnimated)
             return;
 
@@ -300,7 +302,7 @@ export class Flames extends IAnimation {
     }
 
     // render the animation on the screen
-    protected render(timestamp: number): void {
+    protected render(time?: number): void {
         if (!this.isAnimated)
             return;
 
@@ -314,7 +316,7 @@ export class Flames extends IAnimation {
 
                 // retrieve rgba components
                 let index = this.flames_[offset + x];
-                let rgba  = this.palette_.getColor(index).color.values;
+                let rgba  = this.palette_.getColor(index)!.color.values;
 
                 // set the corresponding pixel in the buffer
                 let position = (offset + x)  << 2;
