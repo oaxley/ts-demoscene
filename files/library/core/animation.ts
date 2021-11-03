@@ -52,8 +52,8 @@ export abstract class IAnimation extends IStateTask {
     }
 
     // update the animation
-    protected abstract update(time: number|undefined): void;
+    protected abstract update(time?: number): void;
 
     // render the animation on the screen
-    protected abstract render(time: number|undefined): void;
+    protected abstract render(time?: number): void;
 }
