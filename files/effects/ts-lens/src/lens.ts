@@ -46,6 +46,9 @@ export class Lens extends IAnimation {
     constructor(display: Display) {
         super('lens', display);
 
+        // set the vars
+        this.lenses_ = [];
+
         // load the background image
         this.image_ = new Image();
         this.image_.src = '/images/assets/ts-lens.background.jpg';
@@ -120,7 +123,7 @@ export class Lens extends IAnimation {
     }
 
      // update the animation
-    protected update(timestamp: number): void {
+    protected update(time?: number): void {
         if (!this.isAnimated)
             return;
 
@@ -130,7 +133,7 @@ export class Lens extends IAnimation {
     }
 
     // render the animation on screen
-    protected render(timestamp: number): void {
+    protected render(time?: number): void {
         if (!this.isAnimated)
             return;
 

@@ -23,6 +23,7 @@ export class LensAnimation {
         this.radius_  = radius;
         this.diameter_= radius * 2;
         this.zoom_    = zoom;
+        this.transMap_= [];
 
         // compute the transformation map
         this.transMap();
@@ -38,7 +39,6 @@ export class LensAnimation {
         let s2 = s * s;
 
         // compute the map
-        this.transMap_ = []
         for(let y = -r; y < r; y++) {
             let y2 = y * y;
 
