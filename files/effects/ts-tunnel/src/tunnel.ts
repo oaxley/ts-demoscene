@@ -19,7 +19,7 @@ import { Surface } from "library/core/surface";
 export class Tunnel extends IAnimation {
 
     //----- members
-    private texture_: Surface;
+    private texture_: Surface|undefined;
     private distance_: number[];
     private angle_: number[];
     private shade_: number[];
@@ -41,8 +41,8 @@ export class Tunnel extends IAnimation {
         // constants
         const w = this.display_.width;
         const h = this.display_.height;
-        const tw = this.texture_.width;
-        const th = this.texture_.height;
+        const tw = this.texture_!.width;
+        const th = this.texture_!.height;
         const ratio = 32.0;
 
         // the maps are twice as big as the screen to be able to move inside it
@@ -85,11 +85,11 @@ export class Tunnel extends IAnimation {
 
         // retrieve the surface and texture data
         let imgdata = this.display_.surface.data;
-        let texdata = this.texture_.data;
+        let texdata = this.texture_!.data;
 
         // constants
-        const tw = this.texture_.width;
-        const th = this.texture_.height;
+        const tw = this.texture_!.width;
+        const th = this.texture_!.height;
         const w = this.display_.width;
         const h = this.display_.height;
 
@@ -142,7 +142,7 @@ export class Tunnel extends IAnimation {
     }
 
     // render the animation on the screen
-    protected render(timestamp: number): void {
+    protected render(time?: number): void {
         if (!this.isAnimated)
             return;
 
@@ -183,7 +183,7 @@ export class Tunnel extends IAnimation {
     }
 
     // run the animation
-    public run(time: number | undefined): States {
+    public run(time: number): States {
 
         // update & render the tunnel effect
         this.update(time);
