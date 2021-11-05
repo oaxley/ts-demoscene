@@ -25,6 +25,9 @@ export class Plasma extends IAnimation {
     constructor(display: Display) {
         super('plasma', display);
 
+        // set the vars
+        this.palette_ = new Palette();
+
         // create the 256 colors palette
         this.createPalette();
     }
@@ -66,7 +69,7 @@ export class Plasma extends IAnimation {
                 if (index > 255)
                     index = 255;
 
-                let rgba = this.palette_.getColor(index).color.values;
+                let rgba = this.palette_.getColor(index)!.color.values;
                 imgdata.data[ofs++] = rgba.x;
                 imgdata.data[ofs++] = rgba.y;
                 imgdata.data[ofs++] = rgba.z;
@@ -78,7 +81,7 @@ export class Plasma extends IAnimation {
     }
 
     // render the animation on screen
-    protected render(timestamp: number): void {
+    protected render(time?: number): void {
         if (!this.isAnimated)
             return;
 
@@ -107,7 +110,7 @@ export class Plasma extends IAnimation {
     }
 
     // main animation function
-    public run(time: number|undefined): States {
+    public run(time: number): States {
 
         // update & render the flames buffer
         this.update(time);
