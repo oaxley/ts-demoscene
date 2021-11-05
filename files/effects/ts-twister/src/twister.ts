@@ -23,12 +23,12 @@ const BAR_WIDTH = 240;
 export class Twister extends IAnimation {
 
     //----- members
-    private angle_    : number;     // rotation angle
-    private amplitude_: number;     // movement amplitude
-    private ampway_   : number;     // movement way
+    private angle_    : number;             // rotation angle
+    private amplitude_: number;             // movement amplitude
+    private ampway_   : number;             // movement way
 
-    private texture_ : Surface;     // texture surface
-    private slice_   : Size;        // texture slice size
+    private texture_ : Surface|undefined;   // texture surface
+    private slice_   : Size;                // texture slice size
 
     //----- methods
     constructor(display: Display) {
@@ -38,6 +38,7 @@ export class Twister extends IAnimation {
         this.angle_ = 0;
         this.amplitude_ = 0;
         this.ampway_ = 0.05;
+        this.slice_ = { width: 0, height: 0}
     }
 
     private loadTexture(name: string): Promise<HTMLImageElement> {
@@ -51,7 +52,7 @@ export class Twister extends IAnimation {
     }
 
     // update the animation
-    protected update(timestamp: number): void {
+    protected update(time?: number): void {
         if (!this.isAnimated)
             return;
 
@@ -64,7 +65,7 @@ export class Twister extends IAnimation {
 
         // retrieve the backbuffer/texture data
         let imgdata = this.display_.surface.data;
-        let texdata = this.texture_.data;
+        let texdata = this.texture_!.data;
 
 
         for (let y = 0; y < this.display_.height; y++) {
@@ -78,8 +79,8 @@ export class Twister extends IAnimation {
             let x4 = x0 + (w * Math.sin(this.amplitude_ * fv + this.angle_ + a * 3));
 
             // compute the texture coordinate / offset
-            let yt = Math.floor(fv * this.texture_.height);
-            let ot = yt * this.texture_.width;
+            let yt = Math.floor(fv * this.texture_!.height);
+            let ot = yt * this.texture_!.width;
 
             // draw the lines
             if (x1 < x2) {
@@ -163,7 +164,7 @@ export class Twister extends IAnimation {
     }
 
     // render the animation on the screen
-    protected render(timestamp: number): void {
+    protected render(time?: number): void {
         if (!this.isAnimated)
             return;
 
@@ -219,7 +220,7 @@ export class Twister extends IAnimation {
     }
 
     // run the animation
-    public run(time: number|undefined): States {
+    public run(time: number): States {
 
         // update & render the flames buffer
         this.update(time);
