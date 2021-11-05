@@ -35,7 +35,7 @@ export class Moire extends IAnimation {
         super('moire', display);
 
         // set the vars
-        this.lastTs_ = null;
+        this.lastTs_ = -1;
 
         this.sx_ = display.width >> 1;
         this.sy_ = display.height >> 1;
@@ -44,7 +44,7 @@ export class Moire extends IAnimation {
     }
 
     // update the animation
-    protected update(timestamp: number): void {
+    protected update(time: number): void {
         if (!this.isAnimated)
             return;
 
@@ -52,10 +52,10 @@ export class Moire extends IAnimation {
         let imgdata = this.display_.surface.data;
 
         // compute the current center of each circles
-        let cx1 = this.sx_ + this.ax_ * Math.cos(timestamp/1000);
-        let cy1 = this.sy_ + this.ay_ * Math.sin(timestamp/2000);
-        let cx2 = this.sx_ + this.ax_ * Math.cos(timestamp/3000);
-        let cy2 = this.sy_ + this.ay_ * Math.sin(timestamp/4000);
+        let cx1 = this.sx_ + this.ax_ * Math.cos(time/1000);
+        let cy1 = this.sy_ + this.ay_ * Math.sin(time/2000);
+        let cx2 = this.sx_ + this.ax_ * Math.cos(time/3000);
+        let cy2 = this.sy_ + this.ay_ * Math.sin(time/4000);
 
         // draw the effect on the buffer
         let offset = 0;
@@ -89,7 +89,7 @@ export class Moire extends IAnimation {
     }
 
     // render the animation on screen
-    protected render(timestamp: number): void {
+    protected render(time?: number): void {
         if (!this.isAnimated)
             return;
 
@@ -118,10 +118,10 @@ export class Moire extends IAnimation {
     }
 
     // main animation function
-    public run(time: number|undefined): States {
+    public run(time: number): States {
 
         // initialize the value on first call
-        if (this.lastTs_ == null) {
+        if (this.lastTs_ == -1) {
             this.lastTs_ = time;
         }
 
