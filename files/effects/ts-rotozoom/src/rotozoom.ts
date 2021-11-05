@@ -23,7 +23,7 @@ const TICKS: number = 1000 / FPS;
 export class Rotozoom extends IAnimation {
 
     //----- members
-    private image_    : Surface;
+    private image_: Surface|undefined;
 
     private angle_: number;                         // current rotation angle
 
@@ -39,7 +39,10 @@ export class Rotozoom extends IAnimation {
 
         // set the vars
         this.angle_ = 0;
-        this.lastTs_ = null;
+        this.lastTs_ = -1;
+        this.cos_ = [];
+        this.sin_ = [];
+
 
         // load the texture image
         let img = new Image();
@@ -55,9 +58,6 @@ export class Rotozoom extends IAnimation {
 
     // prepare the cos/sin tables
     private computeLUT(): void {
-        this.cos_ = [];
-        this.sin_ = [];
-
         for (let i = 0; i < 360; i++) {
             this.cos_[i] = Math.cos(radians(i));
             this.sin_[i] = Math.sin(radians(i));
@@ -70,11 +70,11 @@ export class Rotozoom extends IAnimation {
             return;
 
         // retrieve the image / backbuffer data
-        let srcdata = this.image_.data;
+        let srcdata = this.image_!.data;
         let dstdata = this.display_.surface.data;
 
         // height of the texture
-        const height: number = this.image_.canvas.height;
+        const height: number = this.image_!.canvas.height;
 
         // cosinus / sinus lookup
         const cs: number = this.cos_[this.angle_];
@@ -151,10 +151,10 @@ export class Rotozoom extends IAnimation {
     }
 
     // run the animation
-    public run(time: number|undefined): States {
+    public run(time: number): States {
 
         // initialize the value on first call
-        if (this.lastTs_ == null) {
+        if (this.lastTs_ == -1) {
             this.lastTs_ = time;
         }
 
