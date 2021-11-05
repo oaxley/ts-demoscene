@@ -104,8 +104,10 @@ export class StatesManager {
             }
             case States.S_END: {    // remove previous task, push new one
                 from!.cleanup();
-                this.stack_.push(transition.to!);
-                this.stack_.top()!.setup();
+                if (transition.to !== undefined) {
+                    this.stack_.push(transition.to);
+                    this.stack_.top()!.setup();
+                }
                 break;
             }
             case States.S_PAUSE: {  // pause the current task, add a new one on top
