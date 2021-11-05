@@ -46,6 +46,10 @@ export class Metaballs extends IAnimation {
     constructor(display: Display) {
         super('metaballs', display);
 
+        // set the vars
+        this.palette_ = new Palette();
+        this.metaballs_ = [];
+
         // create the grayscale palette
         this.createPalette();
 
@@ -60,7 +64,6 @@ export class Metaballs extends IAnimation {
 
     // create a grayscale palette
     private createPalette(): void {
-        this.palette_ = new Palette();
         for (let index = 0; index < 256; index++) {
             let v = Math.floor(255.0 * this.ease(index / 256.0));
             this.palette_.setColor(index, new Color(COLOR_MODEL.RGBA, v, v, v));
@@ -69,7 +72,6 @@ export class Metaballs extends IAnimation {
 
     // create the metaballs particules
     private createParticules(): void {
-        this.metaballs_ = [];
         for (let i = 0; i < NUM_PARTICULES; i++) {
             this.metaballs_.push(
                 {
@@ -84,7 +86,7 @@ export class Metaballs extends IAnimation {
     }
 
     // update the animation
-    protected update(timestamp: number): void {
+    protected update(time?: number): void {
         if (!this.isAnimated)
             return;
 
@@ -102,7 +104,7 @@ export class Metaballs extends IAnimation {
     }
 
     // render the animation on screen
-    protected render(timestamp: number): void {
+    protected render(time?: number): void {
         if (!this.isAnimated)
             return;
 
@@ -127,7 +129,7 @@ export class Metaballs extends IAnimation {
                     sum = 255;
 
                 // retrieve the associated color from the palette
-                let rgb = this.palette_.getColor(sum).color.values;
+                let rgb = this.palette_.getColor(sum)!.color.values;
 
                 // set the pixel
                 let pos = (y * this.width_ + x) << 2;
