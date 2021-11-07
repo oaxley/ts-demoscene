@@ -23,6 +23,6 @@ export class FadeWhite extends ITransition {
     // compute the new values for RGBA
     protected compute(values: number[]): number[] {
         let [ r, g, b, a, t ] = values;
-        return [ lerp(r, 255, t), lerp(g, 255, t), lerp(b, 255, t), lerp(a, 255, t) ];
+        return [ lerp(r, 255, t), lerp(g, 255, t), lerp(b, 255, t), a ];
     }
 }
