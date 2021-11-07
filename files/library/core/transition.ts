@@ -75,10 +75,10 @@ export abstract class ITransition extends IStateTask {
                 [r, g, b, a] = this.compute([r, g, b, a, t]);
 
                 // store the new values
-                dstdata.data[addr + 0] = r;
-                dstdata.data[addr + 1] = g;
-                dstdata.data[addr + 2] = b;
-                dstdata.data[addr + 3] = a;
+                dstdata.data[addr + 0] = Math.floor(r);
+                dstdata.data[addr + 1] = Math.floor(g);
+                dstdata.data[addr + 2] = Math.floor(b);
+                dstdata.data[addr + 3] = Math.floor(a);
             }
         }
 
