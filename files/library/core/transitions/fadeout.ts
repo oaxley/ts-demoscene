@@ -1,5 +1,5 @@
 /*
- * @file    fadein.ts
+ * @file    fadeout.ts
  * @author  Sebastien LEGRAND
  *
  * @brief   Fade-Out transition effect
