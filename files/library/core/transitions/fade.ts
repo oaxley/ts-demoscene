@@ -1,5 +1,5 @@
 /*
- * @file    fadeout.ts
+ * @file    fade.ts
  * @author  Sebastien LEGRAND
  *
  * @brief   Fade-Out transition effect
@@ -13,16 +13,36 @@ import { lerp } from "library/maths/utils";
 
 
 //----- class
-export class FadeOut extends ITransition {
+export namespace Fade {
 
-    //----- methods
-    constructor(display: Surface, refimage: Surface, delay: number, viewport?: Rect) {
-        super('fadeout', display, refimage, delay, viewport);
+    // fade-in effect
+    export class In extends ITransition {
+
+        //----- methods
+        constructor(display: Surface, refimage: Surface, delay: number, viewport?: Rect) {
+            super('fadein', display, refimage, delay, viewport);
+        }
+
+        // compute the new values for RGBA
+        protected compute(values: number[]): number[] {
+            let [ r, g, b, a, t ] = values;
+            return [ lerp(0, r, t), lerp(0, g, t), lerp(0, b, t), a ];
+        }
     }
 
-    // compute the new values for RGBA
-    protected compute(values: number[]): number[] {
-        let [ r, g, b, a, t ] = values;
-        return [ lerp(r, 0, t), lerp(g, 0, t), lerp(b, 0, t), a ];
+    // fade-out effect
+    export class Out extends ITransition {
+
+        //----- methods
+        constructor(display: Surface, refimage: Surface, delay: number, viewport?: Rect) {
+            super('fadeout', display, refimage, delay, viewport);
+        }
+
+        // compute the new values for RGBA
+        protected compute(values: number[]): number[] {
+            let [ r, g, b, a, t ] = values;
+            return [ lerp(r, 0, t), lerp(g, 0, t), lerp(b, 0, t), a ];
+        }
     }
+
 }
