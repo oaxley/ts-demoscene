@@ -2,7 +2,7 @@
  * @file    white.ts
  * @author  Sebastien LEGRAND
  *
- * @brief   Fade to White transition effect
+ * @brief   White In/Out transition effect
  */
 
 //----- imports

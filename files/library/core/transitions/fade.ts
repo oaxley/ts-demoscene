@@ -2,7 +2,7 @@
  * @file    fade.ts
  * @author  Sebastien LEGRAND
  *
- * @brief   Fade-Out transition effect
+ * @brief   Fade In/Out transition effect
  */
 
 //----- imports

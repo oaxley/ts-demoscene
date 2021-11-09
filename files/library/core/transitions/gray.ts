@@ -2,7 +2,7 @@
  * @file    gray.ts
  * @author  Sebastien LEGRAND
  *
- * @brief   Fade to Gray transition effect
+ * @brief   Gray In/Out transition effect
  */
 
 //----- imports
