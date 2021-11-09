@@ -50,4 +50,23 @@ export namespace Flash {
         }
     }
 
+    // flash the reference image to Gray
+    export class Gray extends ITransition {
+        //----- methods
+        constructor(display: Surface, refimage: Surface, delay: number, viewport?: Rect) {
+            super('flash-gray', display, refimage, delay, viewport);
+        }
+
+        // compute the new values for RGBA
+        protected compute(values: number[]): number[] {
+            let [ r, g, b, a, t ] = values;
+            if ((t > 0.2) && (t < 0.8)) {
+                let lum = Math.floor(0.299 * r + 0.587 * g + 0.114 * b);
+                return [ lum, lum, lum, a];
+            } else {
+                return [ r, b, g, a ]
+            }
+        }
+    }
+
 }
