@@ -31,4 +31,23 @@ export namespace Flash {
             }
         }
     }
+
+    // flash the reference image to black
+    export class Black extends ITransition {
+        //----- methods
+        constructor(display: Surface, refimage: Surface, delay: number, viewport?: Rect) {
+            super('flash-black', display, refimage, delay, viewport);
+        }
+
+        // compute the new values for RGBA
+        protected compute(values: number[]): number[] {
+            let [ r, g, b, a, t ] = values;
+            if ((t > 0.2) && (t < 0.8)) {
+                return [ 0, 0, 0, a];
+            } else {
+                return [ r, b, g, a ]
+            }
+        }
+    }
+
 }
