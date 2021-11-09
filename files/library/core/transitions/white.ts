@@ -20,13 +20,28 @@ export namespace White {
 
         //----- methods
         constructor(display: Surface, refimage: Surface, delay: number, viewport?: Rect) {
-            super('fade-white', display, refimage, delay, viewport);
+            super('white-in', display, refimage, delay, viewport);
         }
 
         // compute the new values for RGBA
         protected compute(values: number[]): number[] {
             let [ r, g, b, a, t ] = values;
             return [ lerp(r, 255, t), lerp(g, 255, t), lerp(b, 255, t), a ];
+        }
+    }
+
+    // make the transition from white to reference image
+    export class Out extends ITransition {
+
+        //----- methods
+        constructor(display: Surface, refimage: Surface, delay: number, viewport?: Rect) {
+            super('white-out', display, refimage, delay, viewport);
+        }
+
+        // compute the new values for RGBA
+        protected compute(values: number[]): number[] {
+            let [ r, g, b, a, t ] = values;
+            return [ lerp(255, r, t), lerp(255, g, t), lerp(255, b, t), a ];
         }
     }
 
