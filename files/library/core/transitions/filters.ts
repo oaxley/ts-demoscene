@@ -37,4 +37,18 @@ export namespace Filter {
         }
     }
 
+    // Inverted colors
+    export class Inverted extends ITransition {
+        //----- methods
+        constructor(display: Surface, refimage: Surface, delay: number, viewport?: Rect) {
+            super('inverted', display, refimage, delay, viewport);
+        }
+
+        // compute the new values for RGBA
+        protected compute(values: number[]): number[] {
+            let [ r, g, b, a, t ] = values;
+            return [ 255-r, 255-g, 255-b, a ];
+        }
+    }
+
 }
