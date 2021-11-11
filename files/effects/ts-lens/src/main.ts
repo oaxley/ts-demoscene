@@ -19,7 +19,7 @@ let display = new Display(<HTMLCanvasElement> document.getElementById("output"))
 let lens = new Lens(display);
 
 // create the states manager and add a new transition to it
-let manager = new StatesManager();
+let manager = StatesManager.getInstance();
 manager.add({event: States.S_BEGIN, from: undefined, to: lens});
 
 // start the manager
