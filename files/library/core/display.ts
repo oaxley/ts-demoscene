@@ -15,6 +15,7 @@ export class Display {
     private screen_: HTMLCanvasElement;
     private context_: CanvasRenderingContext2D;
     private surface_: Surface;
+    private snapshot_: Surface;
 
 
     //----- methods
@@ -22,6 +23,7 @@ export class Display {
         this.screen_  = canvas;
         this.context_ = canvas.getContext("2d")!;
         this.surface_ = new Surface({width: canvas.width, height: canvas.height});
+        this.snapshot_= new Surface({width: canvas.width, height: canvas.height});
     }
 
     // accessor to get the display width
@@ -42,6 +44,24 @@ export class Display {
     // retrieve the display back surface
     public get surface(): Surface {
         return this.surface_;
+    }
+
+    // retrieve the display snaphot surface
+    public get snapshot(): Surface {
+        return this.snapshot_;
+    }
+
+    // take a snapshot of the display screen/back-surface
+    // true = back-surface
+    // false = screen
+    public takeSnapshot(toggle: boolean) {
+        if (toggle) {
+            // copy the back-surface
+            this.snapshot_.copy(this.surface_);
+        } else {
+            // copy the screen surface
+            this.snapshot_.context.drawImage(this.screen, 0, 0);
+        }
     }
 
     // retrieve the screen canvas element
