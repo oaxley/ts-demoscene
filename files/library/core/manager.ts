@@ -49,27 +49,37 @@ export abstract class IStateTask {
 // states manager main class
 export class StatesManager {
     //----- members
-    private stack_: Stack<IStateTask>;          // the running stack
-    private transitions_: IStateTransition[];        // transition between tasks
+    private static instance_: StatesManager;             // singleton instance
 
+    private static stack_: Stack<IStateTask>;           // the running stack
+    private static transitions_: IStateTransition[];    // transition between tasks
 
     //----- methods
-    constructor() {
+    private constructor() {
         // set the vars
-        this.stack_ = new Stack<IStateTask>();
-        this.transitions_ = [];
+        StatesManager.stack_ = new Stack<IStateTask>();
+        StatesManager.transitions_ = [];
+    }
+
+    // get the current running instance
+    public static getInstance(): StatesManager {
+        if (!StatesManager.instance_) {
+            StatesManager.instance_ = new this();
+        }
+
+        return StatesManager.instance_;
     }
 
     // add a new transiction
     public add(item: IStateTransition): void {
-        this.transitions_.push(item);
+        StatesManager.transitions_.push(item);
     }
 
     // find the transition corresponding to a particular (event/task)
     private find(event: States, from:IStateTask|undefined): IStateTransition|undefined {
         // go through all the items
-        for (let i = 0; i < this.transitions_.length; i++) {
-            let transition = this.transitions_[i];
+        for (let i = 0; i < StatesManager.transitions_.length; i++) {
+            let transition = StatesManager.transitions_[i];
             if ((transition.event == event) && (transition.from == from))
                 return transition;
         }
@@ -84,7 +94,7 @@ export class StatesManager {
             return;
 
         // retrieve the corresponding transition
-        let from = this.stack_.top();
+        let from = StatesManager.stack_.top();
         let transition = this.find(event, from);
 
         // no transition defined for this pair
@@ -98,26 +108,26 @@ export class StatesManager {
         // perform the action depending on the event and transition result
         switch(event) {
             case States.S_BEGIN: {  // add first task to the stack
-                this.stack_.push(transition.to!);
-                this.stack_.top()!.setup();
+                StatesManager.stack_.push(transition.to!);
+                StatesManager.stack_.top()!.setup();
                 break;
             }
             case States.S_END: {    // remove previous task, push new one
                 from!.cleanup();
                 if (transition.to !== undefined) {
-                    this.stack_.push(transition.to);
-                    this.stack_.top()!.setup();
+                    StatesManager.stack_.push(transition.to);
+                    StatesManager.stack_.top()!.setup();
                 }
                 break;
             }
             case States.S_PAUSE: {  // pause the current task, add a new one on top
-                this.stack_.push(transition.to!);
-                this.stack_.top()!.setup();
+                StatesManager.stack_.push(transition.to!);
+                StatesManager.stack_.top()!.setup();
                 break;
             }
             case States.S_RESUME: { // remove top task
                 from!.cleanup();
-                this.stack_.pop();
+                StatesManager.stack_.pop();
                 break;
             }
         }
@@ -126,7 +136,7 @@ export class StatesManager {
     // run the states manager
     private run(time?: number): void {
         // retrieve the task on top of the stack
-        let task = this.stack_.top();
+        let task = StatesManager.stack_.top();
 
         // no task defined on the top
         if (task === undefined)
