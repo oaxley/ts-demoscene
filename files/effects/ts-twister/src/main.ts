@@ -18,7 +18,7 @@ let display = new Display(<HTMLCanvasElement> document.getElementById("output"))
 let twister = new Twister(display);
 
 // create states manager
-let manager = new StatesManager();
+let manager = StatesManager.getInstance();
 
 // add a new transition
 manager.add({event: States.S_BEGIN, from: undefined, to: twister});
