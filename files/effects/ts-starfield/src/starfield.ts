@@ -89,6 +89,46 @@ export class Starfield extends IAnimation {
         if (!this.isAnimated) {
             return;
         }
+
+        // image backbuffer
+        this.display_.surface.clear();
+        let imgdata = this.display_.surface.data;
+
+        // center of the screen
+        const w = this.display_.width;
+        const h = this.display_.height;
+        const cx = w >> 1;
+        const cy = h >> 1;
+
+        // compute the 2D position of each stars
+        for (let i = 0; i < NUMBER_OF_STARS; i++) {
+            // retrieve the data for this star
+            let star: Star = this.stars_[i];
+
+            let px: number = cx + Math.floor((star.position.x * 256) / (star.position.z + 384));
+            let py: number = cy + Math.floor((star.position.y * 256) / (star.position.z + 384));
+
+            if ((px < 0) || (px > w - 1) || (py < 0) || (py > h - 1)) {
+                this.initStar(i);
+                continue;
+            }
+
+            let rgba = this.palette_.getColor(star.color)!.color.values;
+
+            let addr = ((py * w) + px) << 2;
+            imgdata.data[addr + 0] = rgba.x;
+            imgdata.data[addr + 1] = rgba.y;
+            imgdata.data[addr + 2] = rgba.z;
+            imgdata.data[addr + 3] = rgba.a;
+        }
+
+        // put back the image data on the backbuffer
+        this.display_.surface.data = imgdata;
+
+        // flip the back-buffer onto the screen
+        this.display_.clear();
+        this.display_.draw();
+
     }
 
     // setup function
