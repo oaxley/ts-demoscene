@@ -9,20 +9,55 @@
 import { IAnimation } from "library/core/animation";
 import { States } from "library/core/manager";
 import { Display } from "library/core/display";
+import { Point3D } from "library/core/interfaces";
+import { Palette } from "library/color/palette";
 
 
 //----- globals
+const NUMBER_OF_STARS = 1024;
 
+
+//----- interface
+interface Star {
+    position: Point3D
+    speed: number
+    color: number
+}
 
 //----- class
 export class Starfield extends IAnimation {
 
     //----- members
+    private stars_: Star[];
+    private palette_: Palette;
 
     //----- methods
     constructor(display: Display) {
         super('starfield', display);
+
+        // set the vars
+        this.stars_ = [];
+        this.palette_ = new Palette();
+
+        // initialize the stars
+        for (let i=0; i < NUMBER_OF_STARS; i++) {
+            this.initStar(i);
+        }
     }
+
+    // initialize a star
+    private initStar(index: number): void {
+        this.stars_[index] = {
+            position: {
+                x: -10.0 + (20 * Math.random()),
+                y: -10.0 + (20 * Math.random()),
+                z: index
+            },
+            speed: 2 + Math.floor(2.0 * Math.random()),
+            color: index >> 2
+        }
+    }
+
 
     // update the animation
     protected update(time?: number): void {
