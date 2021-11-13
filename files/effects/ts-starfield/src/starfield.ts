@@ -11,6 +11,8 @@ import { States } from "library/core/manager";
 import { Display } from "library/core/display";
 import { Point3D } from "library/core/interfaces";
 import { Palette } from "library/color/palette";
+import { Color } from "library/color/color";
+import { RGBA } from "library/color/RGBA";
 
 
 //----- globals
@@ -43,6 +45,9 @@ export class Starfield extends IAnimation {
         for (let i=0; i < NUMBER_OF_STARS; i++) {
             this.initStar(i);
         }
+
+        // initialize the palette
+        this.createPalette();
     }
 
     // initialize a star
@@ -58,13 +63,26 @@ export class Starfield extends IAnimation {
         }
     }
 
+    // palette creation
+    private createPalette(): void {
+        this.palette_.setColor(0, Color.from(new RGBA(0, 0, 0)));
+        for (let i = 0; i < 255; i++) {
+            this.palette_.setColor(255 - i, Color.from(new RGBA(i, i, i)));
+        }
+    }
 
     // update the animation
     protected update(time?: number): void {
+        if (!this.isAnimated) {
+            return;
+        }
     }
 
     // render the animation on the screen
     protected render(time?: number): void {
+        if (!this.isAnimated) {
+            return;
+        }
     }
 
     // setup function
