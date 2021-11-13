@@ -42,7 +42,7 @@ export class Starfield extends IAnimation {
         this.palette_ = new Palette();
 
         // initialize the stars
-        for (let i=0; i < NUMBER_OF_STARS; i++) {
+        for (let i = 0; i < NUMBER_OF_STARS; i++) {
             this.initStar(i);
         }
 
@@ -54,12 +54,12 @@ export class Starfield extends IAnimation {
     private initStar(index: number): void {
         this.stars_[index] = {
             position: {
-                x: -10.0 + (20 * Math.random()),
-                y: -10.0 + (20 * Math.random()),
-                z: index
+                x: (-200.0 + (400 * Math.random())),
+                y: (-200.0 + (400 * Math.random())),
+                z: (-200.0 + (400 * Math.random())),
             },
-            speed: 2 + Math.floor(2.0 * Math.random()),
-            color: index >> 2
+            speed: 2 + Math.floor(2 * Math.random()),
+            color: index % 256
         }
     }
 
