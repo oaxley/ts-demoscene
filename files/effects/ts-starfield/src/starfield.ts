@@ -76,6 +76,12 @@ export class Starfield extends IAnimation {
         if (!this.isAnimated) {
             return;
         }
+
+        // move the stars
+        for (let i = 0; i < NUMBER_OF_STARS; i++) {
+            let star: Star = this.stars_[i];
+            star.position.z -= star.speed;
+        }
     }
 
     // render the animation on the screen
@@ -87,6 +93,15 @@ export class Starfield extends IAnimation {
 
     // setup function
     public setup(): void {
+        // toggle the animation
+        this.toggle();
+
+        // set the click handler to pause the animation
+        window.onclick = () => {
+            this.toggle();
+        }
+
+        console.log("Starting Starfield animation.");
     }
 
     // cleanup function
