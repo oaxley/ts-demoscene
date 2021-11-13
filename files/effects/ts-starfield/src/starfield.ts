@@ -16,7 +16,7 @@ import { RGBA } from "library/color/RGBA";
 
 
 //----- globals
-const NUMBER_OF_STARS = 1024;
+const NUMBER_OF_STARS = 2048;
 
 
 //----- interface
