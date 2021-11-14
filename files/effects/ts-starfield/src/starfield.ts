@@ -9,7 +9,7 @@
 import { IAnimation } from "library/core/animation";
 import { States } from "library/core/manager";
 import { Display } from "library/core/display";
-import { Point3D } from "library/core/interfaces";
+import { Point2D, Point3D } from "library/core/interfaces";
 import { Palette } from "library/color/palette";
 import { Color } from "library/color/color";
 import { RGBA } from "library/color/RGBA";
@@ -24,6 +24,7 @@ interface Star {
     position: Point3D
     speed: number
     color: number
+    old_z: number
 }
 
 //----- class
@@ -52,14 +53,16 @@ export class Starfield extends IAnimation {
 
     // initialize a star
     private initStar(index: number): void {
+        let z = (-200.0 + (400 * Math.random()));
         this.stars_[index] = {
             position: {
                 x: (-200.0 + (400 * Math.random())),
                 y: (-200.0 + (400 * Math.random())),
-                z: (-200.0 + (400 * Math.random())),
+                z: z,
             },
             speed: 2 + Math.floor(2 * Math.random()),
-            color: index % 256
+            color: index % 256,
+            old_z: z
         }
     }
 
@@ -80,6 +83,7 @@ export class Starfield extends IAnimation {
         // move the stars
         for (let i = 0; i < NUMBER_OF_STARS; i++) {
             let star: Star = this.stars_[i];
+            star.old_z = star.position.z;
             star.position.z -= star.speed;
         }
     }
@@ -105,21 +109,20 @@ export class Starfield extends IAnimation {
             // retrieve the data for this star
             let star: Star = this.stars_[i];
 
+
             let px: number = cx + Math.floor((star.position.x * 256) / (star.position.z + 384));
             let py: number = cy + Math.floor((star.position.y * 256) / (star.position.z + 384));
+
+            let ox: number = cx + Math.floor((star.position.x * 256) / (star.old_z + 384));
+            let oy: number = cy + Math.floor((star.position.y * 256) / (star.old_z + 384));
 
             if ((px < 0) || (px > w - 1) || (py < 0) || (py > h - 1)) {
                 this.initStar(i);
                 continue;
             }
 
-            let rgba = this.palette_.getColor(star.color)!.color.values;
-
-            let addr = ((py * w) + px) << 2;
-            imgdata.data[addr + 0] = rgba.x;
-            imgdata.data[addr + 1] = rgba.y;
-            imgdata.data[addr + 2] = rgba.z;
-            imgdata.data[addr + 3] = rgba.a;
+            let c = this.palette_.getColor(star.color)!
+            this.line(imgdata, {x: ox, y: oy}, {x:px, y:py}, c);
         }
 
         // put back the image data on the backbuffer
@@ -128,7 +131,57 @@ export class Starfield extends IAnimation {
         // flip the back-buffer onto the screen
         this.display_.clear();
         this.display_.draw();
+    }
 
+    private putpixel(imgdata: ImageData, p: Point2D, c: Color): void {
+        let rgba = c.color.values;
+        let addr = ((p.y * this.display_.width) + p.x) << 2;
+        imgdata.data[addr + 0] = rgba.x;
+        imgdata.data[addr + 1] = rgba.y;
+        imgdata.data[addr + 2] = rgba.z;
+        imgdata.data[addr + 3] = rgba.a;
+    }
+
+    // trace a line in the flame buffer with the Bresenham algorithm
+    private line(imgdata: ImageData, p1: Point2D, p2: Point2D, c: Color): void {
+        let incrx: number, incry: number, x: number, y: number;
+        let delta: number, dx: number, dy: number;
+
+        [ incrx, incry, x, y ] = [ 1, 1, p1.x, p1.y];
+        this.putpixel(imgdata, {x: x, y: y}, c);
+
+        if ( p1.x > p2.x )
+            incrx = -1;
+        if ( p1.y > p2.y )
+            incry = -1;
+
+        dx = Math.abs(p1.x - p2.x);
+        dy = Math.abs(p1.y - p2.y);
+
+        if ( dx > dy ) {
+            delta = dx / 2;
+            for (let i = 1; i <= dx; i++) {
+                x += incrx;
+                delta += dy;
+                if ( delta >= dx ) {
+                    delta -= dx;
+                    y += incry;
+                }
+                this.putpixel(imgdata, {x: x, y: y}, c);
+            }
+        }
+        else {
+            delta = dy / 2;
+            for (let i = 1; i <= dy; i++) {
+                y += incry;
+                delta += dx;
+                if ( delta >= dy ) {
+                    delta -= dy;
+                    x += incrx;
+                }
+                this.putpixel(imgdata, {x: x, y: y}, c);
+            }
+        }
     }
 
     // setup function
