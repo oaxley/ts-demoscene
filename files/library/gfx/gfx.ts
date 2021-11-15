@@ -7,6 +7,7 @@
 
 //----- imports
 import { Color } from "library/color/color";
+import { COLOR_MODEL } from "library/color/basecolor";
 import { Point2D } from "library/core/interfaces";
 
 //----- interfaces
@@ -23,5 +24,17 @@ namespace GFX {
         imgdata.data[addr + 1] = rgba.y;
         imgdata.data[addr + 2] = rgba.z;
         imgdata.data[addr + 3] = rgba.a;
+    }
+
+    // retrieve a pixel from the image data
+    export function getPixel(imgdata: ImageData, p: Point2D): Color {
+        let addr = (p.y * imgdata.width + p.x) << 2;
+
+        let r = imgdata.data[addr + 0];
+        let g = imgdata.data[addr + 1];
+        let b = imgdata.data[addr + 2];
+        let a = imgdata.data[addr + 3];
+
+        return new Color(COLOR_MODEL.RGBA, r, b, g, a);
     }
 }
