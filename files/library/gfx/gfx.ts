@@ -13,7 +13,7 @@ import { Point2D } from "library/core/interfaces";
 //----- interfaces
 
 //----- functions
-namespace GFX {
+export namespace GFX {
 
     // set a pixel in the image data
     export function setPixel(imgdata: ImageData, p: Point2D, c: Color): void {
