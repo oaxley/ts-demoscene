@@ -40,8 +40,6 @@ namespace GFX {
 
     // draw a line with the Bresenham algorithm
     export function line(imgdata: ImageData, p1: Point2D, p2: Point2D, c: Color): void {
-        let rgba = c.color.values;
-
         let incrx: number, incry: number, x: number, y: number;
         let delta: number, dx: number, dy: number;
 
@@ -82,4 +80,26 @@ namespace GFX {
         }
     }
 
+    // optimized algorithm for horizontal line
+    export function hline(imgdata: ImageData, p1: Point2D, p2: Point2D, c: Color): void {
+        let rgba = c.color.values;
+        let x1 = p1.x;
+        let x2 = p2.x;
+
+        // check the begin / end of the line
+        if (p1.x > p2.x) {
+            x1 = p2.x;
+            x2 = p1.x;
+        }
+
+        let addr = (p1.y * imgdata.width + x1) << 2;
+        for (let i = x1; i <= x2; i++) {
+            imgdata.data[addr + 0] = rgba.x;
+            imgdata.data[addr + 1] = rgba.y;
+            imgdata.data[addr + 2] = rgba.z;
+            imgdata.data[addr + 3] = rgba.a;
+
+            addr += 4;
+        }
+    }
 }
