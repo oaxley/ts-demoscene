@@ -102,4 +102,27 @@ namespace GFX {
             addr += 4;
         }
     }
+
+    // optimized algorithm for vertical line
+    export function vline(imgdata: ImageData, p1: Point2D, p2: Point2D, c: Color): void {
+        let rgba = c.color.values;
+        let y1 = p1.y;
+        let y2 = p2.y;
+
+        // check for begin / end of the line
+        if (y1 > y2) {
+            y1 = p2.y;
+            y2 = p1.y;
+        }
+
+        let addr = (y1 * imgdata.width + p1.x) << 2;
+        for (let i= y1; i <= y2; i++) {
+            imgdata.data[addr + 0] = rgba.x;
+            imgdata.data[addr + 1] = rgba.y;
+            imgdata.data[addr + 2] = rgba.z;
+            imgdata.data[addr + 3] = rgba.a;
+
+            addr += imgdata.width;
+        }
+    }
 }
