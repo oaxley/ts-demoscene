@@ -37,4 +37,49 @@ namespace GFX {
 
         return new Color(COLOR_MODEL.RGBA, r, b, g, a);
     }
+
+    // draw a line with the Bresenham algorithm
+    export function line(imgdata: ImageData, p1: Point2D, p2: Point2D, c: Color): void {
+        let rgba = c.color.values;
+
+        let incrx: number, incry: number, x: number, y: number;
+        let delta: number, dx: number, dy: number;
+
+        [ incrx, incry, x, y ] = [ 1, 1, p1.x, p1.y];
+        setPixel(imgdata, {x: x, y: y}, c);
+
+        if ( p1.x > p2.x )
+            incrx = -1;
+        if ( p1.y > p2.y )
+            incry = -1;
+
+        dx = Math.abs(p1.x - p2.x);
+        dy = Math.abs(p1.y - p2.y);
+
+        if ( dx > dy ) {
+            delta = dx / 2;
+            for (let i = 1; i <= dx; i++) {
+                x += incrx;
+                delta += dy;
+                if ( delta >= dx ) {
+                    delta -= dx;
+                    y += incry;
+                }
+                setPixel(imgdata, {x: x, y: y}, c);
+            }
+        }
+        else {
+            delta = dy / 2;
+            for (let i = 1; i <= dy; i++) {
+                y += incry;
+                delta += dx;
+                if ( delta >= dy ) {
+                    delta -= dy;
+                    x += incrx;
+                }
+                setPixel(imgdata, {x: x, y: y}, c);
+            }
+        }
+    }
+
 }
