@@ -48,10 +48,14 @@ export abstract class BaseColor {
         [ this.model_, this.x_, this.y_, this.z_, this.a_ ] = [ model, x, y, z, a ];
     }
 
+    //----- statics
+
     // clamp a value within the precision
     public static clamp(x: number): number {
         return Math.trunc(x * PRECISION) / PRECISION;
     }
+
+    //----- accessors
 
     // return the values
     public get values(): Components {
@@ -72,6 +76,16 @@ export abstract class BaseColor {
     public get model() {
         return this.model_;
     }
+
+    // get/set the alpha value
+    public get alpha(): number {
+        return this.a_;
+    }
+    public set alpha(v: number) {
+        this.a_ = v;
+    }
+
+    //----- functions
 
     // retrieve the luminance of a color
     public abstract luminance(): number;
