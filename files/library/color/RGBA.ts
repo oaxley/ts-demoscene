@@ -18,6 +18,7 @@ export class RGBA extends BaseColor {
         super(COLOR_MODEL.RGBA, r, g, b, alpha);
     }
 
+    // constructor from another base color
     public static from(color: BaseColor): RGBA|undefined {
         if ( color.model == COLOR_MODEL.RGBA ) {
             return this.fromRGBA(color.values);
@@ -31,18 +32,27 @@ export class RGBA extends BaseColor {
 
     }
 
+    // create an int32 value from arbitrary values
+    public static toInt32(r: number, g: number, b: number, a: number = 255): number {
+        return ((a & 0xff) << 24) + ((b & 0xff) << 16) + ((g & 0xff) << 8) + (r & 0xff);
+    }
+
+    // compute the lunimance for a set of value
     public luminance(): number {
         return 0.3 * this.x_ + 0.59 * this.y_ + 0.11 * this.z_;
     }
 
+    // dump the RGBA values in the console
     public dump(): void {
         console.log(`RGBA: R = ${this.x_}, G = ${this.y_}, B = ${this.z_}, A = ${this.a_}`);
     }
 
+    // create CSS string
     public css(): string {
         return `rgba(${this.x_}, ${this.y_}, ${this.z_}, ${this.a_})`;
     }
 
+    // create HEX string
     public hex(): string {
         function _hexConversion(value:number):string {
             let str = value.toString(16);
@@ -57,10 +67,12 @@ export class RGBA extends BaseColor {
         return `#${r}${g}${b}`;
     }
 
+    // create RGBA from another RGBA instance
     private static fromRGBA(rgba: Components): RGBA {
         return new RGBA(rgba.x, rgba.y, rgba.z, rgba.a);
     }
 
+    // create RGBA from another HSLA instance
     private static fromHSLA(hsla: Components): RGBA {
         let h: number, s: number, l: number, a: number;
         let t1: number, t2: number;
@@ -121,6 +133,7 @@ export class RGBA extends BaseColor {
         );
     }
 
+    // create RGBA from another HSVA instance
     private static fromHSVA(hsva: Components): RGBA {
         let r:number, g:number, b:number
         let h:number, s:number, v:number
