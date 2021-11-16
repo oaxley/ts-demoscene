@@ -65,6 +65,13 @@ export class RGBA extends BaseColor {
         this.z_ = v & 0xff;
     }
 
+    // get/set for array component
+    public get array(): number[] {
+        return [ this.x_, this.y_, this.z_, this.a_ ];
+    }
+    public set array(v: number[]) {
+        [ this.x_, this.y_, this.z_, this.a_ ] = v;
+    }
 
     //----- functions
 
