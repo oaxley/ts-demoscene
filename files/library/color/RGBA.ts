@@ -73,6 +73,17 @@ export class RGBA extends BaseColor {
         [ this.x_, this.y_, this.z_, this.a_ ] = v;
     }
 
+    // get/set from an int32
+    public get int32(): number {
+        return RGBA.toInt32(this.x_, this.y_, this.z_, this.a_);
+    }
+    public set int32(v: number) {
+        this.x_ = v & 0xff;
+        this.y_ = (v >>  8) & 0xff;
+        this.z_ = (v >> 16) & 0xff;
+        this.a_ = (v >> 24) & 0xff;
+    }
+
     //----- functions
 
     // compute the lunimance for a set of value
