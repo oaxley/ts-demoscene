@@ -18,6 +18,8 @@ export class RGBA extends BaseColor {
         super(COLOR_MODEL.RGBA, r, g, b, alpha);
     }
 
+    //----- statics
+
     // constructor from another base color
     public static from(color: BaseColor): RGBA|undefined {
         if ( color.model == COLOR_MODEL.RGBA ) {
@@ -36,6 +38,35 @@ export class RGBA extends BaseColor {
     public static toInt32(r: number, g: number, b: number, a: number = 255): number {
         return ((a & 0xff) << 24) + ((b & 0xff) << 16) + ((g & 0xff) << 8) + (r & 0xff);
     }
+
+    //----- accessors
+
+    // get/set for red component
+    public get red(): number {
+        return (this.x_ & 0xff);
+    }
+    public set red(v: number) {
+        this.x_ = v & 0xff;
+    }
+
+    // get/set for green component
+    public get green(): number {
+        return (this.y_ & 0xff);
+    }
+    public set green(v: number) {
+        this.y_ = v & 0xff;
+    }
+
+    // get/set for blue component
+    public get blue(): number {
+        return (this.z_ & 0xff);
+    }
+    public set blue(v: number) {
+        this.z_ = v & 0xff;
+    }
+
+
+    //----- functions
 
     // compute the lunimance for a set of value
     public luminance(): number {
