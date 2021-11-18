@@ -13,6 +13,7 @@ import { Display } from "library/core/display";
 import { Palette } from "library/color/palette";
 import { Color } from "library/color/color";
 import { COLOR_MODEL } from "library/color/basecolor";
+import { RGBA } from "library/color/RGBA";
 
 
 //----- globals
@@ -109,7 +110,7 @@ export class Metaballs extends IAnimation {
             return;
 
         // retrieve the pixels data from the back-buffer surface
-        let imgdata = this.display_.surface.data;
+        this.display_.surface.framebuffer = true;
 
         // compute the effect
         for (let y = 0; y < this.height_; y++) {
@@ -129,19 +130,15 @@ export class Metaballs extends IAnimation {
                     sum = 255;
 
                 // retrieve the associated color from the palette
-                let rgb = this.palette_.getColor(sum)!.color.values;
+                let color = <RGBA> this.palette_.getColor(sum)!.color;
 
                 // set the pixel
-                let pos = (y * this.width_ + x) << 2;
-                imgdata.data[pos + 0] = rgb.x;
-                imgdata.data[pos + 1] = rgb.y;
-                imgdata.data[pos + 2] = rgb.z;
-                imgdata.data[pos + 3] = 255;
+                this.display_.surface.setPixel({x:x, y:y}, color);
             }
         }
 
         // copy back the pixels data to the surface
-        this.display_.surface.data = imgdata;
+        this.display_.surface.framebuffer = false;
 
         // flip the back-buffer onto the screen
         this.display_.draw();
