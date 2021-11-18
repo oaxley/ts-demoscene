@@ -133,8 +133,50 @@ export class Surface {
         let addr = p.y * this.width_ + p.x;
 
         this.framebuffer_!.data[addr + 0] = c.red;
-        this.framebuffer_!.data[addr + 0] = c.green;
-        this.framebuffer_!.data[addr + 0] = c.blue;
-        this.framebuffer_!.data[addr + 0] = c.alpha;
+        this.framebuffer_!.data[addr + 1] = c.green;
+        this.framebuffer_!.data[addr + 2] = c.blue;
+        this.framebuffer_!.data[addr + 3] = c.alpha;
+    }
+
+    // draw a line with the Bresenham algorithm
+    public line(p1: Point2D, p2: Point2D, c: RGBA): void {
+        let incrx: number, incry: number, x: number, y: number;
+        let delta: number, dx: number, dy: number;
+
+        [ incrx, incry, x, y ] = [ 1, 1, p1.x, p1.y];
+        this.setPixel({x: x, y: y}, c);
+
+        if ( p1.x > p2.x )
+            incrx = -1;
+        if ( p1.y > p2.y )
+            incry = -1;
+
+        dx = Math.abs(p1.x - p2.x);
+        dy = Math.abs(p1.y - p2.y);
+
+        if ( dx > dy ) {
+            delta = dx / 2;
+            for (let i = 1; i <= dx; i++) {
+                x += incrx;
+                delta += dy;
+                if ( delta >= dx ) {
+                    delta -= dx;
+                    y += incry;
+                }
+                this.setPixel({x: x, y: y}, c);
+            }
+        }
+        else {
+            delta = dy / 2;
+            for (let i = 1; i <= dy; i++) {
+                y += incry;
+                delta += dx;
+                if ( delta >= dy ) {
+                    delta -= dy;
+                    x += incrx;
+                }
+                this.setPixel({x: x, y: y}, c);
+            }
+        }
     }
 }
