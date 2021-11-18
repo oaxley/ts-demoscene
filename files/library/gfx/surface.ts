@@ -118,7 +118,7 @@ export class Surface {
     // get the color value for a pixel
     public getPixel(p: Point2D): RGBA
     {
-        let addr = p.y * this.width_ + p.x;
+        let addr = (p.y * this.width_ + p.x) << 2;
 
         let r: number = this.framebuffer_!.data[addr + 0];
         let g: number = this.framebuffer_!.data[addr + 1];
@@ -130,7 +130,7 @@ export class Surface {
 
     // set the color value of a pixel
     public setPixel(p: Point2D, c: RGBA): void {
-        let addr = p.y * this.width_ + p.x;
+        let addr = (p.y * this.width_ + p.x) << 2;
 
         this.framebuffer_!.data[addr + 0] = c.red;
         this.framebuffer_!.data[addr + 1] = c.green;
