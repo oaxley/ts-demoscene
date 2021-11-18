@@ -307,7 +307,7 @@ export class Flames extends IAnimation {
             return;
 
         // retrieve the backbuffer image data
-        let img_data = this.display_.surface.data;
+        this.display_.surface.framebuffer = true;
 
         // copy the flames
         for (let y = 0; y < this.height_; y++) {
@@ -316,19 +316,15 @@ export class Flames extends IAnimation {
 
                 // retrieve rgba components
                 let index = this.flames_[offset + x];
-                let rgba  = this.palette_.getColor(index)!.color.values;
+                let rgba  = <RGBA> this.palette_.getColor(index)!.color;
 
                 // set the corresponding pixel in the buffer
-                let position = (offset + x)  << 2;
-                img_data.data[position + 0] = rgba.x;
-                img_data.data[position + 1] = rgba.y;
-                img_data.data[position + 2] = rgba.z;
-                img_data.data[position + 3] = rgba.a;
+                this.display_.surface.setPixel({x:x, y:y}, rgba);
             }
         }
 
         // put back the image data on the backbuffer
-        this.display_.surface.data = img_data;
+        this.display_.surface.framebuffer = false;
 
         // flip the back-buffer onto the screen
         this.display_.draw();
