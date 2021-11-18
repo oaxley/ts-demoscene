@@ -6,17 +6,23 @@
  */
 
 //----- imports
-import { Size, Rect, Point2D } from "./interfaces";
+import { RGBA } from "library/color/RGBA";
+import { Size, Rect, Point2D } from "library/core/interfaces";
+import { Viewport } from "./viewport";
 
 
 //----- class
 export class Surface {
     //----- members
-    private width_: number;
-    private height_: number;
+    private width_: number;                         // width
+    private height_: number;                        // height
 
-    private canvas_: HTMLCanvasElement;
-    private context_: CanvasRenderingContext2D;
+    private canvas_: HTMLCanvasElement;             // Canvas element
+    private context_: CanvasRenderingContext2D;     // Canvas context
+
+    private viewport_: Viewport;                    // the viewport for the rendering
+    private framebuffer_: ImageData|undefined;      // frame-buffer for direct access rendering
+    private fast_: boolean;                         // =true if the frame-buffer is activated
 
 
     //----- methods
@@ -31,7 +37,13 @@ export class Surface {
         this.width_   = size.width;
         this.height_  = size.height;
         this.context_ = this.canvas_.getContext("2d")!;
+        this.viewport_= new Viewport();
+
+        this.framebuffer_ = undefined;
+        this.fast_ = false;
     }
+
+    //----- accessors
 
     // return the context for this Surface
     public get context(): CanvasRenderingContext2D {
@@ -71,6 +83,9 @@ export class Surface {
         this.context_.putImageData(image, 0, 0);
     }
 
+
+    //----- functions
+
     // clear the surface
     public clear(r?: Rect): void;
     public clear(xr?: number|Rect, y?: number, w?: number, h?:number): void {
@@ -91,4 +106,26 @@ export class Surface {
         this.context_.drawImage(other.canvas_, 0, 0);
     }
 
+    // get the color value for a pixel
+    public getPixel(p: Point2D): RGBA
+    {
+        let addr = p.y * this.width_ + p.x;
+
+        let r: number = this.framebuffer_!.data[addr + 0];
+        let g: number = this.framebuffer_!.data[addr + 1];
+        let b: number = this.framebuffer_!.data[addr + 2];
+        let a: number = this.framebuffer_!.data[addr + 3];
+
+        return new RGBA(r, g, b, a);
+    }
+
+    // set the color value of a pixel
+    public setPixel(p: Point2D, c: RGBA): void {
+        let addr = p.y * this.width_ + p.x;
+
+        this.framebuffer_!.data[addr + 0] = c.red;
+        this.framebuffer_!.data[addr + 0] = c.green;
+        this.framebuffer_!.data[addr + 0] = c.blue;
+        this.framebuffer_!.data[addr + 0] = c.alpha;
+    }
 }
