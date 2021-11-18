@@ -6,7 +6,7 @@
  */
 
 //----- imports
-import { Surface } from "./surface";
+import { Surface } from "library/gfx/surface";
 
 
 //----- class
