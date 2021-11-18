@@ -179,4 +179,43 @@ export class Surface {
             }
         }
     }
+
+    // optimized algorithm for horizontal line
+    public hline(p1: Point2D, p2: Point2D, c: RGBA): void {
+        let x1 = p1.x;
+        let x2 = p2.x;
+
+        // swap both values if needed
+        if (x1 > x2) {
+            [x1, x2] = [x2, x1];
+        }
+
+        let addr = p1.y * this.width_ + x1;
+        for (let i = x1; i <= x2; i++, addr += 4) {
+            this.framebuffer_!.data[addr + 0] = c.red;
+            this.framebuffer_!.data[addr + 1] = c.green;
+            this.framebuffer_!.data[addr + 2] = c.blue;
+            this.framebuffer_!.data[addr + 3] = c.alpha;
+        }
+    }
+
+    // optimized algorithm for vertical line
+    public vline(p1: Point2D, p2: Point2D, c: RGBA): void {
+        let y1 = p1.y;
+        let y2 = p2.y;
+
+        // swap both values if needed
+        if (y1 > y2) {
+            [y1, y2] = [y2, y1];
+        }
+
+        let addr = y1 * this.width_ + p1.x;
+        for (let i = y1; i <= y2; i++, addr += this.width_) {
+            this.framebuffer_!.data[addr + 0] = c.red;
+            this.framebuffer_!.data[addr + 1] = c.green;
+            this.framebuffer_!.data[addr + 2] = c.blue;
+            this.framebuffer_!.data[addr + 3] = c.alpha;
+        }
+    }
+
 }
