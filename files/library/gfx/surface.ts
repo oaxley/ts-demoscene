@@ -83,6 +83,15 @@ export class Surface {
         this.context_.putImageData(image, 0, 0);
     }
 
+    // activate/deactivate the framebuffer
+    public set framebuffer(v: boolean) {
+        if (v) {
+            this.framebuffer_ = this.context_.getImageData(0, 0, this.width_, this.height_);
+        } else {
+            this.context_.putImageData(this.framebuffer_!, 0, 0);
+            this.framebuffer_ = undefined;
+        }
+    }
 
     //----- functions
 
