@@ -14,15 +14,14 @@ import { Viewport } from "./viewport";
 //----- class
 export class Surface {
     //----- members
-    private width_: number;                                 // width
-    private height_: number;                                // height
-
-    private canvas_: HTMLCanvasElement|undefined;           // Canvas element
+    private width_  : number;                               // width
+    private height_ : number;                               // height
+    private canvas_ : HTMLCanvasElement|undefined;          // Canvas element
     private context_: CanvasRenderingContext2D|undefined;   // Canvas context
 
     private viewport_: Viewport;                    // the viewport for the rendering
     private framebuffer_: ImageData|undefined;      // frame-buffer for direct access rendering
-    private fast_: boolean;                         // =true if the frame-buffer is activated
+    private frameaddr_: number;                     // frame-buffer current address for stream operation
 
 
     //----- methods
@@ -43,9 +42,8 @@ export class Surface {
 
         // setup vars
         this.viewport_= new Viewport();
-
         this.framebuffer_ = undefined;
-        this.fast_ = false;
+        this.frameaddr_   = 0;
     }
 
     //----- accessors
@@ -96,6 +94,19 @@ export class Surface {
             this.context_!.putImageData(this.framebuffer_!, 0, 0);
             this.framebuffer_ = undefined;
         }
+    }
+
+    // set/get a byte in/from the framebuffer at the current address
+    public set frameStream(value: number) {
+        this.framebuffer_!.data[this.frameaddr_++] = value;
+    }
+    public get frameStream(): number {
+        return this.framebuffer_!.data[this.frameaddr_++];
+    }
+
+    // reset or set the frame address
+    public set frameAddr(value: number) {
+        this.frameaddr_ = value << 2;
     }
 
     //----- functions
