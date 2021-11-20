@@ -49,7 +49,8 @@ export class Moire extends IAnimation {
             return;
 
         // we will write directly in the frame buffer
-        let imgdata = this.display_.surface.data;
+        this.display_.surface.framebuffer = true;
+        this.display_.surface.frameAddr = 0;
 
         // compute the current center of each circles
         let cx1 = this.sx_ + this.ax_ * Math.cos(time/1000);
@@ -58,7 +59,6 @@ export class Moire extends IAnimation {
         let cy2 = this.sy_ + this.ay_ * Math.sin(time/4000);
 
         // draw the effect on the buffer
-        let offset = 0;
         for (let y = 0; y < this.display_.height; y++) {
 
             // Y coefficients
@@ -78,14 +78,14 @@ export class Moire extends IAnimation {
                 let v = 255 * (((dt1 ^ dt2) >> 4) & 0x01);
 
                 // write the value inside the frane buffer
-                imgdata.data[offset++] = v;
-                imgdata.data[offset++] = v;
-                imgdata.data[offset++] = v;
-                imgdata.data[offset++] = 255;
+                this.display_.surface.frameStream = v;
+                this.display_.surface.frameStream = v;
+                this.display_.surface.frameStream = v;
+                this.display_.surface.frameStream = 255;
             }
         }
 
-        this.display_.surface.data = imgdata;
+        this.display_.surface.framebuffer = false;
     }
 
     // render the animation on screen
