@@ -132,7 +132,7 @@ export class Surface {
     }
 
     // load an image on this surface
-    public loadImage(name: string): void {
+    public loadImage(name: string): Promise<boolean> {
         let img = new Image();
 
         // prepare the future
@@ -147,7 +147,7 @@ export class Surface {
         });
 
         // execute the future
-        future.then((result) => {
+        return future.then((result) => {
             // recreate the element
             this.canvas_ = <HTMLCanvasElement> document.createElement("canvas");
             this.canvas_.width  = img.width;
@@ -160,8 +160,11 @@ export class Surface {
             // load the image onto it
             this.context_.drawImage(img, 0, 0);
 
+            // success
+            return true;
         }).catch((message) => {
             console.log(message);
+            return false;
         });
     }
 
