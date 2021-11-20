@@ -115,6 +115,40 @@ export class Surface {
         this.context_.drawImage(other.canvas_, 0, 0);
     }
 
+    // load an image on this surface
+    public loadImage(name: string): void {
+        let img = new Image();
+
+        // prepare the future
+        let future = new Promise((resolve, reject) => {
+            img.onload = (event) => {
+                resolve(true)
+            };
+            img.onerror = (event) => {
+                reject("Could not load the image!");
+            }
+            img.src = name;
+        });
+
+        // execute the future
+        future.then((result) => {
+            // recreate the element
+            this.canvas_ = <HTMLCanvasElement> document.createElement("canvas");
+            this.canvas_.width  = img.width;
+            this.canvas_.height = img.height;
+            this.width_  = img.width;
+            this.height_ = img.height;
+
+            this.context_= <CanvasRenderingContext2D> this.canvas_.getContext("2d");
+
+            // load the image onto it
+            this.context_.drawImage(img, 0, 0);
+
+        }).catch((message) => {
+            console.log(message);
+        });
+    }
+
     // get the color value for a pixel
     public getPixel(p: Point2D): RGBA
     {
