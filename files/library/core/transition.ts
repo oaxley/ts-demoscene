@@ -7,7 +7,7 @@
 
 //----- imports
 import { IStateTask, States } from "./manager";
-import { Surface } from "./surface";
+import { Surface } from "library/gfx/surface";
 import { Rect } from "./interfaces";
 
 
