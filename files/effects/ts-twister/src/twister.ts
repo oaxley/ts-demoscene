@@ -11,7 +11,7 @@ import { States } from "library/core/manager";
 
 import { Display } from "library/core/display";
 import { radians } from "library/maths/utils";
-import { Surface } from "library/core/surface";
+import { Surface } from "library/gfx/surface";
 import { Size } from "library/core/interfaces";
 
 
@@ -27,7 +27,7 @@ export class Twister extends IAnimation {
     private amplitude_: number;             // movement amplitude
     private ampway_   : number;             // movement way
 
-    private texture_ : Surface|undefined;   // texture surface
+    private texture_ : Surface;             // texture surface
     private slice_   : Size;                // texture slice size
 
     //----- methods
@@ -38,17 +38,8 @@ export class Twister extends IAnimation {
         this.angle_ = 0;
         this.amplitude_ = 0;
         this.ampway_ = 0.05;
+        this.texture_ = new Surface();
         this.slice_ = { width: 0, height: 0}
-    }
-
-    private loadTexture(name: string): Promise<HTMLImageElement> {
-        return new Promise((resolve, reject) => {
-            let img = new Image();
-            img.onload = () => {
-                resolve(img);
-            };
-            img.src = name;
-        });
     }
 
     // update the animation
@@ -63,10 +54,8 @@ export class Twister extends IAnimation {
         // erase the surface
         this.display_.surface.clear({x:200, y:0, w:250, h:480});
 
-        // retrieve the backbuffer/texture data
-        let imgdata = this.display_.surface.data;
-        let texdata = this.texture_!.data;
-
+        // activate the framebuffer
+        this.display_.surface.framebuffer = true;
 
         for (let y = 0; y < this.display_.height; y++) {
             let fv = 1.0 * y / this.display_.height;
@@ -88,16 +77,16 @@ export class Twister extends IAnimation {
                 let xtb = this.slice_.width * 0;
                 let xte = xtb + this.slice_.width;
 
-                let offset = (y * this.display_.width + x1) << 2;
+                this.display_.surface.frameAddr = (y * this.display_.width + x1);
                 let ratio = (xte - xtb) / (x2 - x1);
                 let addr = ot + xtb;
 
                 for (let x = x1; x < x2; x++) {
-                    let soff = addr << 2;
-                    imgdata.data[offset++] = texdata.data[soff + 0];
-                    imgdata.data[offset++] = texdata.data[soff + 1];
-                    imgdata.data[offset++] = texdata.data[soff + 2];
-                    imgdata.data[offset++] = texdata.data[soff + 3];
+                    this.texture_.frameAddr = addr;
+                    this.display_.surface.frameStream = this.texture_.frameStream;
+                    this.display_.surface.frameStream = this.texture_.frameStream;
+                    this.display_.surface.frameStream = this.texture_.frameStream;
+                    this.display_.surface.frameStream = this.texture_.frameStream;
                     addr += ratio;
                 }
             }
@@ -107,16 +96,17 @@ export class Twister extends IAnimation {
                 let xtb = this.slice_.width * 1;
                 let xte = xtb + this.slice_.width;
 
-                let offset = (y * this.display_.width + x2) << 2;
+                // let offset = (y * this.display_.width + x2) << 2;
+                this.display_.surface.frameAddr = (y * this.display_.width + x2);
                 let ratio = (xte - xtb) / (x3 - x2);
                 let addr = ot + xtb;
 
                 for (let x = x2; x < x3; x++) {
-                    let soff = addr << 2;
-                    imgdata.data[offset++] = texdata.data[soff + 0];
-                    imgdata.data[offset++] = texdata.data[soff + 1];
-                    imgdata.data[offset++] = texdata.data[soff + 2];
-                    imgdata.data[offset++] = texdata.data[soff + 3];
+                    this.texture_.frameAddr = addr;
+                    this.display_.surface.frameStream = this.texture_.frameStream;
+                    this.display_.surface.frameStream = this.texture_.frameStream;
+                    this.display_.surface.frameStream = this.texture_.frameStream;
+                    this.display_.surface.frameStream = this.texture_.frameStream;
                     addr += ratio;
                 }
             }
@@ -126,16 +116,17 @@ export class Twister extends IAnimation {
                 let xtb = this.slice_.width * 2;
                 let xte = xtb + this.slice_.width;
 
-                let offset = (y * this.display_.width + x3) << 2;
+                // let offset = (y * this.display_.width + x3) << 2;
+                this.display_.surface.frameAddr = (y * this.display_.width + x3);
                 let ratio = (xte - xtb) / (x4 - x3);
                 let addr = ot + xtb;
 
                 for (let x = x3; x < x4; x++) {
-                    let soff = addr << 2;
-                    imgdata.data[offset++] = texdata.data[soff + 0];
-                    imgdata.data[offset++] = texdata.data[soff + 1];
-                    imgdata.data[offset++] = texdata.data[soff + 2];
-                    imgdata.data[offset++] = texdata.data[soff + 3];
+                    this.texture_.frameAddr = addr;
+                    this.display_.surface.frameStream = this.texture_.frameStream;
+                    this.display_.surface.frameStream = this.texture_.frameStream;
+                    this.display_.surface.frameStream = this.texture_.frameStream;
+                    this.display_.surface.frameStream = this.texture_.frameStream;
                     addr += ratio;
                 }
             }
@@ -145,22 +136,23 @@ export class Twister extends IAnimation {
                 let xtb = this.slice_.width * 3;
                 let xte = xtb + this.slice_.width;
 
-                let offset = (y * this.display_.width + x4) << 2;
+                // let offset = (y * this.display_.width + x4) << 2;
+                this.display_.surface.frameAddr = (y * this.display_.width + x4);
                 let ratio = (xte - xtb) / (x1 - x4);
                 let addr = ot + xtb;
 
                 for (let x = x4; x < x1; x++) {
-                    let soff = addr << 2;
-                    imgdata.data[offset++] = texdata.data[soff + 0];
-                    imgdata.data[offset++] = texdata.data[soff + 1];
-                    imgdata.data[offset++] = texdata.data[soff + 2];
-                    imgdata.data[offset++] = texdata.data[soff + 3];
+                    this.texture_.frameAddr = addr;
+                    this.display_.surface.frameStream = this.texture_.frameStream;
+                    this.display_.surface.frameStream = this.texture_.frameStream;
+                    this.display_.surface.frameStream = this.texture_.frameStream;
+                    this.display_.surface.frameStream = this.texture_.frameStream;
                     addr += ratio;
                 }
             }
         }
 
-        this.display_.surface.data = imgdata;
+        this.display_.surface.framebuffer = false;
     }
 
     // render the animation on the screen
@@ -190,29 +182,28 @@ export class Twister extends IAnimation {
     public setup(): void {
 
         // load the texture
-        this.loadTexture('/images/assets/ts-twister.asset.jpg').then(img => {
+        this.texture_
+            .loadImage('/images/assets/ts-twister.asset.jpg')
+            .then(result => {
+                // set the slice size
+                this.slice_ = {
+                    width: this.texture_.width >> 2,
+                    height: this.texture_.height
+                }
 
-            // create the new surface
-            this.texture_ = new Surface({width: img.width, height: img.height});
-            this.texture_.context.drawImage(img, 0, 0);
-            console.log('Texture loaded.');
+                // activate the access to the texture framebuffer
+                this.texture_.framebuffer = true;
 
-            // set the slice size
-            this.slice_ = {
-                width: img.width >> 2,
-                height: img.height
-            }
-
-            // toggle the animation
-            this.toggle();
-
-            // set the click handler to pause the animation
-            window.onclick = () => {
+                // toggle the animation
                 this.toggle();
-            }
 
-            console.log("Starting the Twister animation.");
-        });
+                // set the click handler to pause the animation
+                window.onclick = () => {
+                    this.toggle();
+                }
+
+                console.log("Starting the Twister animation.");
+            });
     }
 
     // cleanup function
