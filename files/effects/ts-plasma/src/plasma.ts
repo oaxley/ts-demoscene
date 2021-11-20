@@ -8,11 +8,12 @@
 //----- imports
 import { IAnimation } from "library/core/animation";
 import { States } from "library/core/manager";
-
 import { Display } from "library/core/display";
 import { Palette } from "library/color/palette";
 import { Color } from "library/color/color";
 import { COLOR_MODEL } from "library/color/basecolor";
+import { RGBA } from "library/color/RGBA";
+import { map } from "library/maths/utils";
 
 
 //----- class
@@ -36,8 +37,8 @@ export class Plasma extends IAnimation {
     private createPalette(): void {
         this.palette_ = new Palette();
         for (let i = 0; i < 256; i++) {
-            let r = Math.floor(128 + 128 * Math.sin(Math.PI * i / 16.0));
-            let g = Math.floor(128 + 128 * Math.sin(Math.PI * i / 128.0));
+            let r = map(Math.sin(Math.PI * i / 16.0), -1, 1, 0, 255);
+            let g = map(Math.sin(Math.PI * i / 128.0), -1, 1, 0, 255);
             let b = 0;
 
             this.palette_.setColor(i, new Color(COLOR_MODEL.RGBA, r, g, b));
@@ -49,9 +50,11 @@ export class Plasma extends IAnimation {
         if (!this.isAnimated)
             return;
 
-        let imgdata = this.display_.surface.data;
+        // let imgdata = this.display_.surface.data;
+        this.display_.surface.framebuffer = true;
+        this.display_.surface.frameAddr = 0
+
         let time = timestamp / 500;
-        let ofs = 0
         for (let y = 0; y < this.display_.height; y++) {
             const dy = -0.5 + (y / this.display_.height);
             for (let x = 0; x < this.display_.width; x++) {
@@ -69,15 +72,12 @@ export class Plasma extends IAnimation {
                 if (index > 255)
                     index = 255;
 
-                let rgba = this.palette_.getColor(index)!.color.values;
-                imgdata.data[ofs++] = rgba.x;
-                imgdata.data[ofs++] = rgba.y;
-                imgdata.data[ofs++] = rgba.z;
-                imgdata.data[ofs++] = rgba.a;
+                let rgba = <RGBA> this.palette_.getColor(index)!.color;
+                this.display_.surface.frameStreamW = rgba.int32;
             }
         }
 
-        this.display_.surface.data = imgdata;
+        this.display_.surface.framebuffer = false;
     }
 
     // render the animation on screen
