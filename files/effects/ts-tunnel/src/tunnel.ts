@@ -9,7 +9,7 @@
 import { IAnimation } from "library/core/animation";
 import { States } from "library/core/manager";
 import { Display } from "library/core/display";
-import { Surface } from "library/core/surface";
+import { Surface } from "library/gfx/surface";
 
 
 //----- globals
@@ -19,7 +19,7 @@ import { Surface } from "library/core/surface";
 export class Tunnel extends IAnimation {
 
     //----- members
-    private texture_: Surface|undefined;
+    private texture_: Surface;
     private distance_: number[];
     private angle_: number[];
     private shade_: number[];
@@ -31,6 +31,7 @@ export class Tunnel extends IAnimation {
         super('tunnel', display);
 
         // set the vars
+        this.texture_  = new Surface();
         this.distance_ = [];
         this.angle_    = [];
         this.shade_    = [];
@@ -65,17 +66,6 @@ export class Tunnel extends IAnimation {
                 this.shade_[offset + x] = Math.min(sq, 255);
             }
         }
-    }
-
-    // texture loader
-    private loadTexture(name: string): Promise<HTMLImageElement> {
-        return new Promise((resolve, reject) => {
-            let img = new Image();
-            img.onload = () => {
-                resolve(img);
-            };
-            img.src = name;
-        });
     }
 
     // update the animation
@@ -156,26 +146,22 @@ export class Tunnel extends IAnimation {
     // setup function
     public setup(): void {
         // load the texture
-        this.loadTexture('/images/assets/ts-tunnel.asset.jpg').then(img => {
+        this.texture_
+            .loadImage('/images/assets/ts-tunnel.asset.jpg')
+            .then((result) => {
+                // compute the maps
+                this.computeMaps();
 
-            // create the new surface
-            this.texture_ = new Surface({width: img.width, height: img.height});
-            this.texture_.context.drawImage(img, 0, 0);
-            console.log('Texture loaded.');
-
-            // compute the maps
-            this.computeMaps();
-
-            // toggle the animation
-            this.toggle();
-
-            // set the click handler to pause the animation
-            window.onclick = () => {
+                // toggle the animation
                 this.toggle();
-            }
 
-            console.log("Starting the Tunnel animation.");
-        });
+                // set the click handler to pause the animation
+                window.onclick = () => {
+                    this.toggle();
+                }
+
+                console.log("Starting the Tunnel animation.");
+            });
     }
 
     // cleanup function
