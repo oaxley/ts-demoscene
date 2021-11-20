@@ -8,9 +8,8 @@
 //----- imports
 import { IAnimation } from "library/core/animation";
 import { States } from "library/core/manager";
-
 import { Display } from "library/core/display";
-import { Surface } from "library/core/surface";
+import { Surface } from "library/gfx/surface";
 import { radians } from "library/maths/utils";
 
 
@@ -23,7 +22,7 @@ const TICKS: number = 1000 / FPS;
 export class Rotozoom extends IAnimation {
 
     //----- members
-    private image_: Surface|undefined;
+    private image_: Surface;
 
     private angle_: number;                         // current rotation angle
 
@@ -43,14 +42,9 @@ export class Rotozoom extends IAnimation {
         this.cos_ = [];
         this.sin_ = [];
 
-
         // load the texture image
-        let img = new Image();
-        img.onload = () => {
-            this.image_ = new Surface({width: img.width, height: img.height});
-            this.image_.context.drawImage(img, 0, 0);
-        };
-        img.src = '/images/assets/ts-rotozoom.asset.jpg';
+        this.image_ = new Surface();
+        this.image_.loadImage('/images/assets/ts-rotozoom.asset.jpg');
 
         // load the lookup tables
         this.computeLUT();
@@ -70,8 +64,11 @@ export class Rotozoom extends IAnimation {
             return;
 
         // retrieve the image / backbuffer data
-        let srcdata = this.image_!.data;
-        let dstdata = this.display_.surface.data;
+        let srcdata = this.image_.data;
+
+        // activate the frame buffer
+        this.display_.surface.framebuffer = true;
+        this.display_.surface.frameAddr = 0
 
         // height of the texture
         const height: number = this.image_!.canvas.height;
@@ -79,9 +76,6 @@ export class Rotozoom extends IAnimation {
         // cosinus / sinus lookup
         const cs: number = this.cos_[this.angle_];
         const sn: number = this.sin_[this.angle_];
-
-        // offset in the destination data (display surface)
-        let dstoff: number = 0;
 
         // go through all the pixels on the screen
         for (let y: number = 0; y < this.display_.height; y++) {
@@ -107,15 +101,15 @@ export class Rotozoom extends IAnimation {
                 let srcoff: number = (u + (v << 8)) << 2;
 
                 // copy the rgba values to display surface
-                dstdata.data[dstoff++] = srcdata.data[srcoff++];
-                dstdata.data[dstoff++] = srcdata.data[srcoff++];
-                dstdata.data[dstoff++] = srcdata.data[srcoff++];
-                dstdata.data[dstoff++] = srcdata.data[srcoff++];
+                this.display_.surface.frameStream = srcdata.data[srcoff++]
+                this.display_.surface.frameStream = srcdata.data[srcoff++]
+                this.display_.surface.frameStream = srcdata.data[srcoff++]
+                this.display_.surface.frameStream = srcdata.data[srcoff++]
             }
         }
 
         // put the pixels back
-        this.display_.surface.data = dstdata;
+        this.display_.surface.framebuffer = false;
 
         // increase the rotation angle
         this.angle_ = (this.angle_ + 1) % 360;
