@@ -14,11 +14,11 @@ import { Viewport } from "./viewport";
 //----- class
 export class Surface {
     //----- members
-    private width_: number;                         // width
-    private height_: number;                        // height
+    private width_: number;                                 // width
+    private height_: number;                                // height
 
-    private canvas_: HTMLCanvasElement;             // Canvas element
-    private context_: CanvasRenderingContext2D;     // Canvas context
+    private canvas_: HTMLCanvasElement|undefined;           // Canvas element
+    private context_: CanvasRenderingContext2D|undefined;   // Canvas context
 
     private viewport_: Viewport;                    // the viewport for the rendering
     private framebuffer_: ImageData|undefined;      // frame-buffer for direct access rendering
@@ -26,17 +26,22 @@ export class Surface {
 
 
     //----- methods
-    constructor(size: Size) {
+    constructor(size?: Size) {
 
         // create a new canvas element
-        this.canvas_ = document.createElement("canvas")
-        this.canvas_.width  = size.width;
-        this.canvas_.height = size.height;
+        if (size !== undefined) {
+            this.canvas_ = document.createElement("canvas")
+            this.canvas_.width  = size.width;
+            this.canvas_.height = size.height;
+            this.width_   = size.width;
+            this.height_  = size.height;
+            this.context_ = this.canvas_.getContext("2d")!;
+        } else {
+            this.width_  = 0;
+            this.height_ = 0;
+        }
 
         // setup vars
-        this.width_   = size.width;
-        this.height_  = size.height;
-        this.context_ = this.canvas_.getContext("2d")!;
         this.viewport_= new Viewport();
 
         this.framebuffer_ = undefined;
@@ -47,12 +52,12 @@ export class Surface {
 
     // return the context for this Surface
     public get context(): CanvasRenderingContext2D {
-        return this.context_;
+        return this.context_!;
     }
 
     // return the canvas element for this Surface
     public get canvas(): HTMLCanvasElement {
-        return this.canvas_;
+        return this.canvas_!;
     }
 
     // return the dimensions for this Surface
@@ -75,20 +80,20 @@ export class Surface {
 
     // return the pixels data for this Surface
     public get data(): ImageData {
-        return this.context_.getImageData(0, 0, this.width_, this.height_);
+        return this.context_!.getImageData(0, 0, this.width_, this.height_);
     }
 
     // set the pixels data for this Surface
     public set data(image: ImageData) {
-        this.context_.putImageData(image, 0, 0);
+        this.context_!.putImageData(image, 0, 0);
     }
 
     // activate/deactivate the framebuffer
     public set framebuffer(v: boolean) {
         if (v) {
-            this.framebuffer_ = this.context_.getImageData(0, 0, this.width_, this.height_);
+            this.framebuffer_ = this.context_!.getImageData(0, 0, this.width_, this.height_);
         } else {
-            this.context_.putImageData(this.framebuffer_!, 0, 0);
+            this.context_!.putImageData(this.framebuffer_!, 0, 0);
             this.framebuffer_ = undefined;
         }
     }
@@ -100,19 +105,19 @@ export class Surface {
     public clear(xr?: number|Rect, y?: number, w?: number, h?:number): void {
         switch(typeof xr) {
             case "undefined":
-                this.context_.clearRect(0, 0, this.width_, this.height_);
+                this.context_!.clearRect(0, 0, this.width_, this.height_);
                 break;
             case "number":
-                this.context_.clearRect(xr, y!, w!, h!);
+                this.context_!.clearRect(xr, y!, w!, h!);
                 break;
             default:
-                this.context_.clearRect(xr.x, xr.y, xr.w, xr.h);
+                this.context_!.clearRect(xr.x, xr.y, xr.w, xr.h);
         }
     }
 
     // copy the data from another surface
     public copy(other: Surface): void {
-        this.context_.drawImage(other.canvas_, 0, 0);
+        this.context_!.drawImage(other.canvas_!, 0, 0);
     }
 
     // load an image on this surface
