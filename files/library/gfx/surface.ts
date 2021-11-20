@@ -103,6 +103,12 @@ export class Surface {
     public get frameStream(): number {
         return this.framebuffer_!.data[this.frameaddr_++];
     }
+    public set frameStreamW(value32: number) {
+        this.framebuffer_!.data[this.frameaddr_++] = value32 & 0xff;
+        this.framebuffer_!.data[this.frameaddr_++] = (value32 >>  8) & 0xff;
+        this.framebuffer_!.data[this.frameaddr_++] = (value32 >> 16) & 0xff;
+        this.framebuffer_!.data[this.frameaddr_++] = (value32 >> 24) & 0xff;
+    }
 
     // reset or set the frame address
     public set frameAddr(value: number) {
