@@ -319,23 +319,27 @@ export class Surface {
                 let sb = src_data.data[s_off + 2];
                 let sa = src_data.data[s_off + 3];
 
-                // retrieve the component from the destination
-                let dr = dst_data.data[d_off + 0];
-                let dg = dst_data.data[d_off + 1];
-                let db = dst_data.data[d_off + 2];
-                let da = dst_data.data[d_off + 3];
 
-                // compute the blending
-                let r = Math.floor(lerp(dr, sr, opacity));
-                let g = Math.floor(lerp(dg, sg, opacity));
-                let b = Math.floor(lerp(db, sb, opacity));
-                let a = Math.floor(lerp(da, sa, opacity));
+                // compute the blending only if it's not a pure copy
+                if (opacity < 1.0) {
+                    // retrieve the component from the destination
+                    let dr = dst_data.data[d_off + 0];
+                    let dg = dst_data.data[d_off + 1];
+                    let db = dst_data.data[d_off + 2];
+                    let da = dst_data.data[d_off + 3];
+
+                    // blending
+                    sr = Math.floor(lerp(dr, sr, opacity));
+                    sg = Math.floor(lerp(dg, sg, opacity));
+                    sb = Math.floor(lerp(db, sb, opacity));
+                    sa = Math.floor(lerp(da, sa, opacity));
+                }
 
                 // set the destination pixel accordingly
-                dst_data.data[d_off + 0] = r;
-                dst_data.data[d_off + 1] = g;
-                dst_data.data[d_off + 2] = b;
-                dst_data.data[d_off + 3] = a;
+                dst_data.data[d_off + 0] = sr;
+                dst_data.data[d_off + 1] = sg;
+                dst_data.data[d_off + 2] = sb;
+                dst_data.data[d_off + 3] = sa;
             }
         }
 
