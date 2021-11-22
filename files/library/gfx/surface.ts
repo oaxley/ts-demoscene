@@ -9,6 +9,7 @@
 import { RGBA } from "library/color/RGBA";
 import { Size, Rect, Point2D } from "library/core/interfaces";
 import { Viewport } from "./viewport";
+import { lerp } from "library/maths/utils";
 
 
 //----- class
@@ -277,4 +278,68 @@ export class Surface {
         }
     }
 
+    // blend an image into another one
+    public blend(position: Point2D, other: Surface, size: Rect, opacity: number = 1.0): void {
+        // "tecture" position and size
+        let tx = size.x;
+        let ty = size.y;
+        let tw = size.w;
+        let th = size.h;
+
+        // nothing to be done if we are outside
+        if ((tx > this.width_) || (ty > this.height_)) {
+            return;
+        }
+
+        // clamp the texture size if it's outside our surface
+        if (position.x + tw > this.width_) {
+            tw = this.width_ - position.x;
+        }
+
+        if (position.y + th > this.height_) {
+            th = this.height_ - position.y;
+        }
+
+        // get the dest frame buffer data
+        let src_data = other.data;
+        let dst_data = this.context_!.getImageData(position.x, position.y, tw, th);
+
+        // copy the image
+        for (let y = ty; y < (ty + th); y++) {
+            let s_addr = y * other.width;
+            let d_addr = (y - ty) * dst_data.width;
+
+            for (let x = tx; x < (tx + tw); x++) {
+                let s_off = (s_addr + x) << 2;
+                let d_off = (d_addr + (x - tx)) << 2;
+
+                // retrieve the component from the source
+                let sr = src_data.data[s_off + 0];
+                let sg = src_data.data[s_off + 1];
+                let sb = src_data.data[s_off + 2];
+                let sa = src_data.data[s_off + 3];
+
+                // retrieve the component from the destination
+                let dr = dst_data.data[d_off + 0];
+                let dg = dst_data.data[d_off + 1];
+                let db = dst_data.data[d_off + 2];
+                let da = dst_data.data[d_off + 3];
+
+                // compute the blending
+                let r = Math.floor(lerp(dr, sr, opacity));
+                let g = Math.floor(lerp(dg, sg, opacity));
+                let b = Math.floor(lerp(db, sb, opacity));
+                let a = Math.floor(lerp(da, sa, opacity));
+
+                // set the destination pixel accordingly
+                dst_data.data[d_off + 0] = r;
+                dst_data.data[d_off + 1] = g;
+                dst_data.data[d_off + 2] = b;
+                dst_data.data[d_off + 3] = a;
+            }
+        }
+
+        // restore destination pixels
+        this.context_!.putImageData(dst_data, position.x, position.y);
+    }
 }
