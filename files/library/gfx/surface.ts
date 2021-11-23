@@ -165,6 +165,7 @@ export class Surface {
             this.context_= <CanvasRenderingContext2D> this.canvas_.getContext("2d");
 
             // load the image onto it
+            this.context_.globalCompositeOperation = 'source-over';
             this.context_.drawImage(img, 0, 0);
 
             // success
@@ -279,7 +280,7 @@ export class Surface {
     }
 
     // blend an image into another one
-    public blend(position: Point2D, other: Surface, size: Rect, opacity: number = 1.0): void {
+    public blend(position: Point2D, other: Surface, size: Rect, opacity: number = 1.0, mask?: number): void {
         // "tecture" position and size
         let tx = size.x;
         let ty = size.y;
@@ -319,6 +320,13 @@ export class Surface {
                 let sb = src_data.data[s_off + 2];
                 let sa = src_data.data[s_off + 3];
 
+                // bypass this color if a mask is defined
+                if ( mask !== undefined ) {
+                    let v1 = RGBA.toUInt32(sr, sg, sb, 0);
+                    if (v1 == mask) {
+                        continue;
+                    }
+                }
 
                 // compute the blending only if it's not a pure copy
                 if (opacity < 1.0) {
