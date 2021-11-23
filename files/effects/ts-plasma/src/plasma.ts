@@ -73,7 +73,7 @@ export class Plasma extends IAnimation {
                     index = 255;
 
                 let rgba = <RGBA> this.palette_.getColor(index)!.color;
-                this.display_.surface.frameStreamW = rgba.int32;
+                this.display_.surface.frameStreamW = rgba.uint32;
             }
         }
 
