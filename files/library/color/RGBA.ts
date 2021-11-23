@@ -35,9 +35,20 @@ export class RGBA extends BaseColor {
     }
 
     // create an int32 value from arbitrary values
-    public static toInt32(r: number, g: number, b: number, a: number = 255): number {
-        return ((a & 0xff) << 24) + ((b & 0xff) << 16) + ((g & 0xff) << 8) + (r & 0xff);
+    public static toUInt32(r: number, g: number, b: number, a: number = 255): number {
+        return ((a & 0xff) << 24) | ((b & 0xff) << 16) | ((g & 0xff) << 8) | (r & 0xff) >>> 0;
     }
+    public static fromUInt32(v: number): number[] {
+        // ensure v is UInt32
+        v = v >>> 0;
+        return [
+            v & 0x000000ff,
+            (v & 0x0000ff00) >> 8,
+            (v & 0x00ff0000) >> 16,
+            (v & 0xff000000) >> 24
+        ];
+    }
+
 
     //----- accessors
 
@@ -74,10 +85,11 @@ export class RGBA extends BaseColor {
     }
 
     // get/set from an int32
-    public get int32(): number {
-        return RGBA.toInt32(this.x_, this.y_, this.z_, this.a_);
+    public get uint32(): number {
+        return RGBA.toUInt32(this.x_, this.y_, this.z_, this.a_);
     }
-    public set int32(v: number) {
+    public set uint32(v: number) {
+        v = v >>> 0;
         this.x_ = v & 0xff;
         this.y_ = (v >>  8) & 0xff;
         this.z_ = (v >> 16) & 0xff;
