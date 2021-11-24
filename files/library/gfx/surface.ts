@@ -24,6 +24,9 @@ export class Surface {
     private framebuffer_: ImageData|undefined;      // frame-buffer for direct access rendering
     private frameaddr_: number;                     // frame-buffer current address for stream operation
 
+    private fbdata_  : ArrayBuffer|undefined;
+    private fbdata8_ : Uint8ClampedArray|undefined;
+    private fbdata32_: Uint32Array|undefined;
 
     //----- methods
     constructor(size?: Size) {
@@ -45,6 +48,11 @@ export class Surface {
         this.viewport_= new Viewport();
         this.framebuffer_ = undefined;
         this.frameaddr_   = 0;
+
+        // 32-bit frame buffer data
+        this.fbdata_   = undefined;
+        this.fbdata8_  = undefined;
+        this.fbdata32_ = undefined;
     }
 
     //----- accessors
@@ -91,7 +99,12 @@ export class Surface {
     public set framebuffer(v: boolean) {
         if (v) {
             this.framebuffer_ = this.context_!.getImageData(0, 0, this.width_, this.height_);
+            this.frameaddr_ = 0;
+            this.fbdata_  = new ArrayBuffer(this.framebuffer_.data.length);
+            this.fbdata8_ = new Uint8ClampedArray(this.fbdata_);
+            this.fbdata32_= new Uint32Array(this.fbdata_);
         } else {
+            this.framebuffer_!.data.set(this.fbdata8_!);
             this.context_!.putImageData(this.framebuffer_!, 0, 0);
             this.framebuffer_ = undefined;
         }
@@ -99,16 +112,13 @@ export class Surface {
 
     // set/get a byte in/from the framebuffer at the current address
     public set frameStream(value: number) {
-        this.framebuffer_!.data[this.frameaddr_++] = value;
+        this.fbdata8_![this.frameaddr_++] = value;
     }
     public get frameStream(): number {
         return this.framebuffer_!.data[this.frameaddr_++];
     }
     public set frameStreamW(value32: number) {
-        this.framebuffer_!.data[this.frameaddr_++] = value32 & 0xff;
-        this.framebuffer_!.data[this.frameaddr_++] = (value32 >>  8) & 0xff;
-        this.framebuffer_!.data[this.frameaddr_++] = (value32 >> 16) & 0xff;
-        this.framebuffer_!.data[this.frameaddr_++] = (value32 >> 24) & 0xff;
+        this.fbdata32_![this.frameaddr_++] = value32 >>> 0;
     }
 
     // reset or set the frame address
@@ -191,12 +201,7 @@ export class Surface {
 
     // set the color value of a pixel
     public setPixel(p: Point2D, c: RGBA): void {
-        let addr = (p.y * this.width_ + p.x) << 2;
-
-        this.framebuffer_!.data[addr + 0] = c.red;
-        this.framebuffer_!.data[addr + 1] = c.green;
-        this.framebuffer_!.data[addr + 2] = c.blue;
-        this.framebuffer_!.data[addr + 3] = c.alpha;
+        this.fbdata32_![(p.y * this.width_ + p.x)] = c.uint32;
     }
 
     // draw a line with the Bresenham algorithm
@@ -252,11 +257,8 @@ export class Surface {
         }
 
         let addr = p1.y * this.width_ + x1;
-        for (let i = x1; i <= x2; i++, addr += 4) {
-            this.framebuffer_!.data[addr + 0] = c.red;
-            this.framebuffer_!.data[addr + 1] = c.green;
-            this.framebuffer_!.data[addr + 2] = c.blue;
-            this.framebuffer_!.data[addr + 3] = c.alpha;
+        for (let i = x1; i <= x2; i++, addr += 1) {
+            this.fbdata32_![addr] = c.uint32;
         }
     }
 
@@ -272,10 +274,7 @@ export class Surface {
 
         let addr = y1 * this.width_ + p1.x;
         for (let i = y1; i <= y2; i++, addr += this.width_) {
-            this.framebuffer_!.data[addr + 0] = c.red;
-            this.framebuffer_!.data[addr + 1] = c.green;
-            this.framebuffer_!.data[addr + 2] = c.blue;
-            this.framebuffer_!.data[addr + 3] = c.alpha;
+            this.fbdata32_![addr] = c.uint32;
         }
     }
 
