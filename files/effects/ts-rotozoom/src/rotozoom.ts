@@ -22,7 +22,7 @@ const TICKS: number = 1000 / FPS;
 export class Rotozoom extends IAnimation {
 
     //----- members
-    private image_: Surface;
+    private texture_: Surface;                      // the texture for the RotoZoom
 
     private angle_: number;                         // current rotation angle
 
@@ -43,8 +43,7 @@ export class Rotozoom extends IAnimation {
         this.sin_ = [];
 
         // load the texture image
-        this.image_ = new Surface();
-        this.image_.loadImage('/images/assets/ts-rotozoom.asset.jpg');
+        this.texture_ = new Surface();
 
         // load the lookup tables
         this.computeLUT();
@@ -64,14 +63,13 @@ export class Rotozoom extends IAnimation {
             return;
 
         // retrieve the image / backbuffer data
-        let srcdata = this.image_.data;
+        let srcdata = this.texture_.data;
 
         // activate the frame buffer
         this.display_.surface.framebuffer = true;
-        this.display_.surface.frameAddr = 0
 
         // height of the texture
-        const height: number = this.image_!.canvas.height;
+        const height = this.texture_.height;
 
         // cosinus / sinus lookup
         const cs: number = this.cos_[this.angle_];
@@ -129,15 +127,19 @@ export class Rotozoom extends IAnimation {
 
     // setup function
     public setup(): void {
-        // toggle the animation
-        this.toggle();
+        this.texture_
+            .loadImage('/images/assets/ts-rotozoom.asset.jpg')
+            .then(result => {
+                // toggle the animation
+                this.toggle();
 
-        // set the click handler to pause the animation
-        window.onclick = () => {
-            this.toggle();
-        }
+                // set the click handler to pause the animation
+                window.onclick = () => {
+                    this.toggle();
+                }
 
-        console.log("Starting the Rotozoom animation.");
+                console.log("Starting the Rotozoom animation.");
+        });
     }
 
     // cleanup function
