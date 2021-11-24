@@ -10,6 +10,7 @@ import { IAnimation } from "library/core/animation";
 import { States } from "library/core/manager";
 
 import { Display } from "library/core/display";
+import { RGBA } from "library/color/RGBA";
 
 
 //----- globals
@@ -50,7 +51,6 @@ export class Moire extends IAnimation {
 
         // we will write directly in the frame buffer
         this.display_.surface.framebuffer = true;
-        this.display_.surface.frameAddr = 0;
 
         // compute the current center of each circles
         let cx1 = this.sx_ + this.ax_ * Math.cos(time/1000);
@@ -78,10 +78,7 @@ export class Moire extends IAnimation {
                 let v = 255 * (((dt1 ^ dt2) >> 4) & 0x01);
 
                 // write the value inside the frane buffer
-                this.display_.surface.frameStream = v;
-                this.display_.surface.frameStream = v;
-                this.display_.surface.frameStream = v;
-                this.display_.surface.frameStream = 255;
+                this.display_.surface.frameStreamW = RGBA.toUInt32(v, v, v);
             }
         }
 
