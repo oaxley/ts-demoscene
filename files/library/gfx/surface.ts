@@ -327,6 +327,11 @@ export class Surface {
                     }
                 }
 
+                // bypass the color is the pixel has a zero alpha value
+                if (sa == 0) {
+                    continue;
+                }
+
                 // compute the blending only if it's not a pure copy
                 if (opacity < 1.0) {
                     // retrieve the component from the destination
