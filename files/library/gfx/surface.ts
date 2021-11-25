@@ -157,6 +157,39 @@ export class Surface {
         return c;
     }
 
+    // get a block of data
+    public getImgBlock(bx: number, by: number, bw: number, bh: number): ImageData {
+        let imgdata = new ImageData(bw, bh);
+
+        let d_off = 0;
+        for (let y = by; y < (by + bh); y++) {
+            let addr = y * this.width_;
+            for (let x = bx; x < (bx + bw); x++) {
+                let s_off = (addr + x) << 2;
+                imgdata.data[d_off++] = this.framebuffer_!.data8[s_off + 0];
+                imgdata.data[d_off++] = this.framebuffer_!.data8[s_off + 1];
+                imgdata.data[d_off++] = this.framebuffer_!.data8[s_off + 2];
+                imgdata.data[d_off++] = this.framebuffer_!.data8[s_off + 3];
+            }
+        }
+
+        return imgdata;
+    }
+
+    public putImgBlock(imgdata: ImageData, bx: number, by: number): void {
+        let s_off = 0;
+        for (let y = by; y < (by + imgdata.height); y++) {
+            let addr = y * this.width_;
+            for (let x = bx; x < (bx + imgdata.width); x++) {
+                let d_off = (addr + x) << 2;
+                this.framebuffer_!.data8[d_off + 0] = imgdata.data[s_off++];
+                this.framebuffer_!.data8[d_off + 1] = imgdata.data[s_off++];
+                this.framebuffer_!.data8[d_off + 2] = imgdata.data[s_off++];
+                this.framebuffer_!.data8[d_off + 3] = imgdata.data[s_off++];
+            }
+        }
+    }
+
     // draw a line with the Bresenham algorithm
     public line(p1: Point2D, p2: Point2D, c: RGBA): void {
         let incrx: number, incry: number, x: number, y: number;
@@ -230,6 +263,37 @@ export class Surface {
             this.framebuffer_!.data32[addr] = c.uint32;
         }
     }
+
+    // draw a circle (Bresenham algorithm)
+    public circle(p: Point2D, r: number, c: RGBA): void {
+        // helper function
+        function drawCircle(self: Surface, xc: number, yc: number, x: number, y: number): void {
+            self.setPixel(xc+x, yc+y, c);
+            self.setPixel(xc-x, yc+y, c);
+            self.setPixel(xc+x, yc-y, c);
+            self.setPixel(xc-x, yc-y, c);
+
+            self.setPixel(xc+y, yc+x, c);
+            self.setPixel(xc-y, yc+x, c);
+            self.setPixel(xc+y, yc-x, c);
+            self.setPixel(xc-y, yc-x, c);
+        }
+
+        let x = 0, y = r;
+        let d = 3 - 2 * r;
+        drawCircle(this, p.x, p.y, x, y);
+        while (y >= x) {
+            x++;
+            if (d > 0) {
+                y --;
+                d = d + 4 * (x - y) + 10;
+            } else {
+                d = d + 4 * x + 6;
+            }
+            drawCircle(this, p.x, p.y, x, y);
+        }
+    }
+
 
     // load an image
     public loadImage(name: string): Promise<boolean> {
@@ -348,4 +412,6 @@ export class Surface {
             }
         }
     }
+
 }
+
