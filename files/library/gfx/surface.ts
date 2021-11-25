@@ -12,196 +12,149 @@ import { Viewport } from "./viewport";
 import { lerp } from "library/maths/utils";
 
 
+//----- interfaces
+// Frame Buffer interface
+interface IFrameBuffer {
+    data   : ArrayBuffer;           // the framebuffer data
+    data8  : Uint8ClampedArray;     // 8-bit framebuffer access
+    data32 : Uint32Array;           // 32-bit framebuffer access
+    address: number;                // current framebuffer address
+}
+
+
 //----- class
 export class Surface {
     //----- members
-    private width_  : number;                               // width
-    private height_ : number;                               // height
-    private canvas_ : HTMLCanvasElement|undefined;          // Canvas element
-    private context_: CanvasRenderingContext2D|undefined;   // Canvas context
+    private width_ : number = 0;            // Surface width
+    private height_: number = 0;            // Surface height
+    private length_: number = 0;            // Surface length
 
-    private viewport_: Viewport;                    // the viewport for the rendering
-    private framebuffer_: ImageData|undefined;      // frame-buffer for direct access rendering
-    private frameaddr_: number;                     // frame-buffer current address for stream operation
+    private framebuffer_: IFrameBuffer|undefined;
+    private viewport_   : Viewport;
 
-    private fbdata_  : ArrayBuffer|undefined;
-    private fbdata8_ : Uint8ClampedArray|undefined;
-    private fbdata32_: Uint32Array|undefined;
 
     //----- methods
     constructor(size?: Size) {
+        // set the vars
+        this.viewport_ = new Viewport();
 
-        // create a new canvas element
-        if (size !== undefined) {
-            this.canvas_ = document.createElement("canvas")
-            this.canvas_.width  = size.width;
-            this.canvas_.height = size.height;
-            this.width_   = size.width;
-            this.height_  = size.height;
-            this.context_ = this.canvas_.getContext("2d")!;
-        } else {
-            this.width_  = 0;
-            this.height_ = 0;
+        if (size) {
+            this.width_  = size.width;
+            this.height_ = size.height;
+            this.length_ = size.width * size.height;
+            this.create(this.width_, this.height_);
         }
-
-        // setup vars
-        this.viewport_= new Viewport();
-        this.framebuffer_ = undefined;
-        this.frameaddr_   = 0;
-
-        // 32-bit frame buffer data
-        this.fbdata_   = undefined;
-        this.fbdata8_  = undefined;
-        this.fbdata32_ = undefined;
     }
 
     //----- accessors
 
-    // return the context for this Surface
-    public get context(): CanvasRenderingContext2D {
-        return this.context_!;
+    // width/height/size for this surface
+    public get width(): number {
+        return this.width_;
     }
-
-    // return the canvas element for this Surface
-    public get canvas(): HTMLCanvasElement {
-        return this.canvas_!;
+    public get height(): number {
+        return this.height_;
     }
-
-    // return the dimensions for this Surface
     public get size(): Size {
         return {
             width: this.width_,
             height: this.height_
-        }
+        };
     }
 
-    // return the width for this Surface
-    public get width(): number {
-        return this.width_;
+    // set the surface from an ImageData
+    public set image(img: ImageData) {
+        this.width_  = img.width;
+        this.height_ = img.height;
+
+        // create the FrameBuffer
+        this.create(img.width, img.height);
+        this.framebuffer_!.data8.set(img.data);
     }
 
-    // return the height for this Surface
-    public get height(): number {
-        return this.height_;
+    // create an imagedata from the surface
+    public get image(): ImageData {
+        let img = new ImageData(this.width_, this.height_);
+        img.data.set(this.framebuffer_!.data8);
+        return img;
     }
 
-    // return the pixels data for this Surface
-    public get data(): ImageData {
-        return this.context_!.getImageData(0, 0, this.width_, this.height_);
+    // set the address directly
+    public set address(value: number) {
+        this.framebuffer_!.address = value << 2;
     }
 
-    // set the pixels data for this Surface
-    public set data(image: ImageData) {
-        this.context_!.putImageData(image, 0, 0);
+    // get/set a 8-byte to the framebuffer at the current address
+    public get streamB(): number {
+        return this.framebuffer_!.data8[this.framebuffer_!.address++] >> 0;
+    }
+    public set streamB(value: number)  {
+        this.framebuffer_!.data8[this.framebuffer_!.address++] = value >>> 0;
     }
 
-    // activate/deactivate the framebuffer
-    public set framebuffer(v: boolean) {
-        if (v) {
-            this.framebuffer_ = this.context_!.getImageData(0, 0, this.width_, this.height_);
-            this.frameaddr_ = 0;
-            this.fbdata_  = new ArrayBuffer(this.framebuffer_.data.length);
-            this.fbdata8_ = new Uint8ClampedArray(this.fbdata_);
-            this.fbdata32_= new Uint32Array(this.fbdata_);
-        } else {
-            this.framebuffer_!.data.set(this.fbdata8_!);
-            this.context_!.putImageData(this.framebuffer_!, 0, 0);
-            this.framebuffer_ = undefined;
-        }
+    // get/set a 32-byte to the framebuffer at the current address
+    public get streamW(): number {
+        let value = this.framebuffer_!.data32[this.framebuffer_!.address >> 2];
+        this.framebuffer_!.address += 4;
+        return value >>> 0;
+    }
+    public set streamW(value: number) {
+        this.framebuffer_!.data32[this.framebuffer_!.address >> 2] = value >>> 0;
+        this.framebuffer_!.address += 4;
     }
 
-    // set/get a byte in/from the framebuffer at the current address
-    public set frameStream(value: number) {
-        this.fbdata8_![this.frameaddr_++] = value;
-    }
-    public get frameStream(): number {
-        return this.framebuffer_!.data[this.frameaddr_++];
-    }
-    public set frameStreamW(value32: number) {
-        this.fbdata32_![this.frameaddr_++] = value32 >>> 0;
-    }
-
-    // reset or set the frame address
-    public set frameAddr(value: number) {
-        this.frameaddr_ = value << 2;
+    // read a 32-bit value from the frame-buffer without moving the address
+    public get readW(): number {
+        return this.framebuffer_!.data32[this.framebuffer_!.address >> 2] >>> 0;
     }
 
     //----- functions
 
-    // clear the surface
-    public clear(r?: Rect): void;
-    public clear(xr?: number|Rect, y?: number, w?: number, h?:number): void {
-        switch(typeof xr) {
-            case "undefined":
-                this.context_!.clearRect(0, 0, this.width_, this.height_);
-                break;
-            case "number":
-                this.context_!.clearRect(xr, y!, w!, h!);
-                break;
-            default:
-                this.context_!.clearRect(xr.x, xr.y, xr.w, xr.h);
-        }
+    // create the frame-buffer structure
+    private create(width: number, height: number): void {
+        // we need to x4 because of the 8-bit array to store RGBA values
+        let length = (width * height) << 2;
+        let data = new ArrayBuffer(length);
+        this.framebuffer_ = {
+            data   : data,
+            data8  : new Uint8ClampedArray(data),
+            data32 : new Uint32Array(data),
+            address: 0
+        };
     }
 
-    // copy the data from another surface
+    // copy from another surface
     public copy(other: Surface): void {
-        this.context_!.drawImage(other.canvas_!, 0, 0);
+        this.create(other.width_, other.height_);
+        this.framebuffer_!.data32.set(other.framebuffer_!.data32);
     }
 
-    // load an image on this surface
-    public loadImage(name: string): Promise<boolean> {
-        let img = new Image();
+    // set the frame-buffer address to a particular pixel
+    public setAddrXY(x: number, y: number): void {
+        this.framebuffer_!.address = (y * this.width_ + x) << 2;
+    }
 
-        // prepare the future
-        let future = new Promise((resolve, reject) => {
-            img.onload = (event) => {
-                resolve(true)
-            };
-            img.onerror = (event) => {
-                reject("Could not load the image!");
-            }
-            img.src = name;
-        });
+    // align the current frame-buffer address on a 32-bit boundary
+    public alignAddr(): void {
+        let address = this.framebuffer_!.address;
+        this.framebuffer_!.address = (address >> 2) << 2;
+    }
 
-        // execute the future
-        return future.then((result) => {
-            // recreate the element
-            this.canvas_ = <HTMLCanvasElement> document.createElement("canvas");
-            this.canvas_.width  = img.width;
-            this.canvas_.height = img.height;
-            this.width_  = img.width;
-            this.height_ = img.height;
+    // true if adress is aligned on 32-bit boundary
+    public isAddrAligned(): boolean {
+        return ((this.framebuffer_!.address & 3) == 0);
+    }
 
-            this.context_= <CanvasRenderingContext2D> this.canvas_.getContext("2d");
-
-            // load the image onto it
-            this.context_.globalCompositeOperation = 'source-over';
-            this.context_.drawImage(img, 0, 0);
-
-            // success
-            return true;
-        }).catch((message) => {
-            console.log(message);
-            return false;
-        });
+    // set the color value for a pixel
+    public setPixel(x: number, y: number, c: RGBA): void {
+        this.framebuffer_!.data32[y * this.width_ + x] = c.uint32;
     }
 
     // get the color value for a pixel
-    public getPixel(p: Point2D): RGBA
-    {
-        let addr = (p.y * this.width_ + p.x) << 2;
-
-        let r: number = this.framebuffer_!.data[addr + 0];
-        let g: number = this.framebuffer_!.data[addr + 1];
-        let b: number = this.framebuffer_!.data[addr + 2];
-        let a: number = this.framebuffer_!.data[addr + 3];
-
-        return new RGBA(r, g, b, a);
-    }
-
-    // set the color value of a pixel
-    public setPixel(p: Point2D, c: RGBA): void {
-        this.fbdata32_![(p.y * this.width_ + p.x)] = c.uint32;
+    public getPixel(x: number, y: number): RGBA {
+        let c = new RGBA();
+        c.uint32 = this.framebuffer_!.data32[y * this.width_ + x];
+        return c;
     }
 
     // draw a line with the Bresenham algorithm
@@ -210,7 +163,7 @@ export class Surface {
         let delta: number, dx: number, dy: number;
 
         [ incrx, incry, x, y ] = [ 1, 1, p1.x, p1.y];
-        this.setPixel({x: x, y: y}, c);
+        this.setPixel(x, y, c);
 
         if ( p1.x > p2.x )
             incrx = -1;
@@ -229,7 +182,7 @@ export class Surface {
                     delta -= dx;
                     y += incry;
                 }
-                this.setPixel({x: x, y: y}, c);
+                this.setPixel(x, y, c);
             }
         }
         else {
@@ -241,7 +194,7 @@ export class Surface {
                     delta -= dy;
                     x += incrx;
                 }
-                this.setPixel({x: x, y: y}, c);
+                this.setPixel(x, y, c);
             }
         }
     }
@@ -258,7 +211,7 @@ export class Surface {
 
         let addr = p1.y * this.width_ + x1;
         for (let i = x1; i <= x2; i++, addr += 1) {
-            this.fbdata32_![addr] = c.uint32;
+            this.framebuffer_!.data32[addr] = c.uint32;
         }
     }
 
@@ -274,88 +227,125 @@ export class Surface {
 
         let addr = y1 * this.width_ + p1.x;
         for (let i = y1; i <= y2; i++, addr += this.width_) {
-            this.fbdata32_![addr] = c.uint32;
+            this.framebuffer_!.data32[addr] = c.uint32;
         }
     }
 
-    // blend an image into another one
-    public blend(position: Point2D, other: Surface, size: Rect, opacity: number = 1.0, mask?: number): void {
-        // "tecture" position and size
-        let tx = size.x;
-        let ty = size.y;
-        let tw = size.w;
-        let th = size.h;
+    // load an image
+    public loadImage(name: string): Promise<boolean> {
+        let img = new Image();
 
-        // nothing to be done if we are outside
-        if ((tx > this.width_) || (ty > this.height_)) {
+        // future promise
+        let future = new Promise((resolve, reject) => {
+            // image event handlers
+            img.onload = event => {
+                resolve(true);
+            };
+            img.onerror = event => {
+                reject(false);
+            }
+
+            // load the image
+            img.src = name;
+        });
+
+        // execute the future
+        return future
+            .then(result => {
+                // copy the image on a temporary canvas
+                let canvas    = <HTMLCanvasElement> document.createElement("canvas");
+                canvas.width  = img.width;
+                canvas.height = img.height;
+                let context   = canvas.getContext("2d");
+                context!.drawImage(img, 0, 0);
+
+                // create the frame-buffer and copy the image
+                let imgdata = context!.getImageData(0, 0, canvas.width, canvas.height);
+                this.image = imgdata;
+
+                return true;
+            })
+            .catch(result => {
+                console.log(`Error: unable to load the image ${name}`);
+                return false;
+            });
+    }
+
+    /* blend an image into another one
+     * Args:
+     *      to     : the position where to apply the texture
+     *      other  : the source surface
+     *      from   : the position/size of the texture from the source surface
+     *      opacity: opacity of the source texture (default: 1.0)
+     *      mask   : the value of the transparent pixel if any
+     */
+    public blend(to: Point2D, other: Surface, from: Rect, opacity?: number, mask?: RGBA|number): void {
+        // "texture" position and size
+        let tx = from.x;
+        let ty = from.y;
+        let tw = from.w;
+        let th = from.h;
+
+        // nothing to be done if we are outside our surface
+        if ((to.x < 0) || (to.x > this.width_) || (to.y < 0) || (to.y > this.height_)) {
             return;
         }
 
-        // clamp the texture size if it's outside our surface
-        if (position.x + tw > this.width_) {
-            tw = this.width_ - position.x;
+        // ensure the texture size remains inside our surface
+        if (to.x + tw > this.width_) {
+            tw = this.width_ - to.x;
         }
-
-        if (position.y + th > this.height_) {
-            th = this.height_ - position.y;
+        if (to.y + th > this.height_) {
+            th = this.height_ - to.y;
         }
-
-        // get the dest frame buffer data
-        let src_data = other.data;
-        let dst_data = this.context_!.getImageData(position.x, position.y, tw, th);
 
         // copy the image
         for (let y = ty; y < (ty + th); y++) {
-            let s_addr = y * other.width;
-            let d_addr = (y - ty) * dst_data.width;
+            // compute src / dst addresses
+            let s_addr = y * other.width_;
+            let d_addr = (to.y + (y - ty)) * this.width_;
 
             for (let x = tx; x < (tx + tw); x++) {
-                let s_off = (s_addr + x) << 2;
-                let d_off = (d_addr + (x - tx)) << 2;
+                // set the corresponding frame-buffer to this address
+                other.address = s_addr + x;
+                this.address  = d_addr + (to.x + (x - tx));
 
-                // retrieve the component from the source
-                let sr = src_data.data[s_off + 0];
-                let sg = src_data.data[s_off + 1];
-                let sb = src_data.data[s_off + 2];
-                let sa = src_data.data[s_off + 3];
+                // source pixel
+                let src = other.streamW;
 
-                // bypass this color if a mask is defined
-                if ( mask !== undefined ) {
-                    let v1 = RGBA.toUInt32(sr, sg, sb, 0);
-                    if (v1 == mask) {
+                // transparent pixel
+                if ( (src & 0xFF000000) == 0 ) {
+                    continue;
+                }
+
+                // mask is defined
+                if (mask) {
+                    if (src == mask) {
                         continue;
                     }
                 }
 
-                // bypass the color is the pixel has a zero alpha value
-                if (sa == 0) {
-                    continue;
-                }
+                // opacity is defined
+                if ((opacity !== undefined) && (opacity < 1.0)) {
+                    // retrieve the destination value
+                    let dst = this.readW;
 
-                // compute the blending only if it's not a pure copy
-                if (opacity < 1.0) {
-                    // retrieve the component from the destination
-                    let dr = dst_data.data[d_off + 0];
-                    let dg = dst_data.data[d_off + 1];
-                    let db = dst_data.data[d_off + 2];
-                    let da = dst_data.data[d_off + 3];
+                    // extract RGBA values
+                    let [ sr, sg, sb, sa ] = RGBA.fromUInt32(src);
+                    let [ dr, dg, db, da ] = RGBA.fromUInt32(dst);
 
                     // blending
                     sr = Math.floor(lerp(dr, sr, opacity));
                     sg = Math.floor(lerp(dg, sg, opacity));
                     sb = Math.floor(lerp(db, sb, opacity));
                     sa = Math.floor(lerp(da, sa, opacity));
+
+                    // 'rebuild' the 32-bit value
+                    src = RGBA.toUInt32(sr, sg, sb, sa);
                 }
 
-                // set the destination pixel accordingly
-                dst_data.data[d_off + 0] = sr;
-                dst_data.data[d_off + 1] = sg;
-                dst_data.data[d_off + 2] = sb;
-                dst_data.data[d_off + 3] = sa;
+                this.streamW = src;
             }
         }
-
-        // restore destination pixels
-        this.context_!.putImageData(dst_data, position.x, position.y);
     }
 }
