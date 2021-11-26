@@ -10,6 +10,7 @@ import { IAnimation } from "library/core/animation";
 import { States } from "library/core/manager";
 
 import { Display } from "library/core/display";
+import { Surface } from "library/gfx/surface";
 import { Vector2D } from "library/maths/vector2d";
 
 import { CollisionDetector } from "library/collision/detector";
@@ -37,7 +38,7 @@ interface LensObject {
 export class Lens extends IAnimation {
 
     //----- members
-    private image_   : HTMLImageElement;
+    private image_   : Surface;
     private lenses_  : LensObject[];            // list of lenses in the animation
     private detector_: CollisionDetector;       // Collision detector instance
 
@@ -48,16 +49,12 @@ export class Lens extends IAnimation {
 
         // set the vars
         this.lenses_ = [];
-
-        // load the background image
-        this.image_ = new Image();
-        this.image_.src = '/images/assets/ts-lens.background.jpg';
+        this.image_ = new Surface();
 
         // create an instance of the CollisionDetector and add objects to it
         this.detector_ = new CollisionDetector();
         this.createWalls();
         this.createLenses();
-
     }
 
     // create wall around the display zone to bounce the lenses
@@ -90,22 +87,22 @@ export class Lens extends IAnimation {
     // create lenses
     private createLenses(): void {
         let weight = RADIUS * RADIUS_TO_MASS;
-        let ctx = this.display_.surface.context;
+        let surface = this.display_.surface;
 
         this.lenses_ = [];
         this.lenses_.push({
             circle: new CollisionCircle(new Vector2D(200, 2*RADIUS), this.randomVelocity(), RADIUS, weight),
-            lens: new LensAnimation(ctx, RADIUS, LENS_MAGNIFICATION)
+            lens: new LensAnimation(surface, RADIUS, LENS_MAGNIFICATION)
         });
 
         this.lenses_.push({
             circle: new CollisionCircle(new Vector2D(400, 4*RADIUS), this.randomVelocity(), 2*RADIUS, 2*weight),
-            lens: new LensAnimation(ctx, 2*RADIUS, LENS_MAGNIFICATION)
+            lens: new LensAnimation(surface, 2*RADIUS, LENS_MAGNIFICATION)
         });
 
         this.lenses_.push({
             circle: new CollisionCircle(new Vector2D(400, 400), this.randomVelocity(), RADIUS, weight),
-            lens: new LensAnimation(ctx, RADIUS, LENS_MAGNIFICATION)
+            lens: new LensAnimation(surface, RADIUS, LENS_MAGNIFICATION)
         });
 
         // add the lenses to the collision detector
@@ -138,7 +135,7 @@ export class Lens extends IAnimation {
             return;
 
         // load the background image in the back-buffer
-        this.display_.loadImage(this.image_);
+        this.display_.surface.copy(this.image_);
 
         // compute the transformation for all the lenses
         this.lenses_.forEach(element => {
@@ -169,15 +166,22 @@ export class Lens extends IAnimation {
 
     // setup function
     public setup(): void {
-        // toggle the animation
-        this.toggle();
 
-        // set the click handler to pause the animation
-        window.onclick = () => {
+        // load the background image
+        this.image_
+            .loadImage('/images/assets/ts-lens.background.jpg')
+            .then(result => {
+
+            // toggle the animation
             this.toggle();
-        }
 
-        console.log("Starting the Lens animation.");
+            // set the click handler to pause the animation
+            window.onclick = () => {
+                this.toggle();
+            }
+
+            console.log("Starting the Lens animation.");
+        });
     }
 
     // cleanup function
