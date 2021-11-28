@@ -50,7 +50,7 @@ export class Moire extends IAnimation {
             return;
 
         // we will write directly in the frame buffer
-        this.display_.surface.framebuffer = true;
+        this.display_.surface.address = 0;
 
         // compute the current center of each circles
         let cx1 = this.sx_ + this.ax_ * Math.cos(time/1000);
@@ -78,11 +78,9 @@ export class Moire extends IAnimation {
                 let v = 255 * (((dt1 ^ dt2) >> 4) & 0x01);
 
                 // write the value inside the frane buffer
-                this.display_.surface.frameStreamW = RGBA.toUInt32(v, v, v);
+                this.display_.surface.streamW = RGBA.toUInt32(v, v, v);
             }
         }
-
-        this.display_.surface.framebuffer = false;
     }
 
     // render the animation on screen
