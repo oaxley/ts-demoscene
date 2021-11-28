@@ -50,9 +50,8 @@ export class Plasma extends IAnimation {
         if (!this.isAnimated)
             return;
 
-        // let imgdata = this.display_.surface.data;
-        this.display_.surface.framebuffer = true;
-        this.display_.surface.frameAddr = 0
+        // reset the frame-buffer address
+        this.display_.surface.address = 0
 
         let time = timestamp / 500;
         for (let y = 0; y < this.display_.height; y++) {
@@ -73,11 +72,9 @@ export class Plasma extends IAnimation {
                     index = 255;
 
                 let rgba = <RGBA> this.palette_.getColor(index)!.color;
-                this.display_.surface.frameStreamW = rgba.uint32;
+                this.display_.surface.streamW = rgba.uint32;
             }
         }
-
-        this.display_.surface.framebuffer = false;
     }
 
     // render the animation on screen
