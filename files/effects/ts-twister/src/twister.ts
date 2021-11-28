@@ -52,10 +52,7 @@ export class Twister extends IAnimation {
         let w  = BAR_WIDTH >> 1;
 
         // erase the surface
-        this.display_.surface.clear({x:200, y:0, w:250, h:480});
-
-        // activate the framebuffer
-        this.display_.surface.framebuffer = true;
+        this.display_.surface.clear();
 
         for (let y = 0; y < this.display_.height; y++) {
             let fv = 1.0 * y / this.display_.height;
@@ -77,16 +74,13 @@ export class Twister extends IAnimation {
                 let xtb = this.slice_.width * 0;
                 let xte = xtb + this.slice_.width;
 
-                this.display_.surface.frameAddr = (y * this.display_.width + x1);
+                this.display_.surface.address = (y * this.display_.width + x1);
                 let ratio = (xte - xtb) / (x2 - x1);
                 let addr = ot + xtb;
 
                 for (let x = x1; x < x2; x++) {
-                    this.texture_.frameAddr = addr;
-                    this.display_.surface.frameStream = this.texture_.frameStream;
-                    this.display_.surface.frameStream = this.texture_.frameStream;
-                    this.display_.surface.frameStream = this.texture_.frameStream;
-                    this.display_.surface.frameStream = this.texture_.frameStream;
+                    this.texture_.address = addr;
+                    this.display_.surface.streamW = this.texture_.streamW;
                     addr += ratio;
                 }
             }
@@ -96,17 +90,13 @@ export class Twister extends IAnimation {
                 let xtb = this.slice_.width * 1;
                 let xte = xtb + this.slice_.width;
 
-                // let offset = (y * this.display_.width + x2) << 2;
-                this.display_.surface.frameAddr = (y * this.display_.width + x2);
+                this.display_.surface.address = (y * this.display_.width + x2);
                 let ratio = (xte - xtb) / (x3 - x2);
                 let addr = ot + xtb;
 
                 for (let x = x2; x < x3; x++) {
-                    this.texture_.frameAddr = addr;
-                    this.display_.surface.frameStream = this.texture_.frameStream;
-                    this.display_.surface.frameStream = this.texture_.frameStream;
-                    this.display_.surface.frameStream = this.texture_.frameStream;
-                    this.display_.surface.frameStream = this.texture_.frameStream;
+                    this.texture_.address = addr;
+                    this.display_.surface.streamW = this.texture_.streamW;
                     addr += ratio;
                 }
             }
@@ -116,17 +106,13 @@ export class Twister extends IAnimation {
                 let xtb = this.slice_.width * 2;
                 let xte = xtb + this.slice_.width;
 
-                // let offset = (y * this.display_.width + x3) << 2;
-                this.display_.surface.frameAddr = (y * this.display_.width + x3);
+                this.display_.surface.address = (y * this.display_.width + x3);
                 let ratio = (xte - xtb) / (x4 - x3);
                 let addr = ot + xtb;
 
                 for (let x = x3; x < x4; x++) {
-                    this.texture_.frameAddr = addr;
-                    this.display_.surface.frameStream = this.texture_.frameStream;
-                    this.display_.surface.frameStream = this.texture_.frameStream;
-                    this.display_.surface.frameStream = this.texture_.frameStream;
-                    this.display_.surface.frameStream = this.texture_.frameStream;
+                    this.texture_.address = addr;
+                    this.display_.surface.streamW = this.texture_.streamW;
                     addr += ratio;
                 }
             }
@@ -136,23 +122,17 @@ export class Twister extends IAnimation {
                 let xtb = this.slice_.width * 3;
                 let xte = xtb + this.slice_.width;
 
-                // let offset = (y * this.display_.width + x4) << 2;
-                this.display_.surface.frameAddr = (y * this.display_.width + x4);
+                this.display_.surface.address = (y * this.display_.width + x4);
                 let ratio = (xte - xtb) / (x1 - x4);
                 let addr = ot + xtb;
 
                 for (let x = x4; x < x1; x++) {
-                    this.texture_.frameAddr = addr;
-                    this.display_.surface.frameStream = this.texture_.frameStream;
-                    this.display_.surface.frameStream = this.texture_.frameStream;
-                    this.display_.surface.frameStream = this.texture_.frameStream;
-                    this.display_.surface.frameStream = this.texture_.frameStream;
+                    this.texture_.address = addr;
+                    this.display_.surface.streamW = this.texture_.streamW;
                     addr += ratio;
                 }
             }
         }
-
-        this.display_.surface.framebuffer = false;
     }
 
     // render the animation on the screen
@@ -190,9 +170,6 @@ export class Twister extends IAnimation {
                     width: this.texture_.width >> 2,
                     height: this.texture_.height
                 }
-
-                // activate the access to the texture framebuffer
-                this.texture_.framebuffer = true;
 
                 // toggle the animation
                 this.toggle();
