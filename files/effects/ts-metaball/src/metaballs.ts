@@ -109,9 +109,6 @@ export class Metaballs extends IAnimation {
         if (!this.isAnimated)
             return;
 
-        // retrieve the pixels data from the back-buffer surface
-        this.display_.surface.framebuffer = true;
-
         // compute the effect
         for (let y = 0; y < this.height_; y++) {
             for (let x = 0; x < this.width_; x++) {
@@ -133,12 +130,9 @@ export class Metaballs extends IAnimation {
                 let color = <RGBA> this.palette_.getColor(sum)!.color;
 
                 // set the pixel
-                this.display_.surface.setPixel({x:x, y:y}, color);
+                this.display_.surface.setPixel(x, y, color);
             }
         }
-
-        // copy back the pixels data to the surface
-        this.display_.surface.framebuffer = false;
 
         // flip the back-buffer onto the screen
         this.display_.draw();
