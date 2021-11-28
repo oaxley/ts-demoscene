@@ -62,12 +62,6 @@ export class Rotozoom extends IAnimation {
         if (!this.isAnimated)
             return;
 
-        // retrieve the image / backbuffer data
-        let srcdata = this.texture_.data;
-
-        // activate the frame buffer
-        this.display_.surface.framebuffer = true;
-
         // height of the texture
         const height = this.texture_.height;
 
@@ -76,6 +70,7 @@ export class Rotozoom extends IAnimation {
         const sn: number = this.sin_[this.angle_];
 
         // go through all the pixels on the screen
+        this.display_.surface.address = 0;
         for (let y: number = 0; y < this.display_.height; y++) {
             for (let x: number = 0; x < this.display_.width; x++) {
 
@@ -88,27 +83,21 @@ export class Rotozoom extends IAnimation {
                 let yb: number = Math.floor((x * sn + y * cs) * (sn + 1));
 
                 /* convert the coordinate to the texture coordinate */
-                let u: number = xb & 0xff;
-                let v: number = yb % height;
+                let u: number = Math.floor(xb & 0xff);
+                let v: number = Math.floor(yb % height);
 
                 while (v < 0) {
                     v += height;
                 }
 
                 // offset in the texture (256x256)
-                let srcoff: number = (u + (v << 8)) << 2;
+                let srcoff: number = (u + (v << 8));
+                this.texture_.address = srcoff;
 
                 // copy the rgba values to display surface
-                this.display_.surface.frameStream = srcdata.data[srcoff++]
-                this.display_.surface.frameStream = srcdata.data[srcoff++]
-                this.display_.surface.frameStream = srcdata.data[srcoff++]
-                this.display_.surface.frameStream = srcdata.data[srcoff++]
+                this.display_.surface.streamW = this.texture_.streamW;
             }
         }
-
-        // put the pixels back
-        this.display_.surface.framebuffer = false;
-
         // increase the rotation angle
         this.angle_ = (this.angle_ + 1) % 360;
     }
