@@ -10,6 +10,7 @@ import { IAnimation } from "library/core/animation";
 import { States } from "library/core/manager";
 import { Display } from "library/core/display";
 import { Surface } from "library/gfx/surface";
+import { RGBA } from "library/color/RGBA";
 
 
 //----- globals
@@ -73,10 +74,6 @@ export class Tunnel extends IAnimation {
         if (!this.isAnimated)
             return;
 
-        // retrieve the surface and texture data
-        let imgdata = this.display_.surface.data;
-        let texdata = this.texture_!.data;
-
         // constants
         const tw = this.texture_!.width;
         const th = this.texture_!.height;
@@ -94,9 +91,8 @@ export class Tunnel extends IAnimation {
         let cameraY = (h >> 1) + Math.floor((h >> 2) * Math.sin(time * 2.0));
 
         // go through all the pixels
+        this.display_.surface.address = 0;
         for (let y = 0; y < h; y++) {
-            // screen offset
-            let offset = y * w;
 
             for (let x = 0; x < w; x++) {
                 // texture offset
@@ -114,21 +110,21 @@ export class Tunnel extends IAnimation {
                 // shade value
                 let shade = this.shade_[t_off] / 255;
 
-                // source and destination offset
-                let d_addr = (offset + x) << 2;
-                let s_addr = (ty * tw + tx) << 2;
+                // retrieve texture data
+                this.texture_.address = ty * tw + tx;
+                let value = this.texture_.streamW;
+
+                // compute the new color with the shade
+                let [r, g, b, a] = RGBA.fromUInt32(value);
+                r = Math.floor(r * shade);
+                g = Math.floor(g * shade);
+                b = Math.floor(b * shade);
+                value = RGBA.toUInt32(r, g, b, a);
 
                 // copy the pixel back to the screen
-                imgdata.data[d_addr + 0] = Math.floor(texdata.data[s_addr + 0] * shade);
-                imgdata.data[d_addr + 1] = Math.floor(texdata.data[s_addr + 1] * shade);
-                imgdata.data[d_addr + 2] = Math.floor(texdata.data[s_addr + 2] * shade);
-                imgdata.data[d_addr + 3] = Math.floor(texdata.data[s_addr + 3] * 1.0);
+                this.display_.surface.streamW = value;
             }
         }
-
-        // copy back the data on the surface
-        this.display_.surface.data = imgdata;
-
     }
 
     // render the animation on the screen
