@@ -96,7 +96,6 @@ export class Starfield extends IAnimation {
 
         // image backbuffer
         this.display_.surface.clear();
-        this.display_.surface.framebuffer = true;
 
         // center of the screen
         const w = this.display_.width;
@@ -125,9 +124,6 @@ export class Starfield extends IAnimation {
             let c = <RGBA> this.palette_.getColor(star.color)!.color
             this.display_.surface.line({x:ox, y:oy}, {x:px, y:py}, c);
         }
-
-        // put back the image data on the backbuffer
-        this.display_.surface.framebuffer = false;
 
         // flip the back-buffer onto the screen
         this.display_.clear();
