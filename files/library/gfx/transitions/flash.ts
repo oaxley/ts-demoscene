@@ -6,65 +6,66 @@
  */
 
 //----- imports
-import { ITransition } from "../transition";
 import { Surface } from "library/gfx/surface";
-import { Rect } from "../interfaces";
+import { RGBA } from "library/color/RGBA";
+import { IColorTransition } from "../icolortrans";
+import { Viewport } from "../viewport";
 
 
 //----- class
 export namespace Flash {
 
     // flash the reference image to white
-    export class White extends ITransition {
+    export class White extends IColorTransition {
         //----- methods
-        constructor(display: Surface, refimage: Surface, delay: number, viewport?: Rect) {
+        constructor(display: Surface, refimage: Surface, delay: number, viewport?: Viewport) {
             super('flash-white', display, refimage, delay, viewport);
         }
 
         // compute the new values for RGBA
-        protected compute(values: number[]): number[] {
-            let [ r, g, b, a, t ] = values;
-            if ((t > 0.2) && (t < 0.8)) {
-                return [ 255, 255, 255, a];
+        protected compute(time: number, value: number): number {
+            let [ r, g, b, a] = RGBA.fromUInt32(value);;
+            if ((time > 0.2) && (time < 0.8)) {
+                return 0xFFFFFFFF;
             } else {
-                return [ r, b, g, a ]
+                return RGBA.toUInt32(r, g, b, a);
             }
         }
     }
 
     // flash the reference image to black
-    export class Black extends ITransition {
+    export class Black extends IColorTransition {
         //----- methods
-        constructor(display: Surface, refimage: Surface, delay: number, viewport?: Rect) {
+        constructor(display: Surface, refimage: Surface, delay: number, viewport?: Viewport) {
             super('flash-black', display, refimage, delay, viewport);
         }
 
         // compute the new values for RGBA
-        protected compute(values: number[]): number[] {
-            let [ r, g, b, a, t ] = values;
-            if ((t > 0.2) && (t < 0.8)) {
-                return [ 0, 0, 0, a];
+        protected compute(time: number, value: number): number {
+            let [ r, g, b, a ] = RGBA.fromUInt32(value);;
+            if ((time > 0.2) && (time < 0.8)) {
+                return 0xFF000000;
             } else {
-                return [ r, b, g, a ]
+                return RGBA.toUInt32(r, g, b, a);
             }
         }
     }
 
     // flash the reference image to Gray
-    export class Gray extends ITransition {
+    export class Gray extends IColorTransition {
         //----- methods
-        constructor(display: Surface, refimage: Surface, delay: number, viewport?: Rect) {
+        constructor(display: Surface, refimage: Surface, delay: number, viewport?: Viewport) {
             super('flash-gray', display, refimage, delay, viewport);
         }
 
         // compute the new values for RGBA
-        protected compute(values: number[]): number[] {
-            let [ r, g, b, a, t ] = values;
-            if ((t > 0.2) && (t < 0.8)) {
+        protected compute(time: number, value: number): number {
+            let [ r, g, b, a ] = RGBA.fromUInt32(value);;
+            if ((time > 0.2) && (time < 0.8)) {
                 let lum = Math.floor(0.299 * r + 0.587 * g + 0.114 * b);
-                return [ lum, lum, lum, a];
+                return RGBA.toUInt32(lum, lum, lum, a);
             } else {
-                return [ r, b, g, a ]
+                return RGBA.toUInt32(r, g, b, a);
             }
         }
     }
