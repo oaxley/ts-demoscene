@@ -6,42 +6,43 @@
  */
 
 //----- imports
-import { ITransition } from "../transition";
 import { Surface } from "library/gfx/surface";
-import { Rect } from "../interfaces";
+import { RGBA } from "library/color/RGBA";
 import { lerp } from "library/maths/utils";
+import { IColorTransition } from "../icolortrans";
+import { Viewport } from "../viewport";
 
 
 //----- class
 export namespace White {
 
     // make the transition from the reference image to white
-    export class In extends ITransition {
+    export class In extends IColorTransition {
 
         //----- methods
-        constructor(display: Surface, refimage: Surface, delay: number, viewport?: Rect) {
+        constructor(display: Surface, refimage: Surface, delay: number, viewport?: Viewport) {
             super('white-in', display, refimage, delay, viewport);
         }
 
         // compute the new values for RGBA
-        protected compute(values: number[]): number[] {
-            let [ r, g, b, a, t ] = values;
-            return [ lerp(r, 255, t), lerp(g, 255, t), lerp(b, 255, t), a ];
+        protected compute(time: number, value: number): number {
+            let [ r, g, b, a ] = RGBA.fromUInt32(value);
+            return  RGBA.toUInt32(lerp(r, 255, time), lerp(g, 255, time), lerp(b, 255, time), a);
         }
     }
 
     // make the transition from white to reference image
-    export class Out extends ITransition {
+    export class Out extends IColorTransition {
 
         //----- methods
-        constructor(display: Surface, refimage: Surface, delay: number, viewport?: Rect) {
+        constructor(display: Surface, refimage: Surface, delay: number, viewport?: Viewport) {
             super('white-out', display, refimage, delay, viewport);
         }
 
         // compute the new values for RGBA
-        protected compute(values: number[]): number[] {
-            let [ r, g, b, a, t ] = values;
-            return [ lerp(255, r, t), lerp(255, g, t), lerp(255, b, t), a ];
+        protected compute(time: number, value: number): number {
+            let [ r, g, b, a ] = RGBA.fromUInt32(value);
+            return RGBA.toUInt32(lerp(255, r, time), lerp(255, g, time), lerp(255, b, time), a);
         }
     }
 
