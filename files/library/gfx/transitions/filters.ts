@@ -6,25 +6,25 @@
  */
 
 //----- imports
-import { ITransition } from "../transition";
 import { Surface } from "library/gfx/surface";
-import { Rect } from "../interfaces";
-import { lerp } from "library/maths/utils";
+import { RGBA } from "library/color/RGBA";
+import { IColorTransition } from "../icolortrans";
+import { Viewport } from "../viewport";
 
 
 //----- class
 export namespace Filter {
 
     // Sepia Filter
-    export class Sepia extends ITransition {
+    export class Sepia extends IColorTransition {
         //----- methods
-        constructor(display: Surface, refimage: Surface, delay: number, viewport?: Rect) {
+        constructor(display: Surface, refimage: Surface, delay: number, viewport?: Viewport) {
             super('sepia', display, refimage, delay, viewport);
         }
 
         // compute the new values for RGBA
-        protected compute(values: number[]): number[] {
-            let [ r, g, b, a, t ] = values;
+        protected compute(time: number, value: number): number {
+            let [ r, g, b, a ] = RGBA.fromUInt32(value);
             let tr = 0.393 * r + 0.769 * g + 0.189 * b;
             let tg = 0.349 * r + 0.686 * g + 0.168 * b;
             let tb = 0.272 * r + 0.534 * g + 0.131 * b;
@@ -33,21 +33,21 @@ export namespace Filter {
             g = (tg > 255) ? 255 : tg;
             b = (tb > 255) ? 255 : tb;
 
-            return [ r, g, b, a ];
+            return RGBA.toUInt32(r, g, b, a);
         }
     }
 
     // Inverted colors
-    export class Inverted extends ITransition {
+    export class Inverted extends IColorTransition {
         //----- methods
-        constructor(display: Surface, refimage: Surface, delay: number, viewport?: Rect) {
+        constructor(display: Surface, refimage: Surface, delay: number, viewport?: Viewport) {
             super('inverted', display, refimage, delay, viewport);
         }
 
         // compute the new values for RGBA
-        protected compute(values: number[]): number[] {
-            let [ r, g, b, a, t ] = values;
-            return [ 255-r, 255-g, 255-b, a ];
+        protected compute(time: number, value: number): number {
+            let [ r, g, b, a, t ] = RGBA.fromUInt32(value);
+            return RGBA.toUInt32(255-r, 255-g, 255-b, a);
         }
     }
 
