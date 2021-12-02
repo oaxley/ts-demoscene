@@ -44,6 +44,11 @@
             "name": "ts-starfield",
             "title": "In the stars",
             "description": "Shoot for the stars, you might end-up on the moon"
+        },
+        {
+            "name": "ts-smoke",
+            "title": "Death smoking",
+            "description": "Smoke this linear interpolation"
         }
     ]
 }
