@@ -348,12 +348,15 @@ export class Surface {
      *      opacity: opacity of the source texture (default: 1.0)
      *      mask   : the value of the transparent pixel if any
      */
-    public blend(to: Point2D, other: Surface, from: Rect, opacity?: number, mask?: RGBA|number): void {
+    public blend(to: Point2D, other: Surface, from?: Rect, opacity?: number, mask?: RGBA|number): void {
         // "texture" position and size
-        let tx = from.x;
-        let ty = from.y;
-        let tw = from.w;
-        let th = from.h;
+        let tx: number, ty: number, tw: number, th: number;
+
+        if (from === undefined) {
+            [tx, ty, tw, th] = [0, 0, other.width, other.height];
+        } else {
+            [tx, ty, tw, th] = [from.x, from.y, from.w, from.h];
+        }
 
         // nothing to be done if we are outside our surface
         if ((to.x < 0) || (to.x > this.width_) || (to.y < 0) || (to.y > this.height_)) {
