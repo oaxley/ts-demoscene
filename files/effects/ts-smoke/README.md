@@ -1,7 +1,5 @@
 # *Smoke effect*
 
-# *Light Balls*
-
 ![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg?style=flat-square)
 
 ## **Screenshot**
