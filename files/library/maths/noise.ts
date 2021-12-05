@@ -53,4 +53,25 @@ export namespace Noise {
             return lerp(this.vertices_[xmin], this.vertices_[xmax], smoothStep(x - xi));
         }
     }
+
+    export class Noise2D {
+        //----- members
+        private vertices_: Array<number>;
+
+        //----- methods
+        constructor(seed?: number) {
+            // values and permutation table
+            this.vertices_ = new Array(MAX_VERTICES);
+
+            // setup the Mersenne Twister random generator
+            seed = (seed === undefined) ? performance.now() : seed;
+            let mt = new Mersenne();
+            mt.initialize(seed);
+
+            // fill the grid & the permutation table
+            for (let i = 0; i < MAX_VERTICES; i++) {
+                this.vertices_[i] = mt.rand();
+            }
+        }
+    }
 }
