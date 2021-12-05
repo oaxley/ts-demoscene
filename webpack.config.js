@@ -94,10 +94,30 @@ function findEntryPoints() {
     return entry_points;
 }
 
+// find all the 3D models
+function find3DModels() {
+    let models = [];
+    let rootdir = path.join(__dirname, "files");
+
+    let files = glob.sync(`${rootdir}/**/models/*.json`);
+    if (files.length > 0) {
+        files.forEach(file => {
+            models.push({
+                from: file,
+                to: `${PUBLIC_DIR}/models/`
+            });
+        });
+    }
+
+    return models
+}
 
 //----- begin
 // find files for the CopyPlugins
-let copy_plugin_pattern = [].concat(findImages()).concat(findStylesheets()).concat(findViews());
+let copy_plugin_pattern = [].concat(findImages())
+                            .concat(findStylesheets())
+                            .concat(findViews())
+                            .concat(find3DModels());
 
 // find all the entry-points
 let entry_points = findEntryPoints();
