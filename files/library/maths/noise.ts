@@ -83,5 +83,34 @@ export namespace Noise {
                 this.permutation_[i + MAX_VERTICES] = this.permutation_[i];
             }
         }
+
+        // evaluate the 2D noise at position (x, y)
+        public eval(x: number, y: number): number {
+            let xi = Math.floor(x);
+            let yi = Math.floor(y);
+
+            // found the 4 corner of the cell
+            let rx0 = xi & MAX_VERTICES_MASK;
+            let rx1 = (rx0 + 1) & MAX_VERTICES_MASK;
+            let ry0 = yi & MAX_VERTICES_MASK;
+            let ry1 = (ry0 + 1) & MAX_VERTICES_MASK;
+
+            // retrieve the random value at each of the corners
+            let c00 = this.vertices_[ this.permutation_[ this.permutation_[rx0] + ry0 ] ];
+            let c10 = this.vertices_[ this.permutation_[ this.permutation_[rx1] + ry0 ] ];
+            let c01 = this.vertices_[ this.permutation_[ this.permutation_[rx0] + ry1 ] ];
+            let c11 = this.vertices_[ this.permutation_[ this.permutation_[rx1] + ry1 ] ];
+
+            // smoothing of tx & ty
+            let sx = smoothStep(x - xi);
+            let sy = smoothStep(y - yi);
+
+            // 1st linear interpolation
+            let nx0 = lerp(c00, c10, sx);
+            let nx1 = lerp(c01, c11, sx);
+
+            // 2nd linear interpolation
+            return lerp(nx0, nx1, sy);
+        }
     }
 }
