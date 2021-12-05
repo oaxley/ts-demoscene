@@ -56,12 +56,14 @@ export namespace Noise {
 
     export class Noise2D {
         //----- members
-        private vertices_: Array<number>;
+        private vertices_   : Array<number>;        // the random values on the grid
+        private permutation_: Uint16Array;          // the permutation table
 
         //----- methods
         constructor(seed?: number) {
             // values and permutation table
-            this.vertices_ = new Array(MAX_VERTICES);
+            this.vertices_    = new Array(MAX_VERTICES);
+            this.permutation_ = new Uint16Array(MAX_VERTICES << 1);
 
             // setup the Mersenne Twister random generator
             seed = (seed === undefined) ? performance.now() : seed;
@@ -71,6 +73,14 @@ export namespace Noise {
             // fill the grid & the permutation table
             for (let i = 0; i < MAX_VERTICES; i++) {
                 this.vertices_[i] = mt.rand();
+                this.permutation_[i] = i;
+            }
+
+            // shuffle the values in the permutation table
+            for (let i = 0; i < MAX_VERTICES; i++) {
+                let k = mt.randInt(0, MAX_VERTICES);
+                [this.permutation_[i], this.permutation_[k]] = [this.permutation_[k], this.permutation_[i]];
+                this.permutation_[i + MAX_VERTICES] = this.permutation_[i];
             }
         }
     }
