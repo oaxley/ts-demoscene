@@ -15,6 +15,13 @@ const MAX_VERTICES = 256;
 const MAX_VERTICES_MASK = MAX_VERTICES - 1;
 
 
+//----- functions
+// smoothstep function
+function smoothStep(t: number): number {
+    return t * t * (3 - 2 * t);
+}
+
+
 //----- class
 export namespace Noise {
 
@@ -38,20 +45,12 @@ export namespace Noise {
             }
         }
 
-        // smoothstep function
-        private smoothStep(a: number, b: number, t: number): number {
-            t = t * t * (3 - 2 * t);
-            return lerp(a, b, t);
-        }
-
         // evaluate the noise at position x
         public eval(x: number): number {
             let xi = Math.floor(x);
             let xmin = xi & MAX_VERTICES_MASK;
             let xmax = (xmin + 1) & MAX_VERTICES_MASK;
-            let t = x - xi;
-
-            return this.smoothStep(this.vertices_[xmin], this.vertices_[xmax], t);
+            return lerp(this.vertices_[xmin], this.vertices_[xmax], smoothStep(x - xi));
         }
     }
 }
