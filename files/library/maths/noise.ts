@@ -112,5 +112,47 @@ export namespace Noise {
             // 2nd linear interpolation
             return lerp(nx0, nx1, sy);
         }
+
+        // create a fractal noise map
+        public fractal(xmax: number, ymax: number, frequency?: number, amplitude?: number, layers?: number): Array<number> {
+            // set the default values
+            frequency = (frequency === undefined) ? 0.01 : frequency;
+            amplitude = (amplitude === undefined) ? 1 : amplitude;
+            layers    = (layers === undefined) ? 5 : layers;
+
+            let noise_map = new Array(xmax * ymax);
+            let max_value = 0;
+
+            // create the noise map
+            for (let y = 0; y < ymax; y++) {
+                let offset = y * xmax;
+                for (let x = 0; x < xmax; x++) {
+                    let f = frequency;
+                    let a = amplitude
+
+                    noise_map[offset + x] = 0;
+                    for (let l = 0; l < layers; l++) {
+                        noise_map[offset + x] += this.eval(x * f, y * f) * a;
+                        f *= 2;
+                        a *= 0.5;
+                    }
+
+                    if (noise_map[offset + x] > max_value) {
+                        max_value = noise_map[offset + x];
+                    }
+                }
+            }
+
+            // normalize all the values
+            for (let y = 0; y < ymax; y++) {
+                let offset = y * xmax;
+                for (let x = 0; x < xmax; x++) {
+                    noise_map[offset + x] /= max_value;
+                }
+            }
+
+            return noise_map;
+        }
+
     }
 }
