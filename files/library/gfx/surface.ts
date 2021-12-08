@@ -12,6 +12,17 @@ import { Viewport } from "./viewport";
 import { lerp } from "library/maths/utils";
 
 
+//----- enums
+// enums for Clipping algorithm
+enum Region {
+    inside = 0,
+    left   = 1,
+    right  = 2,
+    bottom = 4,
+    top    = 8
+};
+
+
 //----- interfaces
 // Frame Buffer interface
 interface IFrameBuffer {
@@ -299,6 +310,89 @@ export class Surface {
         }
     }
 
+    // compute the outcode clipping region
+    private outCode(x: number, y: number): Region {
+        let code: Region = Region.inside;
+
+        if (x < 0) {
+            code |= Region.left;
+        }
+        if (x >= this.width_) {
+            code |= Region.right;
+        }
+        if (y < 0) {
+            code |= Region.top;
+        }
+        if (y >= this.height_) {
+            code |= Region.bottom;
+        }
+
+        return code;
+    }
+
+    // compute the intersection of the line with the clipping rectangle
+    private intersection(p0: Point2D, p1: Point2D, outcode: Region): Point2D {
+        let x: number = 0;
+        let y: number = 0;
+
+        let dx = (p1.x - p0.x);
+        let dy = (p1.y - p0.y);
+
+        if (outcode & Region.top) {
+            y = 0;
+            x = p0.x + dx * (y - p0.y) / dy;
+        } else if (outcode & Region.bottom) {
+            y = this.height_ - 1;
+            x = p0.x + dx * (y - p0.y) / dy;
+        } else if (outcode & Region.left) {
+            x = 0;
+            y = p0.y + dy * (x - p0.x) / dx;
+        } else if (outcode & Region.right) {
+            x = this.width - 1;
+            y = p0.y + dy * (x - p0.x) / dx;
+        }
+
+        return { x: Math.floor(x), y: Math.floor(y)};
+    }
+
+    // Cohen-Sutherland clipping algorithm
+    public clipping(p0: Point2D, p1: Point2D): Point2D[] {
+
+        let outcode0 = this.outCode(p0.x, p0.y);
+        let outcode1 = this.outCode(p1.x, p1.y);
+        let accept = false;
+
+        while (true) {
+            // both point are inside the window
+            if ((outcode0 | outcode1) == Region.inside) {
+                accept = true;
+                break;
+            } else if (outcode0 & outcode1) {
+                // both point are outside the window
+                break;
+            } else {
+
+                let outcode = (outcode1 > outcode0) ? outcode1 : outcode0;
+                let p: Point2D = this.intersection(p0, p1, outcode);
+
+                if (outcode == outcode0) {
+                    p0 = p;
+                    outcode0 = this.outCode(p0.x, p0.y);
+                } else {
+                    p1 = p;
+                    outcode1 = this.outCode(p1.x, p1.y);
+                }
+
+            }
+        }
+
+        if (accept) {
+            return [p0, p1];
+        } else {
+            return [];
+        }
+
+    }
 
     // load an image
     public loadImage(name: string): Promise<boolean> {
