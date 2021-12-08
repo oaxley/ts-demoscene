@@ -42,13 +42,18 @@
         },
         {
             "name": "ts-starfield",
-            "title": "In the stars",
+            "title": "In the Stars",
             "description": "Shoot for the stars, you might end-up on the moon"
         },
         {
             "name": "ts-smoke",
-            "title": "Death smoking",
+            "title": "Death Smoking",
             "description": "Smoke this linear interpolation"
+        },
+        {
+            "name": "ts-glenz",
+            "title": "A Glass of Picture",
+            "description": "A geometric plane mades of glass"
         }
     ]
 }
