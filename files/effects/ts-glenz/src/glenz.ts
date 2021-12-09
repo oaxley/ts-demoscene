@@ -32,12 +32,15 @@ export class Glenz extends IAnimation {
     private depth_: number;             // screen Z coordinate
     private center_: Point2D;           // screen center
 
+    private background_: Surface;       // background image
+
     //----- methods
     // constructor
     constructor(display: Display) {
         super('glenz', display);
 
         // set the vars
+        this.background_ = new Surface();
         this.angle_ = 0;
         this.depth_ = 192;
         this.center_= {x: display.width >> 1, y: display.height >> 1};
@@ -139,15 +142,20 @@ export class Glenz extends IAnimation {
 
     // setup function
     public setup(): void {
-        // toggle the animation
-        this.toggle();
+        // load the background image
+        this.background_
+            .loadImage('/images/assets/ts-glenz.asset.jpg')
+            .then(result => {
 
-        // set the click handler to pause the animation
-        window.onclick = () => {
-            this.toggle();
-        }
+                // toggle the animation
+                this.toggle();
 
-        console.log("Starting Glenz animation.");
+                // set the click handler to pause the animation
+                window.onclick = () => {
+                    this.toggle();
+                }
+
+                console.log("Starting Glenz animation.");
     }
 
     // cleanup function
