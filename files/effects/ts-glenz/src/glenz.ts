@@ -9,7 +9,7 @@
 import { IAnimation } from "library/core/animation";
 import { States } from "library/core/manager";
 import { Display } from "library/core/display";
-import { radians } from "library/maths/utils";
+import { lerp, radians } from "library/maths/utils";
 import { Point2D, Point3D } from "library/core/interfaces";
 import { RGBA } from "library/color/RGBA";
 import { Surface } from "library/gfx/surface";
@@ -17,6 +17,7 @@ import { Surface } from "library/gfx/surface";
 
 //----- globals
 const ZOOM = 256;
+const TRANPARENCY = 0.5;
 
 
 //----- class
@@ -228,10 +229,11 @@ export class Glenz extends IAnimation {
         }
 
         // copy the background on the surface
-        this.display_.surface.copy(this.background_);
+        let s = this.display_.surface;
+        s.copy(this.background_);
 
         // draw the transparent plane
-        let c = new RGBA(128, 128, 128);
+        let c = new RGBA(0, 128, 192);
         for (let y = this.ymin_; y < this.ymax_; y++) {
             // nothing to do there
             if ((this.xmax_[y] == 0) || (this.xmin_[y] == this.width_)) {
@@ -245,9 +247,17 @@ export class Glenz extends IAnimation {
                 this.xmin_[y] = 0;
             }
 
-            let p1: Point2D = {x: this.xmin_[y], y: y}
-            let p2: Point2D = {x: this.xmax_[y], y: y}
-            this.display_.surface.hline(p1, p2, c);
+            // blend the plane and the background color
+            for (let x = this.xmin_[y]; x < this.xmax_[y]; x++) {
+                let c2 = this.display_.surface.getPixel(x, y);
+
+                let r = lerp(c.red, c2.red, TRANPARENCY);
+                let g = lerp(c.green, c2.green, TRANPARENCY);
+                let b = lerp(c.blue, c2.blue, TRANPARENCY);
+
+                let c3 = new RGBA(r, g, b);
+                this.display_.surface.setPixel(x, y, c3);
+            }
         }
 
         // flip the back-buffer onto the screen
