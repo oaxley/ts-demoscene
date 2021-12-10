@@ -12,6 +12,7 @@ import { Display } from "library/core/display";
 import { radians } from "library/maths/utils";
 import { Point2D, Point3D } from "library/core/interfaces";
 import { RGBA } from "library/color/RGBA";
+import { Surface } from "library/gfx/surface";
 
 
 //----- globals
@@ -34,6 +35,11 @@ export class Glenz extends IAnimation {
 
     private background_: Surface;       // background image
 
+    private xmin_: Uint16Array;         // xmin values
+    private xmax_: Uint16Array;         // xmax values
+    private ymin_: number;              // ymin value
+    private ymax_: number;              // ymax value
+
     //----- methods
     // constructor
     constructor(display: Display) {
@@ -44,6 +50,11 @@ export class Glenz extends IAnimation {
         this.angle_ = 0;
         this.depth_ = 192;
         this.center_= {x: display.width >> 1, y: display.height >> 1};
+
+        this.xmin_ = new Uint16Array(this.display_.height);
+        this.xmax_ = new Uint16Array(this.display_.height);
+        this.ymin_ = 0;
+        this.ymax_ = 0;
 
         // initialize the plane
         this.plane3D_ = [
@@ -58,7 +69,6 @@ export class Glenz extends IAnimation {
             { x: 0, y: 0},
             { x: 0, y: 0}
         ];
-
 
         // initialize the cos/sin tables
         this.costable_ = [];
@@ -114,6 +124,80 @@ export class Glenz extends IAnimation {
         }
     }
 
+    // dummy function to set xmin/xmax/ymin/ymax
+    private xset(x: number, y: number): void {
+        if ((y < 0) || (y > this.height_)) {
+            return;
+        }
+
+        if (y < this.ymin_) {
+            this.ymin_ = y;
+        }
+
+        if (y > this.ymax_) {
+            this.ymax_ = y;
+        }
+
+        if (x < 0) {
+            x = 0;
+        }
+
+        if (x > this.width_) {
+            x = this.width_;
+        }
+
+        if (x < this.xmin_[y]) {
+            this.xmin_[y] = x;
+        }
+
+        if (x > this.xmax_[y]) {
+            this.xmax_[y] = x;
+        }
+
+    }
+
+    // function to compute xmin/xmax values
+    private xline(p1: Point2D, p2: Point2D): void {
+        let incrx: number, incry: number, x: number, y: number;
+        let delta: number, dx: number, dy: number;
+
+        [ incrx, incry, x, y ] = [ 1, 1, p1.x, p1.y];
+        this.xset(x, y);
+
+        if ( p1.x > p2.x )
+            incrx = -1;
+        if ( p1.y > p2.y )
+            incry = -1;
+
+        dx = Math.abs(p1.x - p2.x);
+        dy = Math.abs(p1.y - p2.y);
+
+        if ( dx > dy ) {
+            delta = dx / 2;
+            for (let i = 1; i <= dx; i++) {
+                x += incrx;
+                delta += dy;
+                if ( delta >= dx ) {
+                    delta -= dx;
+                    y += incry;
+                }
+                this.xset(x, y);
+            }
+        }
+        else {
+            delta = dy / 2;
+            for (let i = 1; i <= dy; i++) {
+                y += incry;
+                delta += dx;
+                if ( delta >= dy ) {
+                    delta -= dy;
+                    x += incrx;
+                }
+                this.xset(x, y);
+            }
+        }
+    }
+
     // update the animation
     protected update(time?: number): void {
         if (!this.isAnimated) {
@@ -123,14 +207,47 @@ export class Glenz extends IAnimation {
         // compute the projection
         this.projection(this.angle_, this.center_);
 
+        // compute the xmin/xmax values to "fill" the plane
+        this.xmin_.fill(this.width_);
+        this.xmax_.fill(0);
+        this.ymin_ = this.height_;
+        this.ymax_ = 0;
+
+        for (let i = 0; i < this.plane2D_.length; i++) {
+            this.xline(this.plane2D_[i], this.plane2D_[(i+1) % 4]);
+        }
+
         // increment angle value
-        this.angle_ = (this.angle_ + 2) % 360;
+        this.angle_ = (this.angle_ + 1) % 360;
     }
 
     // render the animation on the screen
     protected render(time?: number): void {
         if (!this.isAnimated) {
             return;
+        }
+
+        // copy the background on the surface
+        this.display_.surface.copy(this.background_);
+
+        // draw the transparent plane
+        let c = new RGBA(128, 128, 128);
+        for (let y = this.ymin_; y < this.ymax_; y++) {
+            // nothing to do there
+            if ((this.xmax_[y] == 0) || (this.xmin_[y] == this.width_)) {
+                continue;
+            }
+
+            if (this.xmax_[y] == 0) {
+                this.xmax_[y] = this.width_ - 1 ;
+            }
+            if (this.xmin_[y] == this.width_) {
+                this.xmin_[y] = 0;
+            }
+
+            let p1: Point2D = {x: this.xmin_[y], y: y}
+            let p2: Point2D = {x: this.xmax_[y], y: y}
+            this.display_.surface.hline(p1, p2, c);
         }
 
         // flip the back-buffer onto the screen
@@ -156,6 +273,7 @@ export class Glenz extends IAnimation {
                 }
 
                 console.log("Starting Glenz animation.");
+            });
     }
 
     // cleanup function
