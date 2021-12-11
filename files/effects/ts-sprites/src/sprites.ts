@@ -9,6 +9,7 @@
 import { IAnimation } from "library/core/animation";
 import { States } from "library/core/manager";
 import { Display } from "library/core/display";
+import { Surface } from "library/gfx/surface";
 
 
 //----- globals
@@ -18,6 +19,7 @@ import { Display } from "library/core/display";
 export class Sprites extends IAnimation {
 
     //----- members
+    private sprite_: Surface;
 
     //----- methods
     // constructor
@@ -25,6 +27,7 @@ export class Sprites extends IAnimation {
         super('sprites', display);
 
         // set the vars
+        this.sprite_ = new Surface();
     }
 
     // update the animation
@@ -49,15 +52,21 @@ export class Sprites extends IAnimation {
 
     // setup function
     public setup(): void {
-        // toggle the animation
-        this.toggle();
+        // load the sprite
+        this.sprite_
+            .loadImage('/inages/assets/ts-sprite.asset.png')
+            .then(result => {
 
-        // set the click handler to pause the animation
-        window.onclick = () => {
-            this.toggle();
-        }
+                // toggle the animation
+                this.toggle();
 
-        console.log("Starting Sprites animation.");
+                // set the click handler to pause the animation
+                window.onclick = () => {
+                    this.toggle();
+                }
+
+                console.log("Starting Sprites animation.");
+            });
     }
 
     // cleanup function
