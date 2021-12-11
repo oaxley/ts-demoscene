@@ -25,13 +25,18 @@ interface Particule {
     inc: Vector2D;
 }
 
+interface Sprite {
+    image: Surface;
+    pos: Point2D;
+    inc: number;
+}
+
 //----- class
 export class Sprites extends IAnimation {
 
     //----- members
-    private sprite_: Surface;
+    private sprite_: Sprite;                // the sprite
     private particules_: Particule[];       // particule elements
-
 
     //----- methods
     // constructor
@@ -39,7 +44,11 @@ export class Sprites extends IAnimation {
         super('sprites', display);
 
         // set the vars
-        this.sprite_ = new Surface();
+        this.sprite_ = {
+            image: new Surface(),
+            pos: {x: 0, y: 0},
+            inc: -1
+        }
 
         // create the particules
         this.particules_ = [];
@@ -87,6 +96,14 @@ export class Sprites extends IAnimation {
                 this.particules_[i].p.y += this.particules_[i].inc.y;
             }
         }
+
+        // move the sprite right & left
+        let x = this.sprite_.pos.x;
+        x = x + this.sprite_.inc;
+        if ( (x <= 0) || (x > this.display_.width - this.sprite_.image.width) ) {
+            this.sprite_.inc *= -1;
+        }
+        this.sprite_.pos.x = x;
     }
 
     // render the animation on the screen
@@ -98,7 +115,8 @@ export class Sprites extends IAnimation {
         let s = this.display_.surface;
         s.clear();
 
-        let c = new RGBA(255, 255, 255);
+        let c1 = new RGBA(255, 255, 255);
+        let c2 = new RGBA(255, 0, 0);
         for (let i = 0; i < this.particules_.length; i++) {
             let x1 = Math.floor(this.particules_[i].p.x);
             let y1 = Math.floor(this.particules_[i].p.y);
@@ -116,16 +134,19 @@ export class Sprites extends IAnimation {
                 let yd = (y1 - y2);
                 let d = Math.sqrt(xd * xd + yd * yd);
 
-                if ( d < 50 ) {
-                    s.line({x: x1, y: y1}, {x: x2, y: y2}, c);
+                if (d < 50) {
+                    s.line({ x: x1, y: y1 }, { x: x2, y: y2 }, c1);
                 } else {
-                    s.setPixel(x1  , y1  , c);
-                    s.setPixel(x1+1, y1  , c);
-                    s.setPixel(x1  , y1+1, c);
-                    s.setPixel(x1+1, y1+1, c);
+                    s.setPixel(x1, y1, c2);
+                    s.setPixel(x1 + 1, y1, c2);
+                    s.setPixel(x1, y1 + 1, c2);
+                    s.setPixel(x1 + 1, y1 + 1, c2);
                 }
             }
         }
+
+        // add the sprite
+        this.display_.surface.blend(this.sprite_.pos, this.sprite_.image);
 
         // flip the back-buffer onto the screen
         this.display_.draw();
@@ -137,9 +158,14 @@ export class Sprites extends IAnimation {
     // setup function
     public setup(): void {
         // load the sprite
-        this.sprite_
-            .loadImage('/inages/assets/ts-sprite.asset.png')
+        this.sprite_.image
+            .loadImage('/images/assets/ts-sprite.asset.png')
             .then(result => {
+                // put the sprite on the right side
+                this.sprite_.pos = {
+                    x: this.display_.width - this.sprite_.image.width,
+                    y: 0
+                };
 
                 // toggle the animation
                 this.toggle();
