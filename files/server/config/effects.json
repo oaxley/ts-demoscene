@@ -53,7 +53,13 @@
         {
             "name": "ts-glenz",
             "title": "A Glass of Picture",
-            "description": "A geometric plane mades of glass"
+            "description": "A geometric plane made of glass"
+        },
+        {
+            "name": "ts-sprites",
+            "title": "A Skull ahead",
+            "description": "This is a s'kewl animation"
         }
+
     ]
 }
