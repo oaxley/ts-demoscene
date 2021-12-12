@@ -21,6 +21,10 @@ An attempt to recreate all the old demoscene effects from the 90s in Typescript 
 - [Tunnel](./files/effects/ts-tunnel/README.md)
 - [Plasma](./files/effects/ts-plasma/README.md)
 - [Twister](./files/effects/ts-twister/README.md)
+- [Sprites](./files/effects/ts-sprites/README.md)
+- [Starfield](./files/effects/ts-starfield/README.md)
+- [Glenz](./files/effects/ts-glenz/README.md)
+- [Smoke](./files/effects/ts-smoke/README.md)
 
 ---
 
