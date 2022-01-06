@@ -8,6 +8,8 @@
 //----- imports
 import express from 'express';
 import { Request, Response } from 'express';
+import fs from 'fs';
+import path from 'path';
 
 // load the JSON configuration
 import * as config from "../config/effects.json";
@@ -48,6 +50,22 @@ app.get('/', (req: Request, res: Response) => {
 // retrieve the configuration
 app.get('/config', (req: Request, res: Response) => {
     res.send(config)
+});
+
+// retrieve a 3D model
+app.get('/model/:name', (req: Request, res: Response) => {
+
+    // build the complete filename
+    var filename = path.join('public/models/' + req.params.name + '.json');
+
+    // check for exists
+    if (fs.existsSync(filename)){
+        var data = JSON.parse(fs.readFileSync(filename, 'utf8'));
+        res.status(200).send(data);
+    } else {
+        res.status(404).send();
+    }
+
 });
 
 // retrieve the parameters from the environment
