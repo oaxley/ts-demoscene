@@ -11,7 +11,7 @@ import { States } from "library/core/manager";
 
 import { Display } from "library/core/display";
 import { Surface } from "library/gfx/surface";
-import { runInThisContext } from "vm";
+import { Noise } from "library/maths/noise";
 
 
 //----- class
@@ -19,6 +19,7 @@ export class ImgNoise extends IAnimation {
 
     //----- members
     private image_: Surface;
+    private noiseMap_: Array<number>;
 
     //----- methods
     // constructor
@@ -26,6 +27,10 @@ export class ImgNoise extends IAnimation {
         super('imgnoise', display);
 
         this.image_ = new Surface();
+
+        // build the noise map
+        let noise = new Noise.Noise2D();
+        this.noiseMap_ = noise.fractal(display.width, display.height, Math.random() / 10.0);
     }
 
     // update the animation
