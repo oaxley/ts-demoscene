@@ -15,13 +15,13 @@ import { ImgNoise} from "./noise";
 let display = new Display(<HTMLCanvasElement> document.getElementById("output"));
 
 // create a new instance of the ImgNoise
-let moire = new ImgNoise(display);
+let effect = new ImgNoise(display);
 
 // create states manager
 let manager = StatesManager.getInstance();
 
 // add a new transition
-manager.add({event: States.S_BEGIN, from: undefined, to: moire});
+manager.add({event: States.S_BEGIN, from: undefined, to: effect});
 
 // start
 manager.start();
