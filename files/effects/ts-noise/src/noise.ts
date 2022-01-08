@@ -18,11 +18,14 @@ import { runInThisContext } from "vm";
 export class ImgNoise extends IAnimation {
 
     //----- members
+    private image_: Surface;
 
     //----- methods
     // constructor
     constructor(display: Display) {
         super('imgnoise', display);
+
+        this.image_ = new Surface();
     }
 
     // update the animation
@@ -42,6 +45,20 @@ export class ImgNoise extends IAnimation {
 
     // setup function
     public setup(): void {
+        // load the asset images
+        this.image_
+            .loadImage('/images/assets/ts-noise.asset.png')
+            .then(result => {
+                // toggle the animation
+                this.toggle();
+
+                // set the click handler to pause the animation
+                window.onclick = () => {
+                    this.toggle();
+                }
+
+                console.log("Starting the Noise animation");
+            });
     }
 
     // cleanup function
