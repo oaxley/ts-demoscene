@@ -6,3 +6,6 @@ public/**
 
 # remove declaration type directory
 types/**
+
+# remove sandbox directory
+files/effects/ts-sandbox/**
