@@ -1,0 +1,31 @@
+doctype html
+html
+    head
+        title= title
+        link(rel='stylesheet' type="text/css" href='/css/effect.css')
+    body
+        .content
+            .left-pane
+
+            .center-pane
+                .top-pane
+                    h1#title #{title}
+
+                .middle-pane
+                    canvas#output(width="640", height="480")
+                        p Your browser does not support canvas
+
+                .bottom-pane
+                    .credits
+                        | image by
+                        a(href="https://www.pexels.com/@eduardo-romero-817034?utm_content=attributionCopyText&utm_medium=referral&utm_source=pexels" class="artist") Eduardo Romero
+                        | from
+                        a(href="https://www.pexels.com/photo/human-face-painting-on-wall-1707640/?utm_content=attributionCopyText&utm_medium=referral&utm_source=pexels" class="website") Pexels
+
+                    .logo
+                        h3 presented by
+                        img(src="/images/assets/oaxley.png", alt="Oaxley")
+
+            .right-pane
+
+        script(src='/js/ts-twister.bundle.js')
