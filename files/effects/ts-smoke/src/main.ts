@@ -16,13 +16,13 @@ import { Smoke } from "./smoke";
 let display = new Display(<HTMLCanvasElement> document.getElementById("output"));
 
 // create a new instance of the effect
-let smoke = new Smoke(display);
+let effect = new Smoke(display);
 
 // create states manager
 let manager = StatesManager.getInstance();
 
 // add a new transition
-manager.add({event: States.S_BEGIN, from: undefined, to: smoke});
+manager.add({event: States.S_BEGIN, from: undefined, to: effect});
 
 // start
 manager.start();

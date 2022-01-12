@@ -10,6 +10,7 @@ import { StatesManager, States } from "library/core/manager"
 import { Display } from "library/core/display";
 import { RasterBars } from "./raster";
 
+
 //----- begin
 // retrieve the canvas element from the page
 let display = new Display(<HTMLCanvasElement> document.getElementById("output"));
