@@ -15,14 +15,14 @@ import { Tunnel } from "./tunnel";
 // retrieve the canvas element from the page
 let display = new Display(<HTMLCanvasElement> document.getElementById("output"));
 
-// create a new instance of the tunnel
-let tunnel = new Tunnel(display);
+// create a new instance of the effect
+let effect = new Tunnel(display);
 
 // create states manager
 let manager = StatesManager.getInstance();
 
 // add a new transition
-manager.add({event: States.S_BEGIN, from: undefined, to: tunnel});
+manager.add({event: States.S_BEGIN, from: undefined, to: effect});
 
 // start
 manager.start();
