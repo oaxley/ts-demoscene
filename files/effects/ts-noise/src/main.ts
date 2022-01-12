@@ -10,11 +10,12 @@ import { StatesManager, States } from "library/core/manager"
 import { Display } from "library/core/display";
 import { ImgNoise} from "./noise";
 
+
 //----- begin
 // retrieve the canvas element from the page
 let display = new Display(<HTMLCanvasElement> document.getElementById("output"));
 
-// create a new instance of the ImgNoise
+// create a new instance of the effect
 let effect = new ImgNoise(display);
 
 // create states manager
