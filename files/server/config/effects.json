@@ -64,7 +64,11 @@
             "name": "ts-noise",
             "title": "A noisy apparition",
             "description": "The use of noise to make an image appears"
+        },
+        {
+            "name": "ts-raster",
+            "title": "Oops Raster Bars",
+            "description": "Colored bars that move up and down"
         }
-
     ]
 }
