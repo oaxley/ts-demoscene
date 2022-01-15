@@ -14,6 +14,10 @@ import { Surface } from "library/gfx/surface";
 import { RGBA } from "library/color/RGBA";
 
 
+//----- globals
+const BAR_SIZE = 50;
+
+
 //----- interfaces
 interface IBar {
     angle: number,
@@ -54,13 +58,13 @@ export class RasterBars extends IAnimation {
         let xmin = 0;
         let xmax = this.display_.width;
 
-        // bars are 50 pixels wide
-        for (let i = 0; i < 25; i++) {
-            let ymin = y - (24 - i);
+        const half_size = (BAR_SIZE >> 1) - 1;
+        for (let i = 0; i <= half_size; i++) {
+            let ymin = y - (half_size - i);
             let ymax = y + i;
 
             this.display_.surface.hline({x: xmin, y: ymin}, {x: xmax, y: ymin}, this.bars_[bar].color(i));
-            this.display_.surface.hline({x: xmin, y: ymax}, {x: xmax, y: ymax}, this.bars_[bar].color(24 - i));
+            this.display_.surface.hline({x: xmin, y: ymax}, {x: xmax, y: ymax}, this.bars_[bar].color(half_size - i));
         }
     }
 
@@ -69,7 +73,25 @@ export class RasterBars extends IAnimation {
         if (!this.isAnimated)
             return;
 
-        this.drawBar(this.display_.height >> 1, 0);
+        // clear the screen
+        this.display_.surface.clear()
+
+        // draw all the bars in reverse order to create "depth" impression
+        let ymax = this.display_.height >> 1;
+        let size = ymax - BAR_SIZE;
+
+        for (let i = this.bars_.length - 1; i >= 0; i--) {
+            // compute the bar position
+            let ypos  = Math.floor(ymax + size * Math.sin( this.bars_[i].angle ))
+
+            // draw the bar
+            this.drawBar(ypos, i);
+
+            // increment the angle value for this bar
+            this.bars_[i].angle += this.bars_[i].increment;
+            if (this.bars_[i].angle > 2*Math.PI)
+                this.bars_[i].angle = 0;
+        }
     }
 
     // render the animation
