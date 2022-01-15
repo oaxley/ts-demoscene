@@ -120,6 +120,10 @@ export class RasterBars extends IAnimation {
             if (this.bars_[i].angle > 2*Math.PI)
                 this.bars_[i].angle = 0;
         }
+
+        // display the sprite on top
+        let xpos = this.display_.width - this.image_.width;
+        this.display_.surface.blend({x: xpos, y: 0}, this.image_);
     }
 
     // render the animation
