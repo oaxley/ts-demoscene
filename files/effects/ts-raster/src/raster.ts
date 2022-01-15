@@ -43,13 +43,41 @@ export class RasterBars extends IAnimation {
         this.bars_ = [
             // Red bar
             {
-                angle: 0.00,
-                increment: 0.02,
+                angle: 0.60,
+                increment: 0.03,
                 color: (index: number) => {
                     let v = Math.min(index * 10, 255);
                     return new RGBA(v, 0, 0);
                 }
-            }
+            },
+            // Green bar
+            {
+                angle: 0.40,
+                increment: 0.03,
+                color: (index: number) => {
+                    let v = Math.min(index * 10, 255);
+                    return new RGBA(0, v, 0);
+                }
+            },
+            // Yellow bar
+            {
+                angle: 0.20,
+                increment: 0.03,
+                color: (index: number) => {
+                    let v = Math.min(index * 10, 255);
+                    return new RGBA(v, v, 0);
+                }
+            },
+            // Violet bar
+            {
+                angle: 0.00,
+                increment: 0.03,
+                color: (index: number) => {
+                    let v = Math.min(index * 10, 255);
+                    return new RGBA(v, 0, v);
+                }
+            },
+
         ]
     }
 
