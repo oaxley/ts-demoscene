@@ -10,16 +10,21 @@ import { IAnimation } from "library/core/animation";
 import { States } from "library/core/manager";
 import { Display } from "library/core/display";
 
+import { Surface } from "library/gfx/surface";
+
 
 //----- class
 export class Water extends IAnimation {
 
     //----- members
-
+    private image_: Surface;
 
     //----- methods
     constructor(display: Display) {
         super('water', display);
+
+        // set the vars
+        this.image_ = new Surface();
     }
 
     // update the animation
@@ -36,7 +41,19 @@ export class Water extends IAnimation {
 
     // setup function
     public setup(): void {
+        this.image_
+            .loadImage('/images/assets/ts-water.asset.png')
+            .then(result => {
+                // toggle the animation
+                this.toggle();
 
+                // set the click handler to pause the animation
+                window.onclick = () => {
+                    this.toggle();
+                };
+
+                console.log('Starting the Water animation');
+            });
     }
 
     // cleanup function
