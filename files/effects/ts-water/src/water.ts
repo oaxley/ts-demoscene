@@ -19,12 +19,22 @@ export class Water extends IAnimation {
     //----- members
     private image_: Surface;
 
+    private state1_: Array<number>;
+    private state2_: Array<number>;
+    private state_: number;
+
+
     //----- methods
     constructor(display: Display) {
         super('water', display);
 
         // set the vars
         this.image_ = new Surface();
+
+        let bsize    = this.width_ * this.height_;
+        this.state1_ = new Array(bsize).fill(0);
+        this.state2_ = new Array(bsize).fill(0);
+        this.state_  = 0;
     }
 
     // update the animation
