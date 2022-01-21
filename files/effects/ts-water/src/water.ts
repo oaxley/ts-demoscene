@@ -37,6 +37,14 @@ export class Water extends IAnimation {
         this.state_  = 0;
     }
 
+    // select the current/previous buffer
+    private states():  [number[], number[]] {
+        let cur = (this.state_ == 0) ? this.state1_ : this.state2_;
+        let old = (this.state_ == 0) ? this.state2_ : this.state1_;
+
+        return [ cur, old ];
+    }
+
     // update the animation
     protected update(time?: number): void {
         if (!this.isAnimated)
