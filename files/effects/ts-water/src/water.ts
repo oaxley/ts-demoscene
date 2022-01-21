@@ -49,12 +49,64 @@ export class Water extends IAnimation {
     protected update(time?: number): void {
         if (!this.isAnimated)
             return;
+
+        // select the current states
+        let [cur, old] = this.states();
+
+        // select src and dst images
+        let src_data = this.image_.image;
+        let dst_data = this.display_.surface.image;
+
+        // compute the effect
+        for (let y = 1; y < this.height_ - 1; y++) {
+            let y_offset = y * this.width_;
+            for (let x = 1; x < this.width_ - 1; x++) {
+                let x_offset = y_offset + x;
+
+                // compute the current value at (x, y) by adding surrounding values
+                cur[x_offset] = ((
+                    old[x_offset - 1] +
+                    old[x_offset + 1] +
+                    old[x_offset - this.width_] +
+                    old[x_offset + this.width_]
+                ) >> 1) - cur[x_offset];
+
+                // damp the value along the time
+                cur[x_offset] -= cur[x_offset] >> 7;
+
+                // compute the refraction / texture coordinates by cheating (a bit)
+                let r = 1024 - cur[x_offset];
+                let a = this.width_ + Math.floor((x - this.width_) * r / 1024)
+                let b = this.height_ + Math.floor((y - this.height_) * r / 1024);
+
+                if (a >= this.width_)
+                    a = this.width_ - 1;
+                if (a < 0)
+                    a = 0;
+
+                if (b >= this.height_)
+                    b = this.height_ - 1;
+                if (b < 0)
+                    b = 0;
+
+                // retrieve the correct texture pixel
+                let t_offset = (b * this.width_) + a;
+                dst_data.data[(x_offset << 2) + 0] = src_data.data[(t_offset << 2) + 0];
+                dst_data.data[(x_offset << 2) + 1] = src_data.data[(t_offset << 2) + 1];
+                dst_data.data[(x_offset << 2) + 2] = src_data.data[(t_offset << 2) + 2];
+                dst_data.data[(x_offset << 2) + 3] = src_data.data[(t_offset << 2) + 3];
+            }
+        }
+        this.display_.surface.image = dst_data;
+        this.state_ = (this.state_ + 1) & 1;
     }
 
     // render the animation onto the screen
     protected render(time?: number): void {
         if (!this.isAnimated)
             return;
+
+        this.display_.draw();
     }
 
     // setup function
