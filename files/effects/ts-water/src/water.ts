@@ -13,6 +13,12 @@ import { Display } from "library/core/display";
 import { Surface } from "library/gfx/surface";
 
 
+//----- globals
+const BORDER_SIZE = 10;         // border size to prevent the wave to be outside
+const WAVE_MIN = 100;           // minimum wave height
+const WAVE_MAX = 200;           // maximum wave height
+
+
 //----- class
 export class Water extends IAnimation {
 
@@ -43,6 +49,45 @@ export class Water extends IAnimation {
         let old = (this.state_ == 0) ? this.state2_ : this.state1_;
 
         return [ cur, old ];
+    }
+
+    // add rain
+    private rain(): void {
+        // compute a random location on the screen (not to close to the borders)
+        const border_min = BORDER_SIZE >> 1;
+        const border_max = BORDER_SIZE;
+
+        let x = Math.floor(border_min + (this.width_ - border_max) * Math.random());
+        let y = Math.floor(border_min + (this.height_ - border_max) * Math.random());
+
+        // wave perturbation
+        let p = Math.floor(WAVE_MIN + WAVE_MAX * Math.random());
+
+        // retrieve the current state
+        let cur = this.states()[0];
+
+        // create the wave at the position defined in the current state buffer
+        let offset = x + y * this.width_;
+
+        cur[offset] += p;
+        cur[offset - this.width_] += p;
+        cur[offset + this.width_] += p;
+
+        cur[offset + 1] += p;
+        cur[offset + 1 - this.width_] += p;
+        cur[offset + 1 + this.width_] += p;
+
+        cur[offset - 1] += p;
+        cur[offset - 1 - this.width_] += p;
+        cur[offset - 1 + this.width_] += p;
+
+        cur[offset + 2] += p;
+        cur[offset + 2 - this.width_] += p;
+        cur[offset + 2 + this.width_] += p;
+
+        cur[offset - 2] += p;
+        cur[offset - 2 - this.width_] += p;
+        cur[offset - 2 + this.width_] += p;
     }
 
     // update the animation
@@ -107,6 +152,13 @@ export class Water extends IAnimation {
             return;
 
         this.display_.draw();
+
+        // add a new rain droplet every 10 frames
+        if (this.frames_ % 10 == 0) {
+            this.rain();
+        }
+
+        this.frames_++;
     }
 
     // setup function
