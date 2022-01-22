@@ -74,6 +74,11 @@
             "name": "ts-water",
             "title": "A new Wave",
             "description": "A very naive implementation of the waves simulation"
+        },
+        {
+            "name": "ts-scroller",
+            "title": "Can you read it?",
+            "description": "Sinus Scroll Text are very old (boring) stuff and yet fun to do"
         }
     ]
 }
