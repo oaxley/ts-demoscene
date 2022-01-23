@@ -114,12 +114,47 @@ export class Scroller extends IAnimation {
     protected update(time?: number): void {
         if (!this.isAnimated)
             return;
+
+        // draw the text on the font surface
+        this.drawText(this.text_);
+
+        // update the text position
+        this.text_.end += 1;
+        if (this.text_.end >= this.text_.text.length)
+            this.text_.end = this.text_.text.length;
+
+        this.text_.xpos -= 3;
+        if (this.text_.xpos < 0) {
+            this.text_.xpos = FONT_CHAR_WIDTH;
+            this.text_.begin += 1;
+
+            if (this.text_.begin >= this.text_.end) {
+                this.text_.begin = 0;
+                this.text_.end = 1;
+                this.text_.xpos = this.display_.width + FONT_CHAR_WIDTH;
+            }
+        }
     }
 
     // render the animation
     protected render(time?: number): void {
         if (!this.isAnimated)
             return;
+
+        // surface clearing
+        this.display_.surface.clear();
+
+        // blend the font surface
+        this.display_.surface.blend(
+            {x: 0, y: this.display_.height >> 1},
+            this.fontsfc_,
+            {x: FONT_CHAR_WIDTH, y: 0, w: this.display_.width, h: this.fontsfc_.height},
+            1.0,
+            0xFF000000
+        )
+
+        this.display_.draw();
+
     }
 
     // setup function
