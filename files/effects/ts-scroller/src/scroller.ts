@@ -25,6 +25,9 @@ interface TextScroller {
     begin: number,          // the begin index for the text
     end: number,            // the end index for the text
 
+    value: number,          // variable value for the sine wave
+    incr: number,           // increment for the variable value
+
     xpos: number,           // the position of the scroller
     xmax: number,           // font surface max X value
 
@@ -77,6 +80,8 @@ export class Scroller extends IAnimation {
             text: "The sine wave of this scrolltext will change over time (this is quite boring in fact!)",
             begin: 0,
             end: 1,
+            value: 1,
+            incr: 1,
             xpos: display.width + FONT_CHAR_WIDTH,
             xmax: this.fontsfc_.width - FONT_CHAR_WIDTH,
             ypos: (cy, a, x, v, width) => {
@@ -98,7 +103,7 @@ export class Scroller extends IAnimation {
             let chardata = this.fontmap_.getCharData(text.text.charAt(i));
 
             // compute the new position
-            let y = text.ypos(cy, 40, x, 1, this.display_.width);
+            let y = text.ypos(cy, 40, x, text.value, this.display_.width);
 
             // copy the character on the font surface
             this.fontsfc_.putImgBlock(chardata, x, y);
@@ -132,6 +137,10 @@ export class Scroller extends IAnimation {
                 this.text_.begin = 0;
                 this.text_.end = 1;
                 this.text_.xpos = this.display_.width + FONT_CHAR_WIDTH;
+
+                this.text_.value += this.text_.incr;
+                if ((this.text_.value < 0) || (this.text_.value > 4))
+                    this.text_.incr *= -1;
             }
         }
     }
