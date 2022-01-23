@@ -38,7 +38,7 @@ export class Scroller extends IAnimation {
 
         // load the font map
         this.fontmap_ = new Font(
-                                '/images/assets/font-maop.asset.png',
+                                '/images/assets/font-map.asset.png',
                                 {
                                     width: FONT_CHAR_WIDTH,
                                     height: FONT_CHAR_HEIGHT
