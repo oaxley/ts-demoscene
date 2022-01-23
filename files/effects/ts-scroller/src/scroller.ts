@@ -71,7 +71,19 @@ export class Scroller extends IAnimation {
         this.fontsfc_ = new Surface({
             width: display.width + 2 * FONT_CHAR_WIDTH,
             height: display.height >> 1
-        })
+        });
+
+        this.text_ = {
+            text: "The sine wave of this scrolltext will change over time (this is quite boring in fact!)",
+            begin: 0,
+            end: 1,
+            xpos: display.width + FONT_CHAR_WIDTH,
+            xmax: this.fontsfc_.width - FONT_CHAR_WIDTH,
+            ypos: (cy, a, x, v, width) => {
+                let y = cy + Math.floor(a * Math.sin(2 * Math.PI * v * x / width));
+                return y;
+            }
+        }
     }
 
     // update the animation
