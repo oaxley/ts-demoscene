@@ -144,6 +144,12 @@ export class Scroller extends IAnimation {
         // surface clearing
         this.display_.surface.clear();
 
+        // add the background sprite
+        this.display_.surface.blend(
+            {x: 0, y: 0},
+            this.sprite_
+        );
+
         // blend the font surface
         this.display_.surface.blend(
             {x: 0, y: this.display_.height >> 1},
