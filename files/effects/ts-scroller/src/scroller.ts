@@ -19,6 +19,25 @@ const FONT_CHAR_WIDTH  = 32;
 const FONT_CHAR_HEIGHT = 32;
 
 
+//----- interfaces
+interface TextScroller {
+    text: String,           // the string for this scroller
+    begin: number,          // the begin index for the text
+    end: number,            // the end index for the text
+
+    xpos: number,           // the position of the scroller
+    xmax: number,           // font surface max X value
+
+    // the function to compute the y position
+    // cy: the center line
+    // a : amplitude of the sin wave
+    // x : the current x position
+    // v : the number of sine wave defined for the width
+    // width : the maximum width of the screen
+    ypos(cy: number, a: number, x: number, v: number, width: number): number;
+}
+
+
 //----- class
 export class Scroller extends IAnimation {
 
@@ -27,6 +46,8 @@ export class Scroller extends IAnimation {
     private fontsfc_: Surface;              // the surface where the text is drawn
 
     private sprite_: Surface;               // the background sprite
+
+    private text_: TextScroller;            // the text scroller
 
 
     //----- methods
