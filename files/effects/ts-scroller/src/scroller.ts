@@ -86,6 +86,30 @@ export class Scroller extends IAnimation {
         }
     }
 
+    // draw a text scroller in the surface
+    private drawText(text: TextScroller): void {
+
+        const cy = this.fontsfc_.height >> 1;
+        let x = text.xpos;
+
+        this.fontsfc_.clear();
+        for (let i = text.begin; i < text.end; i++) {
+            // retrieve the character data
+            let chardata = this.fontmap_.getCharData(text.text.charAt(i));
+
+            // compute the new position
+            let y = text.ypos(cy, 40, x, 1, this.display_.width);
+
+            // copy the character on the font surface
+            this.fontsfc_.putImgBlock(chardata, x, y);
+
+            // break the loop before going off screen
+            x += FONT_CHAR_WIDTH;
+            if (x > text.xmax)
+                break;
+        }
+    }
+
     // update the animation
     protected update(time?: number): void {
         if (!this.isAnimated)
