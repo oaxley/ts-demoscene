@@ -4,7 +4,7 @@
 
 ## **Screenshot**
 
-![screenshot](../../images/screenshot/ts-glenz.screenshot.png)
+![screenshot](../../images/screenshot/ts-glenz.png)
 
 
 ## **Algorithm**
