@@ -9,3 +9,6 @@ types/**
 
 # remove sandbox directory
 files/effects/ts-sandbox/**
+
+# remove temporary directory
+tmp/**
