@@ -4,7 +4,7 @@
 
 ## **Screenshot**
 
-![screenshot](../../images/screenshot/ts-moire.screenshot.png)
+![screenshot](../../images/screenshot/ts-moire.png)
 
 
 ## **Algorithm**
