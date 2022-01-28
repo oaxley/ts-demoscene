@@ -4,7 +4,7 @@
 
 ## **Screenshot**
 
-![screenshot](../../images/screenshot/ts-raster.screenshot.png)
+![screenshot](../../images/screenshot/ts-raster.png)
 
 
 ## **Algorithm**
