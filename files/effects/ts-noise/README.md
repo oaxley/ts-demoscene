@@ -4,7 +4,7 @@
 
 ## **Screenshot**
 
-![screenshot](../../images/screenshot/ts-noise.screenshot.png)
+![screenshot](../../images/screenshot/ts-noise.png)
 
 ## **Algorithm**
 
