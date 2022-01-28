@@ -4,7 +4,7 @@
 
 ## **Screenshot**
 
-![screenshot](../../images/screenshot/ts-scroller.screenshot.png)
+![screenshot](../../images/screenshot/ts-scroller.png)
 
 
 ## **Font Map**
