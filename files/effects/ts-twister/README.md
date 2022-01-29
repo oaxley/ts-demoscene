@@ -4,7 +4,7 @@
 
 ## **Screenshot**
 
-![screenshot](../../images/screenshot/ts-twister.screenshot.png)
+![screenshot](../../images/screenshot/ts-twister.png)
 
 ## **Texture**
 

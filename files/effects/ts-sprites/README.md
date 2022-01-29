@@ -4,7 +4,7 @@
 
 ## **Screenshot**
 
-![screenshot](../../images/screenshot/ts-sprites.screenshot.png)
+![screenshot](../../images/screenshot/ts-sprites.png)
 
 
 ## **Algorithm**

@@ -4,7 +4,7 @@
 
 ## **Screenshot**
 
-![screenshot](../../images/screenshot/ts-water.screenshot.png)
+![screenshot](../../images/screenshot/ts-water.png)
 
 
 ## **Algorithm**

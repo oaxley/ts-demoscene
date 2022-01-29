@@ -4,7 +4,7 @@
 
 ## **Screenshot**
 
-![screenshot](../../images/screenshot/ts-tunnel.screenshot.png)
+![screenshot](../../images/screenshot/ts-tunnel.png)
 
 
 ## **Algorithm**
