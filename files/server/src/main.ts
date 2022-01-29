@@ -124,7 +124,7 @@ class Slider {
             return;
         }
 
-        let name = this.config_[index]['name'] + '.screenshot.png';
+        let name = this.config_[index]['name'] + '.png';
 
         this.nImage_ = new Image();
         this.nImage_.onload = () => {
