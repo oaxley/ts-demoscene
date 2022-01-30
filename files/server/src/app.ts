@@ -20,6 +20,20 @@ const PORT = 8080;
 const HOST = 'localhost';
 
 
+//----- interfaces
+interface Link {
+    link: string,
+    name: string
+}
+
+interface Effect {
+    title: string,
+    bundle: string,
+    artist?: Link,
+    website?: Link
+}
+
+
 //----- begin
 // ExpressJS instance
 var app = express();
@@ -34,9 +48,33 @@ app.use(express.static("public"));
 // add dynamic effects routes
 config['effects'].forEach(effect => {
     app.get("/" + effect['name'], (req: Request, res: Response) => {
-        res.render(effect['name'], {
-            title: effect['title']
-        })
+        // prepare the effect structure
+        let e: Effect = {
+            title: effect['title'],
+            bundle: '/js/' + effect['name'] + '.bundle.js',
+        }
+
+        // this effect has an artist property
+        if (effect.hasOwnProperty('artist')) {
+            e.artist = {
+                // @ts-ignore
+                name: effect['artist']['name'],
+                // @ts-ignore
+                link: effect['artist']['link']
+            }
+        }
+
+        // this effect has a website property
+        if (effect.hasOwnProperty('website')) {
+            e.website = {
+                // @ts-ignore
+                name: effect['website']['name'],
+                // @ts-ignore
+                link: effect['website']['link']
+            }
+        }
+
+        res.render(effect['name'], e);
     });
 });
 
