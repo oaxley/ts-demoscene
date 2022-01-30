@@ -27,6 +27,7 @@ interface Link {
 }
 
 interface Effect {
+    name: string,
     title: string,
     bundle: string,
     artist?: Link,
@@ -50,6 +51,7 @@ config['effects'].forEach(effect => {
     app.get("/" + effect['name'], (req: Request, res: Response) => {
         // prepare the effect structure
         let e: Effect = {
+            name: effect['name'],
             title: effect['title'],
             bundle: '/js/' + effect['name'] + '.bundle.js',
         }
