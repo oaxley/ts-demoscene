@@ -76,7 +76,7 @@ config['effects'].forEach(effect => {
             }
         }
 
-        res.render(effect['name'], e);
+        res.render('effect', e);
     });
 });
 
