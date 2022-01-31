@@ -1,0 +1,34 @@
+doctype html
+html
+    head
+        title= title
+        link(rel='stylesheet' type="text/css" href='/css/effect.css')
+    body
+        .content
+            .left-pane
+
+            .center-pane
+                .top-pane
+                    h1#title #{title}
+
+                .middle-pane
+                    canvas#output(width="640", height="480")
+                        p Your browser does not support canvas
+
+                .bottom-pane
+                    .credits
+                        if artist
+                            | Image by
+                            a(href=artist.link class="artist") #{artist.name}
+
+                        if website
+                            | on
+                            a(href=website.link class="website") #{website.name}
+
+                    .logo
+                        h3 presented by
+                        img(src="/images/assets/oaxley.png", alt="Oaxley")
+
+            .right-pane
+
+        script(src=bundle)
