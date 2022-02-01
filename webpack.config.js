@@ -4,6 +4,7 @@ const CopyPlugin = require("copy-webpack-plugin");
 const NodeExternals = require("webpack-node-externals");
 const path = require("path");
 const glob = require("glob");
+const JSONMergePlugin = require("./plugins/json-merge-plugin");
 
 
 //----- globals
@@ -45,7 +46,7 @@ function findFiles(pattern, outputDir) {
     if (files.length > 0) {
         files.forEach(file => {
             output.push({
-                from: file,
+                from: path.relative(".", file),
                 to: outputDir
             });
         });
@@ -104,6 +105,10 @@ module.exports = {
     // plugins
     plugins: [
         new CopyPlugin({patterns: copy_plugin_pattern}),
+        new JSONMergePlugin({
+            files: findFiles("config.json", ""),
+            output: `${PUBLIC_DIR}/effect.json`
+        })
     ],
 
     // module rules
