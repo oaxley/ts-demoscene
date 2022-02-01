@@ -33,42 +33,25 @@ function findImages() {
     return images
 }
 
-// find all the CSS in the directory structure
-function findStylesheets() {
-    let css = [];
+// generic file finder for copy plugin
+function findFiles(pattern, outputDir) {
+    let output = [];
     let rootdir = path.join(__dirname, "files");
 
-    let files = glob.sync(`${rootdir}/**/*.css`);
+    // retrieve the list of files
+    let files = glob.sync(`${rootdir}/**/${pattern}`);
 
+    // add the files to the array for CopyPlugin
     if (files.length > 0) {
         files.forEach(file => {
-            css.push({
+            output.push({
                 from: file,
-                to: `${PUBLIC_DIR}/css`
+                to: outputDir
             });
         });
     }
 
-    return css
-}
-
-// find all the PUG files in the directory structure
-function findViews() {
-    let pug = [];
-    let rootdir = path.join(__dirname, "files");
-
-    let files = glob.sync(`${rootdir}/**/*.pug`);
-
-    if (files.length > 0) {
-        files.forEach(file => {
-            pug.push({
-                from: file,
-                to: `${PUBLIC_DIR}/views`
-            });
-        });
-    }
-
-    return pug
+    return output;
 }
 
 // find all the entry-points
@@ -94,30 +77,14 @@ function findEntryPoints() {
     return entry_points;
 }
 
-// find all the 3D models
-function find3DModels() {
-    let models = [];
-    let rootdir = path.join(__dirname, "files");
-
-    let files = glob.sync(`${rootdir}/**/models/*.json`);
-    if (files.length > 0) {
-        files.forEach(file => {
-            models.push({
-                from: file,
-                to: `${PUBLIC_DIR}/models/`
-            });
-        });
-    }
-
-    return models
-}
 
 //----- begin
 // find files for the CopyPlugins
 let copy_plugin_pattern = [].concat(findImages())
-                            .concat(findStylesheets())
-                            .concat(findViews())
-                            .concat(find3DModels());
+                            .concat(findFiles("*.css", `${PUBLIC_DIR}/css`))
+                            .concat(findFiles("*.pug", `${PUBLIC_DIR}/views`))
+                            .concat(findFiles("models/*.json", `${PUBLIC_DIR}/models`));
+
 
 // find all the entry-points
 let entry_points = findEntryPoints();
