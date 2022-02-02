@@ -107,7 +107,7 @@ module.exports = {
         new CopyPlugin({patterns: copy_plugin_pattern}),
         new JSONMergePlugin({
             files: findFiles("config.json", ""),
-            output: `${PUBLIC_DIR}/json/effect.json`
+            output: `${PUBLIC_DIR}/json/config.json`
         })
     ],
 
