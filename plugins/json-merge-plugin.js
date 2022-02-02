@@ -32,7 +32,7 @@ class JSONMergePlugin {
         const dir  = path.dirname(this.options.output);
 
         if (!fs.existsSync(dir)) {
-            fs.mkdirSync(dir);
+            fs.mkdirSync(dir, { recursive: true});
         }
 
         // save the output file
