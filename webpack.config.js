@@ -84,7 +84,7 @@ function findEntryPoints() {
 let copy_plugin_pattern = [].concat(findImages())
                             .concat(findFiles("*.css", `${PUBLIC_DIR}/css`))
                             .concat(findFiles("*.pug", `${PUBLIC_DIR}/views`))
-                            .concat(findFiles("models/*.json", `${PUBLIC_DIR}/models`));
+                            .concat(findFiles("models/*.json", `${PUBLIC_DIR}/json`));
 
 
 // find all the entry-points
@@ -107,7 +107,7 @@ module.exports = {
         new CopyPlugin({patterns: copy_plugin_pattern}),
         new JSONMergePlugin({
             files: findFiles("config.json", ""),
-            output: `${PUBLIC_DIR}/effect.json`
+            output: `${PUBLIC_DIR}/json/effect.json`
         })
     ],
 
