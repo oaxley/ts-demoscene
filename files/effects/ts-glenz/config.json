@@ -1,0 +1,14 @@
+{
+    "ts-glenz": {
+        "title": "A Glass of Picture",
+        "description": "A geometric plane made of glass",
+        "artist": {
+            "name": "Vincent Pelletier",
+            "link": "https://www.pexels.com/@vincent-pelletier-113252"
+        },
+        "website": {
+            "name": "Pexels",
+            "link": "https://www.pexels.com/photo/brown-bunny-painting-908713/"
+        }
+    }
+}
