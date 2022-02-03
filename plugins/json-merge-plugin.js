@@ -8,9 +8,7 @@ class JSONMergePlugin {
     }
 
     apply(compiler) {
-        var config = {
-            "effects": []
-        }
+        var config = { }
 
         // read all the JSON configuration files
         for (var elt in this.options.files) {
@@ -25,7 +23,7 @@ class JSONMergePlugin {
             let data = JSON.parse(content);
 
             // add the data to the global configuration item
-            config['effects'].push(data);
+            Object.assign(config, data);
         };
 
         // create the output directory
