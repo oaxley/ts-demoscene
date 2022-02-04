@@ -19,17 +19,22 @@ interface QueryResult {
     json: <T>() => T,
 }
 
-// configuration items
-interface Config {
-    name: string,
-    title: string,
-    description: string
-}
-
 // button parameters
 interface Button {
     enable: boolean,
     button: HTMLButtonElement
+}
+
+interface Link {
+    link: string,
+    name: string
+}
+
+interface Effect {
+    title: string,
+    description: string,
+    artist?: Link,
+    website?: Link
 }
 
 
@@ -43,7 +48,7 @@ class Slider {
     private display_: HTMLCanvasElement;        // the display canvas
     private buttons_: Button[];                 // element buttons
 
-    private config_: Config[];                  // configuration from NodeJS
+    private config_: Record<string, Effect>;                  // configuration from NodeJS
 
     private nImage_: HTMLImageElement;          // next image to display
 
@@ -60,17 +65,15 @@ class Slider {
         this.curImage_ = 0;
 
         // retrieve the configuration from the NodeJS server
-        this.config_ = [];
+        this.config_ = {};
         this.request().then((result: QueryResult) => {
-            let json: any = result.json();
-            this.config_ = json['effects'];
-
+            this.config_ = result.json();
 
             // initialize counters
-            this.maxImage_ = this.config_.length;
+            this.maxImage_ = Object.keys(this.config_).length;
             this.curImage_ = 0;
 
-            // load the first image
+            // // load the first image
             this.loadImage(this.curImage_);
             this.loadCredits();
         });
@@ -117,6 +120,28 @@ class Slider {
         });
     }
 
+    // retrieve the nth effect from the config
+    private getEffect(index: number): [string, Effect] {
+        let counter = 0;
+        let name = "";
+        let data: Effect = {
+            title: "",
+            description: ""
+        };
+
+        for(let key in this.config_) {
+            if (index == counter) {
+                name = key;
+                data = this.config_[key];
+                break;
+            }
+
+            counter++;
+        }
+
+        return [name, data];
+    }
+
     // load an image
     private loadImage(index: number): void {
         if ((index < 0) || (index >= this.maxImage_)) {
@@ -124,26 +149,29 @@ class Slider {
             return;
         }
 
-        let name = this.config_[index]['name'] + '.png';
+        // retrieve the effect name
+        let name = this.getEffect(index)[0];
 
         this.nImage_ = new Image();
         this.nImage_.onload = () => {
             this.display_.getContext("2d")!.drawImage(this.nImage_, 0, 0);
         };
-        this.nImage_.src = '/images/screenshot/' + name;
+        this.nImage_.src = '/images/screenshot/' + name + '.png';
     }
 
     // set the name and description for the effect
     private loadCredits(): void {
         let index = this.curImage_;
-        let name  = this.config_[index]['name'];
-        let title = this.config_[index]['title'];
-        let desc  = this.config_[index]['description'];
+
+        // retrieve the effect data
+        let values = this.getEffect(index);
+        let name = values[0];
+        let data = values[1];
 
         // set the title
-        let html = '<a href="/' + name + '">&#10095;&#10095 ' + title + '</a>';
+        let html = '<a href="/effect/' + name + '">&#10095;&#10095 ' + data.title + '</a>';
         document.getElementById("effect-name")!.innerHTML = html;
-        document.getElementById("effect-desc")!.innerText = desc;
+        document.getElementById("effect-desc")!.innerText = data.description;
     }
 
     // next image
