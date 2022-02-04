@@ -22,12 +22,25 @@ function findImages() {
 
     if (files.length > 0) {
         files.forEach(file => {
+            let filename = path.basename(file);
             let dirs = path.dirname(file).split(path.sep);
-            let dirname = dirs[dirs.length - 1];
+            let output = PUBLIC_DIR + '/images';
+
+            if (filename == "screenshot.png") {
+                // rename screenshots on the fly
+                let dirname = dirs[dirs.length - 1];
+                output += '/screenshot/' + dirname + '.png';
+            } else {
+                // prefix assets with their effect name
+                let effect = dirs[dirs.length - 2];
+                output += '/assets/' + effect + '.' + filename;
+            }
+
+            // add the image to the list
             images.push({
                 from: file,
-                to: `${PUBLIC_DIR}/images/${dirname}`
-            });
+                to: output
+             });
         });
     }
 
