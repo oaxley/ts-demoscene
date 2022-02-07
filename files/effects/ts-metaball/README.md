@@ -4,7 +4,7 @@
 
 ## **Screenshot**
 
-![screenshot](../../images/screenshot/ts-metaball.png)
+![screenshot](screenshot.png)
 
 ## **Palette**
 

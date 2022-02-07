@@ -4,7 +4,7 @@
 
 ## **Screenshot**
 
-![screenshot](../../images/screenshot/ts-lens.png)
+![screenshot](screenshot.png)
 
 
 ## **Algorithm**
