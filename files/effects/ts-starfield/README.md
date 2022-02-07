@@ -4,7 +4,7 @@
 
 ## **Screenshot**
 
-![screenshot](../../images/screenshot/ts-starfield.png)
+![screenshot](screenshot.png)
 
 ## **Algorithm**
 
