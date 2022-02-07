@@ -4,7 +4,7 @@
 
 ## **Screenshot**
 
-![screenshot](../../images/screenshot/ts-smoke.png)
+![screenshot](screenshot.png)
 
 
 ## **Algorithm**

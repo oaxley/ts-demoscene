@@ -4,7 +4,7 @@
 
 ## **Screenshot**
 
-![screenshot](../../images/screenshot/ts-rotozoom.png)
+![screenshot](screenshot.png)
 
 ## **Texture**
 
