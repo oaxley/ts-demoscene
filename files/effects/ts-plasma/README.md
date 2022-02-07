@@ -4,7 +4,7 @@
 
 ## **Screenshot**
 
-![screenshot](../../images/screenshot/ts-plasma.png)
+![screenshot](screenshot.png)
 
 ## **Palette**
 
