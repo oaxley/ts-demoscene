@@ -138,7 +138,7 @@ export class RasterBars extends IAnimation {
     // setup function
     public setup(): void {
         this.image_
-            .loadImage('/images/assets/ts-raster.asset.png')
+            .loadImage('/images/assets/ts-raster.sprite.png')
             .then(result => {
                 // toggle the animation
                 this.toggle();
