@@ -117,7 +117,7 @@ export class Rotozoom extends IAnimation {
     // setup function
     public setup(): void {
         this.texture_
-            .loadImage('/images/assets/ts-rotozoom.asset.jpg')
+            .loadImage('/images/assets/ts-rotozoom.texture.jpg')
             .then(result => {
                 // toggle the animation
                 this.toggle();
