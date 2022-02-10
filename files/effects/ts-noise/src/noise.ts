@@ -94,7 +94,7 @@ export class ImgNoise extends IAnimation {
     public setup(): void {
         // load the asset images
         this.image_
-            .loadImage('/images/assets/ts-noise.asset.png')
+            .loadImage('/images/assets/ts-noise.background.png')
             .then(result => {
                 // toggle the animation
                 this.toggle();
