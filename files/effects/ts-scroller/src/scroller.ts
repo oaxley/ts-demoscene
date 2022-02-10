@@ -62,7 +62,7 @@ export class Scroller extends IAnimation {
 
         // load the font map
         this.fontmap_ = new Font(
-                                '/images/assets/font-map.asset.png',
+                                '/images/assets/ts-scroller.font-map.png',
                                 {
                                     width: FONT_CHAR_WIDTH,
                                     height: FONT_CHAR_HEIGHT
@@ -175,7 +175,7 @@ export class Scroller extends IAnimation {
     // setup function
     public setup(): void {
         this.sprite_
-            .loadImage('/images/assets/ts-scroller.asset.png')
+            .loadImage('/images/assets/ts-scroller.sprite.png')
             .then(result => {
                 // toggle the animation
                 this.toggle();
