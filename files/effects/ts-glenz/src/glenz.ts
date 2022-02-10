@@ -271,7 +271,7 @@ export class Glenz extends IAnimation {
     public setup(): void {
         // load the background image
         this.background_
-            .loadImage('/images/assets/ts-glenz.asset.jpg')
+            .loadImage('/images/assets/ts-glenz.background.jpg')
             .then(result => {
 
                 // toggle the animation
