@@ -159,7 +159,7 @@ export class Sprites extends IAnimation {
     public setup(): void {
         // load the sprite
         this.sprite_.image
-            .loadImage('/images/assets/ts-sprite.asset.png')
+            .loadImage('/images/assets/ts-sprites.sprite.png')
             .then(result => {
                 // put the sprite on the right side
                 this.sprite_.pos = {
