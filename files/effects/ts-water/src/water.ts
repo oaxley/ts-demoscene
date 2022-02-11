@@ -164,7 +164,7 @@ export class Water extends IAnimation {
     // setup function
     public setup(): void {
         this.image_
-            .loadImage('/images/assets/ts-water.asset.png')
+            .loadImage('/images/assets/ts-water.background.png')
             .then(result => {
                 // toggle the animation
                 this.toggle();
