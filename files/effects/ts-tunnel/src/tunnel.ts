@@ -143,7 +143,7 @@ export class Tunnel extends IAnimation {
     public setup(): void {
         // load the texture
         this.texture_
-            .loadImage('/images/assets/ts-tunnel.asset.jpg')
+            .loadImage('/images/assets/ts-tunnel.texture.jpg')
             .then((result) => {
                 // compute the maps
                 this.computeMaps();
