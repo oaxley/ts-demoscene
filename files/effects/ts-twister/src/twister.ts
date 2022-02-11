@@ -163,7 +163,7 @@ export class Twister extends IAnimation {
 
         // load the texture
         this.texture_
-            .loadImage('/images/assets/ts-twister.asset.jpg')
+            .loadImage('/images/assets/ts-twister.texture.jpg')
             .then(result => {
                 // set the slice size
                 this.slice_ = {
