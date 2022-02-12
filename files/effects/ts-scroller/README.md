@@ -33,7 +33,7 @@ let y = (index >> 4) * 32;
 
 Characters that are not representated are left blank.
 
-![font-map](../../images/assets/font-map.asset.png)
+![font-map](assets/font-map.png)
 
 ## **Algorithm**
 
