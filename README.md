@@ -25,7 +25,7 @@ An attempt to recreate all the old demoscene effects from the 90s in Typescript 
 - [Starfield](./files/effects/ts-starfield/README.md)
 - [Glenz](./files/effects/ts-glenz/README.md)
 - [Smoke](./files/effects/ts-smoke/README.md)
-- [Glenz](./files/effects/ts-glenz/README.md)
+- [Raster](./files/effects/ts-raster/README.md)
 - [Noise](./files/effects/ts-noise/README.md)
 - [Scroller](./files/effects/ts-scroller/README.md)
 - [Water](./files/effects/ts-water/README.md)
