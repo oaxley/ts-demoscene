@@ -35,8 +35,44 @@ An attempt to recreate all the old demoscene effects from the 90s in Typescript 
 
 ## NodeJS / Typescript / Webpack
 
-The whole repository has been developed and tested with *NodeJS 16.13.0* and *Typescript 4.4.2*.  
-Only *Express* and *Pug* are necessary to compile this project.
+### NodeJS installation (taken from [here](https://nodejs.org/en/download/package-manager))
+
+``` bash
+# installs nvm (Node Version Manager)
+$ curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.0/install.sh | bash
+
+# restart the shell
+$ exec $SHELL
+
+# download and install Node.js (you may need to restart the terminal)
+$ nvm install 20
+
+# verifies the right Node.js version is in the environment
+$ node -v # should print `v20.18.0`
+
+# verifies the right npm version is in the environment
+$ npm -v # should print `10.8.2`
+```
+
+### Typescript installation
+
+``` bash
+# install Typescript
+$ npm install typescript
+
+# verify the installed version
+$ npx tsc --version # should print `Version 4.4.4`
+```
+
+### Webpack installation
+
+``` bash
+# install webpack
+$ npm install webpack
+
+# check the version
+$ npx webpack --version # should print `webpack: 5.95.0`
+```
 
 ---
 
