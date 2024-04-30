@@ -74,6 +74,24 @@ $ npm install webpack
 $ npx webpack --version # should print `webpack: 5.95.0`
 ```
 
+## Compile & Running
+
+### Compiling the effects
+
+``` bash
+$ npx webpack --mode development
+```
+
+All the files will be stored in a `public` directory.
+
+### Running
+
+``` bash
+$ npm start
+```
+
+An Express backend will start and listen for connections on `localhost:8080`.
+
 ---
 
 ## License
