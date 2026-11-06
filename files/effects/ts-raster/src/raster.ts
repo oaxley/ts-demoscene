@@ -7,7 +7,6 @@
 
 //----- imports
 import { IAnimation } from "library/core/animation";
-import { States } from "library/core/manager";
 
 import { Display } from "library/core/display";
 import { Surface } from "library/gfx/surface";
@@ -96,11 +95,13 @@ export class RasterBars extends IAnimation {
         }
     }
 
+    // load the assets
+    protected init(): Promise<unknown> {
+        return this.image_.loadImage('/images/assets/ts-raster.sprite.png');
+    }
+
     // update the animation
     protected update(time?: number): void {
-        if (!this.isAnimated)
-            return;
-
         // clear the screen
         this.display_.surface.clear()
 
@@ -128,41 +129,7 @@ export class RasterBars extends IAnimation {
 
     // render the animation
     protected render(time?: number): void {
-        if (!this.isAnimated)
-            return;
-
         // flip the back-buffer onto the screen
         this.display_.draw();
-    }
-
-    // setup function
-    public setup(): void {
-        this.image_
-            .loadImage('/images/assets/ts-raster.sprite.png')
-            .then(result => {
-                // toggle the animation
-                this.toggle();
-
-                // set the click handler to pause the animation
-                window.onclick = () => {
-                    this.toggle();
-                }
-
-                console.log("Starting the Raster Bars animation");
-            });
-    }
-
-    // cleanup function
-    public cleanup(): void {
-    }
-
-    // run the animation
-    public run(time: number | undefined): States {
-        // update & render the animation
-        this.update(time);
-        this.render(time);
-
-        // this animation will run indefinitely
-        return States.S_RUNNING;
     }
 }

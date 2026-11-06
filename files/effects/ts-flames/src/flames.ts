@@ -7,7 +7,6 @@
 
 //----- imports
 import { IAnimation } from "library/core/animation";
-import { States } from "library/core/manager";
 
 import { Display } from "library/core/display";
 import { Palette } from "library/color/palette";
@@ -112,10 +111,6 @@ export class Flames extends IAnimation {
 
     // generate the flames at the bottom
     private generate(): void {
-        if ( !this.isAnimated ) {
-            return;
-        }
-
         for (let y = this.height_ - 2; y < this.height_; y++) {
             let offset = y * this.width_;
             for (let x = 0; x < this.width_; x+=2) {
@@ -171,8 +166,8 @@ export class Flames extends IAnimation {
 
     // update the animation
     protected update(time?: number): void {
-        if (!this.isAnimated)
-            return;
+        // fuel the flames at the bottom
+        this.generate();
 
         // move the center of the cube
         this.center_.x += this.offset_.x;
@@ -221,9 +216,6 @@ export class Flames extends IAnimation {
 
     // render the animation on the screen
     protected render(time?: number): void {
-        if (!this.isAnimated)
-            return;
-
         // copy the flames
         for (let y = 0; y < this.height_; y++) {
             let offset = y * this.width_;
@@ -240,39 +232,5 @@ export class Flames extends IAnimation {
 
         // flip the back-buffer onto the screen
         this.display_.draw();
-
-        // increment the number of frames
-        this.frames_++;
-    }
-
-    // setup function
-    public setup(): void {
-        // toggle the animation
-        this.toggle();
-
-        // set the click handler to pause the animation
-        window.onclick = () => {
-            this.toggle();
-        }
-
-        console.log("Starting Flames animation.");
-    }
-
-    // cleanup function
-    public cleanup(): void {
-    }
-
-    // run the animation
-    public run(time: number|undefined): States {
-
-        // fuel the flames at the bottom
-        this.generate();
-
-        // update & render the flames buffer
-        this.update(time);
-        this.render(time);
-
-        // this animation will run indefinitely
-        return States.S_RUNNING;
     }
 }

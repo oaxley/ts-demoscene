@@ -7,7 +7,6 @@
 
 //----- imports
 import { IAnimation } from "library/core/animation";
-import { States } from "library/core/manager";
 import { Display } from "library/core/display";
 import { Surface } from "library/gfx/surface";
 import { RGBA } from "library/color/RGBA";
@@ -69,11 +68,18 @@ export class Tunnel extends IAnimation {
         }
     }
 
+    // load the assets
+    protected init(): Promise<unknown> {
+        return this.texture_
+            .loadImage('/images/assets/ts-tunnel.texture.jpg')
+            .then(() => {
+                // compute the maps
+                this.computeMaps();
+            });
+    }
+
     // update the animation
     protected update(timestamp: number): void {
-        if (!this.isAnimated)
-            return;
-
         // constants
         const tw = this.texture_!.width;
         const th = this.texture_!.height;
@@ -129,49 +135,7 @@ export class Tunnel extends IAnimation {
 
     // render the animation on the screen
     protected render(time?: number): void {
-        if (!this.isAnimated)
-            return;
-
         // flip the back-buffer onto the screen
         this.display_.draw();
-
-        // increment the number of frames
-        this.frames_++;
-    }
-
-    // setup function
-    public setup(): void {
-        // load the texture
-        this.texture_
-            .loadImage('/images/assets/ts-tunnel.texture.jpg')
-            .then((result) => {
-                // compute the maps
-                this.computeMaps();
-
-                // toggle the animation
-                this.toggle();
-
-                // set the click handler to pause the animation
-                window.onclick = () => {
-                    this.toggle();
-                }
-
-                console.log("Starting the Tunnel animation.");
-            });
-    }
-
-    // cleanup function
-    public cleanup(): void {
-    }
-
-    // run the animation
-    public run(time: number): States {
-
-        // update & render the tunnel effect
-        this.update(time);
-        this.render(time);
-
-        // this animation will run indefinitely
-        return States.S_RUNNING;
     }
 }

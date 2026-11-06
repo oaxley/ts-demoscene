@@ -7,7 +7,6 @@
 
 //----- imports
 import { IAnimation } from "library/core/animation";
-import { States } from "library/core/manager";
 
 import { Display } from "library/core/display";
 import { Palette } from "library/color/palette";
@@ -88,9 +87,6 @@ export class Metaballs extends IAnimation {
 
     // update the animation
     protected update(time?: number): void {
-        if (!this.isAnimated)
-            return;
-
         // move the particules around
         for (let k = 0; k < NUM_PARTICULES; k++) {
             this.metaballs_[k].x += this.metaballs_[k].vx;
@@ -106,9 +102,6 @@ export class Metaballs extends IAnimation {
 
     // render the animation on screen
     protected render(time?: number): void {
-        if (!this.isAnimated)
-            return;
-
         // compute the effect
         for (let y = 0; y < this.height_; y++) {
             for (let x = 0; x < this.width_; x++) {
@@ -136,37 +129,6 @@ export class Metaballs extends IAnimation {
 
         // flip the back-buffer onto the screen
         this.display_.draw();
-
-        // increase frames count
-        this.frames_++;
-    }
-
-    // setup function
-    public setup(): void {
-        // toggle the animation
-        this.toggle();
-
-        // set the click handler to pause the animation
-        window.onclick = () => {
-            this.toggle();
-        }
-
-        console.log("Starting the Metaballs animation.");
-    }
-
-    // cleanup function
-    public cleanup(): void {
-    }
-
-    // run the animation
-    public run(time: number|undefined): States {
-
-        // update & render the flames buffer
-        this.update(time);
-        this.render(time);
-
-        // this animation will run indefinitely
-        return States.S_RUNNING;
     }
 
     // main animation function

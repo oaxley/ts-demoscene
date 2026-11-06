@@ -7,7 +7,6 @@
 
 //----- imports
 import { IAnimation } from "library/core/animation";
-import { States } from "library/core/manager";
 
 import { Display } from "library/core/display";
 import { Surface } from "library/gfx/surface";
@@ -115,11 +114,13 @@ export class Scroller extends IAnimation {
         }
     }
 
+    // load the assets
+    protected init(): Promise<unknown> {
+        return this.sprite_.loadImage('/images/assets/ts-scroller.sprite.png');
+    }
+
     // update the animation
     protected update(time?: number): void {
-        if (!this.isAnimated)
-            return;
-
         // draw the text on the font surface
         this.drawText(this.text_);
 
@@ -147,9 +148,6 @@ export class Scroller extends IAnimation {
 
     // render the animation
     protected render(time?: number): void {
-        if (!this.isAnimated)
-            return;
-
         // surface clearing
         this.display_.surface.clear();
 
@@ -170,37 +168,5 @@ export class Scroller extends IAnimation {
 
         this.display_.draw();
 
-    }
-
-    // setup function
-    public setup(): void {
-        this.sprite_
-            .loadImage('/images/assets/ts-scroller.sprite.png')
-            .then(result => {
-                // toggle the animation
-                this.toggle();
-
-                // set the click handler to pause the animation
-                window.onclick = () => {
-                    this.toggle();
-                }
-
-                console.log("Starting the Text Scroller animation")
-            });
-    }
-
-    // cleanup function
-    public cleanup(): void {
-    }
-
-    // run the animation
-    public run(time: number|undefined): States {
-
-        // update & render the animation
-        this.update(time);
-        this.render(time);
-
-        // this animation will run indefinitely
-        return States.S_RUNNING;
     }
 }

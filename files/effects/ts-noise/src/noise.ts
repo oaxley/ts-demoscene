@@ -7,7 +7,6 @@
 
 //----- imports
 import { IAnimation } from "library/core/animation";
-import { States } from "library/core/manager";
 
 import { Display } from "library/core/display";
 import { Surface } from "library/gfx/surface";
@@ -38,11 +37,13 @@ export class ImgNoise extends IAnimation {
         this.noiseMap_ = noise.fractal(display.width, display.height, Math.random() / 10.0);
     }
 
+    // load the assets
+    protected init(): Promise<unknown> {
+        return this.image_.loadImage('/images/assets/ts-noise.background.png');
+    }
+
     // update the animation
     protected update(time?: number): void {
-        if (!this.isAnimated)
-            return;
-
         // retrieve src and dst image data
         let src_data = this.image_.image;
         let dst_data = this.display_.surface.image;
@@ -83,42 +84,7 @@ export class ImgNoise extends IAnimation {
 
     // render the animation on the screen
     protected render(time?: number): void {
-        if (!this.isAnimated)
-            return;
-
         // flip the back-buffer onto the screen
         this.display_.draw();
-    }
-
-    // setup function
-    public setup(): void {
-        // load the asset images
-        this.image_
-            .loadImage('/images/assets/ts-noise.background.png')
-            .then(result => {
-                // toggle the animation
-                this.toggle();
-
-                // set the click handler to pause the animation
-                window.onclick = () => {
-                    this.toggle();
-                }
-
-                console.log("Starting the Noise animation");
-            });
-    }
-
-    // cleanup function
-    public cleanup(): void {
-    }
-
-    // run the animation
-    public run(time: number | undefined): States {
-        // update and render
-        this.update(time);
-        this.render(time);
-
-        // this animation will run indefinetely
-        return States.S_RUNNING;
     }
 }

@@ -7,7 +7,6 @@
 
 //----- imports
 import { IAnimation } from "library/core/animation";
-import { States } from "library/core/manager";
 
 import { Display } from "library/core/display";
 import { Surface } from "library/gfx/surface";
@@ -119,11 +118,13 @@ export class Lens extends IAnimation {
         return new Vector2D(x, y);
     }
 
+    // load the assets
+    protected init(): Promise<unknown> {
+        return this.image_.loadImage('/images/assets/ts-lens.background.jpg');
+    }
+
      // update the animation
     protected update(time?: number): void {
-        if (!this.isAnimated)
-            return;
-
         // update the collision detector
         this.detector_.update();
 
@@ -131,9 +132,6 @@ export class Lens extends IAnimation {
 
     // render the animation on screen
     protected render(time?: number): void {
-        if (!this.isAnimated)
-            return;
-
         // load the background image in the back-buffer
         this.display_.surface.copy(this.image_);
 
@@ -148,43 +146,5 @@ export class Lens extends IAnimation {
 
         // flip the back-buffer onto the screen
         this.display_.draw();
-
-        // increase frames count
-        this.frames_++;
-    }
-
-    // run the animation
-    public run(time: number|undefined): States {
-
-        // update & render the animation
-        this.update(time);
-        this.render(time);
-
-        // this animation will run indefinitely
-        return States.S_RUNNING;
-    }
-
-    // setup function
-    public setup(): void {
-
-        // load the background image
-        this.image_
-            .loadImage('/images/assets/ts-lens.background.jpg')
-            .then(result => {
-
-            // toggle the animation
-            this.toggle();
-
-            // set the click handler to pause the animation
-            window.onclick = () => {
-                this.toggle();
-            }
-
-            console.log("Starting the Lens animation.");
-        });
-    }
-
-    // cleanup function
-    public cleanup(): void {
     }
 }

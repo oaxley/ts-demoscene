@@ -7,7 +7,6 @@
 
 //----- imports
 import { IAnimation } from "library/core/animation";
-import { States } from "library/core/manager";
 
 import { Display } from "library/core/display";
 import { radians } from "library/maths/utils";
@@ -42,11 +41,21 @@ export class Twister extends IAnimation {
         this.slice_ = { width: 0, height: 0}
     }
 
+    // load the assets
+    protected init(): Promise<unknown> {
+        return this.texture_
+            .loadImage('/images/assets/ts-twister.texture.jpg')
+            .then(() => {
+                // set the slice size
+                this.slice_ = {
+                    width: this.texture_.width >> 2,
+                    height: this.texture_.height
+                }
+            });
+    }
+
     // update the animation
     protected update(time?: number): void {
-        if (!this.isAnimated)
-            return;
-
         // setup vars
         let x0 = this.display_.width >> 1;
         let w  = BAR_WIDTH >> 1;
@@ -137,9 +146,6 @@ export class Twister extends IAnimation {
 
     // render the animation on the screen
     protected render(time?: number): void {
-        if (!this.isAnimated)
-            return;
-
         // update the angle
         this.angle_ += 0.035;
 
@@ -153,48 +159,5 @@ export class Twister extends IAnimation {
         // flip the back-buffer onto the screen
         this.display_.clear();
         this.display_.draw();
-
-        // increase the frames count
-        this.frames_++;
-    }
-
-    // setup function
-    public setup(): void {
-
-        // load the texture
-        this.texture_
-            .loadImage('/images/assets/ts-twister.texture.jpg')
-            .then(result => {
-                // set the slice size
-                this.slice_ = {
-                    width: this.texture_.width >> 2,
-                    height: this.texture_.height
-                }
-
-                // toggle the animation
-                this.toggle();
-
-                // set the click handler to pause the animation
-                window.onclick = () => {
-                    this.toggle();
-                }
-
-                console.log("Starting the Twister animation.");
-            });
-    }
-
-    // cleanup function
-    public cleanup(): void {
-    }
-
-    // run the animation
-    public run(time: number): States {
-
-        // update & render the flames buffer
-        this.update(time);
-        this.render(time);
-
-        // this animation will run indefinitely
-        return States.S_RUNNING;
     }
 }
