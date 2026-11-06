@@ -6,7 +6,6 @@
  */
 
 //----- imports
-import e from "express";
 import { Surface } from "library/gfx/surface";
 
 
@@ -77,9 +76,9 @@ export class Display {
 
     //----- functions
 
-    // draw the back-buffer on the screen canvas
+    // draw the back-buffer on the screen canvas (no intermediate copy)
     public draw() {
-        this.context_.putImageData(this.surface_.image, 0, 0);
+        this.context_.putImageData(this.surface_.imageData, 0, 0);
     }
 
     // take a snapshot of the display screen/back-buffer

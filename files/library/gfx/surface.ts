@@ -27,9 +27,10 @@ enum Region {
 // Frame Buffer interface
 interface IFrameBuffer {
     data   : ArrayBuffer;           // the framebuffer data
-    data8  : Uint8ClampedArray;     // 8-bit framebuffer access
-    data32 : Uint32Array;           // 32-bit framebuffer access
+    data8  : Uint8ClampedArray<ArrayBuffer>;    // 8-bit framebuffer access
+    data32 : Uint32Array<ArrayBuffer>;          // 32-bit framebuffer access
     address: number;                // current framebuffer address
+    image? : ImageData;             // ImageData sharing the framebuffer (lazily created)
 }
 
 
@@ -50,10 +51,7 @@ export class Surface {
         this.viewport_ = new Viewport();
 
         if (size) {
-            this.width_  = size.width;
-            this.height_ = size.height;
-            this.length_ = size.width * size.height;
-            this.create(this.width_, this.height_);
+            this.create(size.width, size.height);
         }
     }
 
@@ -73,21 +71,38 @@ export class Surface {
         };
     }
 
-    // set the surface from an ImageData
+    // set the surface from an ImageData (the pixels are copied)
     public set image(img: ImageData) {
-        this.width_  = img.width;
-        this.height_ = img.height;
-
-        // create the FrameBuffer
         this.create(img.width, img.height);
         this.framebuffer_!.data8.set(img.data);
     }
 
-    // create an imagedata from the surface
+    // create an imagedata from the surface (the pixels are copied)
     public get image(): ImageData {
         let img = new ImageData(this.width_, this.height_);
         img.data.set(this.framebuffer_!.data8);
         return img;
+    }
+
+    /* ImageData sharing the surface framebuffer (no copy)
+     *
+     * Any change on the surface is visible in this ImageData (and vice versa).
+     * The object remains valid until the surface is resized.
+     */
+    public get imageData(): ImageData {
+        let fb = this.framebuffer_!;
+        if (fb.image === undefined) {
+            fb.image = new ImageData(fb.data8, this.width_, this.height_);
+        }
+        return fb.image;
+    }
+
+    // direct access to the framebuffer (8-bit RGBA components / 32-bit pixels)
+    public get data8(): Uint8ClampedArray<ArrayBuffer> {
+        return this.framebuffer_!.data8;
+    }
+    public get data32(): Uint32Array<ArrayBuffer> {
+        return this.framebuffer_!.data32;
     }
 
     // set the address directly
@@ -121,8 +136,20 @@ export class Surface {
 
     //----- functions
 
-    // create the frame-buffer structure
+    // create the frame-buffer structure (reused when the size doesn't change)
     private create(width: number, height: number): void {
+        this.width_  = width;
+        this.height_ = height;
+        this.length_ = width * height;
+
+        if (this.framebuffer_ && (this.framebuffer_.data32.length == this.length_)) {
+            this.framebuffer_.address = 0;
+            if (this.framebuffer_.image && (this.framebuffer_.image.width != width)) {
+                this.framebuffer_.image = undefined;
+            }
+            return;
+        }
+
         // we need to x4 because of the 8-bit array to store RGBA values
         let length = (width * height) << 2;
         let data = new ArrayBuffer(length);
@@ -173,35 +200,58 @@ export class Surface {
         return c;
     }
 
-    // get a block of data
+    /* get a block of data
+     *
+     * Pixels are addressed linearly (y * width + x): a block crossing the left
+     * or right border wraps on the previous/next line; pixels outside of the
+     * framebuffer are read as 0.
+     */
     public getImgBlock(bx: number, by: number, bw: number, bh: number): ImageData {
         let imgdata = new ImageData(bw, bh);
+        let dst = new Uint32Array(imgdata.data.buffer, imgdata.data.byteOffset, bw * bh);
+        let src = this.framebuffer_!.data32;
 
         let d_off = 0;
-        for (let y = by; y < (by + bh); y++) {
-            let addr = y * this.width_;
-            for (let x = bx; x < (bx + bw); x++) {
-                let s_off = (addr + x) << 2;
-                imgdata.data[d_off++] = this.framebuffer_!.data8[s_off + 0];
-                imgdata.data[d_off++] = this.framebuffer_!.data8[s_off + 1];
-                imgdata.data[d_off++] = this.framebuffer_!.data8[s_off + 2];
-                imgdata.data[d_off++] = this.framebuffer_!.data8[s_off + 3];
+        for (let y = by; y < (by + bh); y++, d_off += bw) {
+            let addr = y * this.width_ + bx;
+
+            // fast path: the whole row is inside the framebuffer
+            if (Number.isInteger(addr) && (addr >= 0) && (addr + bw <= src.length)) {
+                dst.set(src.subarray(addr, addr + bw), d_off);
+                continue;
+            }
+
+            for (let x = 0; x < bw; x++) {
+                dst[d_off + x] = src[(addr + x) | 0] ?? 0;
             }
         }
 
         return imgdata;
     }
 
+    /* put a block of data
+     *
+     * Same addressing as getImgBlock(); pixels outside of the framebuffer are
+     * ignored.
+     */
     public putImgBlock(imgdata: ImageData, bx: number, by: number): void {
+        let bw = imgdata.width;
+        let bh = imgdata.height;
+        let src = new Uint32Array(imgdata.data.buffer, imgdata.data.byteOffset, bw * bh);
+        let dst = this.framebuffer_!.data32;
+
         let s_off = 0;
-        for (let y = by; y < (by + imgdata.height); y++) {
-            let addr = y * this.width_;
-            for (let x = bx; x < (bx + imgdata.width); x++) {
-                let d_off = (addr + x) << 2;
-                this.framebuffer_!.data8[d_off + 0] = imgdata.data[s_off++];
-                this.framebuffer_!.data8[d_off + 1] = imgdata.data[s_off++];
-                this.framebuffer_!.data8[d_off + 2] = imgdata.data[s_off++];
-                this.framebuffer_!.data8[d_off + 3] = imgdata.data[s_off++];
+        for (let y = by; y < (by + bh); y++, s_off += bw) {
+            let addr = y * this.width_ + bx;
+
+            // fast path: the whole row is inside the framebuffer
+            if (Number.isInteger(addr) && (addr >= 0) && (addr + bw <= dst.length)) {
+                dst.set(src.subarray(s_off, s_off + bw), addr);
+                continue;
+            }
+
+            for (let x = 0; x < bw; x++) {
+                dst[(addr + x) | 0] = src[s_off + x];
             }
         }
     }
