@@ -42,7 +42,7 @@ export class HSLA extends BaseColor {
         // saturation and luminance should be percentages
         let s: number = Math.floor(this.y_ * 100);
         let l: number = Math.floor(this.z_ * 100);
-        return `hsla(${this.x_}, ${s}, ${l}, ${this.a_})`;
+        return `hsla(${this.x_}, ${s}%, ${l}%, ${this.a_})`;
     }
 
     public hex(): string {

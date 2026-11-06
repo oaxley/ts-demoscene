@@ -24,25 +24,18 @@ export interface JSONResult {
  * Returns:
  *      a JSONResult response
  */
-export function JSONQuery(url: string): Promise<JSONResult> {
-    // parse the AJAX query
-    function parseResults(xhr: XMLHttpRequest): JSONResult {
-        return {
-            ok: (xhr.status >= 200) && (xhr.status < 300),
-            json: <T>() => JSON.parse(xhr.responseText) as T
-        };
+export async function JSONQuery(url: string): Promise<JSONResult> {
+    let response: Response;
+    let text: string;
+    try {
+        response = await fetch(url);
+        text = await response.text();
+    } catch {
+        throw "Unable to retrieve the document!";
     }
 
-    // promise
-    return new Promise<JSONResult>((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.open("get", url);
-        xhr.onerror = (event) => {
-            reject("Unable to retrieve the document!");
-        }
-        xhr.onloadend = (event) => {
-            resolve(parseResults(xhr));
-        }
-        xhr.send();
-    });
+    return {
+        ok: response.ok,
+        json: <T>() => JSON.parse(text) as T
+    };
 }

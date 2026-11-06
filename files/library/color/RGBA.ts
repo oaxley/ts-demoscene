@@ -152,7 +152,7 @@ export class RGBA extends BaseColor {
                 }
                 else {
                     if ( (3 * x) < 2.0 ) {
-                        y = t2 + ((t1 - t2) * (0.666 - x) * 6);
+                        y = t2 + ((t1 - t2) * ((2 / 3) - x) * 6);
                     }
                     else {
                         y = t2;
@@ -160,7 +160,8 @@ export class RGBA extends BaseColor {
                 }
             }
 
-            return y;
+            // guard against rounding errors
+            return Math.min(1.0, Math.max(0.0, y));
         };
 
         // setup local values for easy readiness
@@ -181,9 +182,9 @@ export class RGBA extends BaseColor {
         h = h / 360.0;
 
         // temporary R,G,B
-        tr = ((h + 0.333) > 1.0) ? (h + 0.333 - 1.0) : (h + 0.333);
+        tr = ((h + 1 / 3) > 1.0) ? (h + 1 / 3 - 1.0) : (h + 1 / 3);
         tg = h;
-        tb = ((h - 0.333) < 0.0) ? (h - 0.333 + 1.0) : (h - 0.333);
+        tb = ((h - 1 / 3) < 0.0) ? (h - 1 / 3 + 1.0) : (h - 1 / 3);
 
         // set RGB values
         return new RGBA(

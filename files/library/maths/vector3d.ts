@@ -2,7 +2,7 @@
  * @file    vector3d.ts
  * @author  Sebastien LEGRAND
  *
- * @brief   2D Vector class
+ * @brief   3D Vector class
  */
 
 //----- class
@@ -128,9 +128,9 @@ export class Vector3D {
     // cross product
     public cross(other: Vector3D): Vector3D {
         return new Vector3D (
-            this.y * other.z - this.y * other.z,
-            this.z * other.x - this.z * other.x,
-            this.x * other.y - this.x * other.y
+            this.y * other.z - this.z * other.y,
+            this.z * other.x - this.x * other.z,
+            this.x * other.y - this.y * other.x
         );
     }
 

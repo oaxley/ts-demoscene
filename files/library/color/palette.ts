@@ -37,7 +37,7 @@ export class Palette {
     }
 
     public getColor(i: number): Color|undefined {
-        if ( i > this.colors_.length ) {
+        if ( (i < 0) || (i >= this.colors_.length) ) {
             return undefined;
         }
         else {
@@ -74,11 +74,11 @@ export class Palette {
     public swap(i1: number, i2: number): void {
 
         // check indexes values are within the authorized range
-        if ( (i1 < 0) || (i1 > this.colors_.length) ) {
+        if ( (i1 < 0) || (i1 >= this.colors_.length) ) {
             throw RangeError("swap(): Index #1 is out of range.");
         }
 
-        if ( (i2 < 0) || (i2 > this.colors_.length) ) {
+        if ( (i2 < 0) || (i2 >= this.colors_.length) ) {
             throw RangeError("swap(): Index #2 is out of range.");
         }
 

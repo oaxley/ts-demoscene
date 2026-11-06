@@ -22,6 +22,18 @@ export class Fixed {
             this.value_ = this.floatToFixed(value);
     }
 
+    // create a fixed directly from its raw 16:16 value
+    public static fromRaw(raw: number): Fixed {
+        let f = new Fixed(0);
+        f.value_ = raw | 0;
+        return f;
+    }
+
+    // raw 16:16 value
+    public get raw(): number {
+        return this.value_;
+    }
+
     // convert a float to the fixed format
     private floatToFixed(value: number): number {
         return Math.floor(value * (1 << SHIFT));
@@ -39,21 +51,21 @@ export class Fixed {
 
     // addition between two fixed
     public add(other: Fixed): Fixed {
-        return new Fixed(this.value_ + other.value_);
+        return Fixed.fromRaw(this.value_ + other.value_);
     }
 
     // substraction between two fixed
     public sub(other: Fixed): Fixed {
-        return new Fixed(this.value_ - other.value_);
+        return Fixed.fromRaw(this.value_ - other.value_);
     }
 
     // multiply two fixed
     public mul(other: Fixed): Fixed {
-        return new Fixed((this.value_ * other.value_) >> SHIFT);
+        return Fixed.fromRaw(Math.floor((this.value_ * other.value_) / (1 << SHIFT)));
     }
 
     // divide two fixed
     public div(other: Fixed): Fixed {
-        return new Fixed(Math.floor(this.value_ / other.value_) << SHIFT);
+        return Fixed.fromRaw(Math.floor((this.value_ * (1 << SHIFT)) / other.value_));
     }
 }

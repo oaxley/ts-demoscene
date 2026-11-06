@@ -1,8 +1,8 @@
 /*
- * @file    white.ts
+ * @file    filters.ts
  * @author  Sebastien LEGRAND
  *
- * @brief   White In/Out transition effect
+ * @brief   Color filters transitions (sepia, inverted, ...)
  */
 
 //----- imports
@@ -46,7 +46,7 @@ export namespace Filter {
 
         // compute the new values for RGBA
         protected compute(time: number, value: number): number {
-            let [ r, g, b, a, t ] = RGBA.fromUInt32(value);
+            let [ r, g, b, a ] = RGBA.fromUInt32(value);
             return RGBA.toUInt32(255-r, 255-g, 255-b, a);
         }
     }
