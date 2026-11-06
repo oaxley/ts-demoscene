@@ -14,6 +14,7 @@ import { HSVA } from "library/color/HSVA";
 import { Color } from "library/color/color";
 import { COLOR_MODEL } from "library/color/basecolor";
 import { Palette } from "library/color/palette";
+import { Surface } from "library/gfx/surface";
 
 //----- tests
 describe("RGBA", () => {
@@ -84,5 +85,30 @@ describe("Palette bounds", () => {
         expect(() => palette.swap(2, 0)).toThrow(RangeError);
         palette.swap(0, 1);
         expect((palette.getColor(0)!.color as RGBA).red).toBe(4);
+    });
+});
+
+describe("RGBA unsigned 32-bit values", () => {
+    test("toUInt32 / uint32 are unsigned", () => {
+        expect(RGBA.toUInt32(255, 255, 255, 255)).toBe(0xffffffff);
+        expect(new RGBA(0x11, 0x22, 0x33, 0xff).uint32).toBe(0xff332211);
+    });
+
+    test("fromUInt32 alpha >= 0x80", () => {
+        expect(RGBA.fromUInt32(0xff332211)).toEqual([0x11, 0x22, 0x33, 0xff]);
+        expect(RGBA.fromUInt32(-1)).toEqual([255, 255, 255, 255]);
+    });
+});
+
+describe("Surface.blend", () => {
+    test("opacity with opaque pixels, RGBA mask", () => {
+        const dst = new Surface({ width: 2, height: 1 });
+        const src = new Surface({ width: 2, height: 1 });
+        dst.data32.fill(new RGBA(0, 0, 0).uint32);
+        src.data32.set([new RGBA(200, 100, 50).uint32, new RGBA(1, 2, 3).uint32]);
+
+        dst.blend({ x: 0, y: 0 }, src, undefined, 0.5, new RGBA(1, 2, 3));
+        expect(RGBA.fromUInt32(dst.data32[0])).toEqual([100, 50, 25, 255]);
+        expect(RGBA.fromUInt32(dst.data32[1])).toEqual([0, 0, 0, 255]);
     });
 });

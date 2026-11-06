@@ -510,6 +510,7 @@ export class Surface {
         const src = other.framebuffer_!.data32;
         const dst = this.framebuffer_!.data32;
         const blending = (opacity !== undefined) && (opacity < 1.0);
+        const maskValue = (mask === undefined) ? undefined : ((mask instanceof RGBA) ? mask.uint32 : (mask >>> 0));
 
         // copy the image
         for (let y = ty; y < (ty + th); y++) {
@@ -531,8 +532,8 @@ export class Surface {
                 }
 
                 // mask is defined
-                if (mask) {
-                    if (value == mask) {
+                if (maskValue !== undefined) {
+                    if (value == maskValue) {
                         continue;
                     }
                 }
@@ -543,8 +544,8 @@ export class Surface {
                     let dval = dst[d_idx] >>> 0;
 
                     // extract RGBA values (same as RGBA.fromUInt32)
-                    let sr = value & 0xff, sg = (value & 0xff00) >> 8, sb = (value & 0xff0000) >> 16, sa = (value & 0xff000000) >> 24;
-                    let dr = dval & 0xff,  dg = (dval & 0xff00) >> 8,  db = (dval & 0xff0000) >> 16,  da = (dval & 0xff000000) >> 24;
+                    let sr = value & 0xff, sg = (value & 0xff00) >> 8, sb = (value & 0xff0000) >> 16, sa = value >>> 24;
+                    let dr = dval & 0xff,  dg = (dval & 0xff00) >> 8,  db = (dval & 0xff0000) >> 16,  da = dval >>> 24;
 
                     // blending
                     sr = Math.floor(lerp(dr, sr, opacity!));

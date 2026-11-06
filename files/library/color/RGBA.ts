@@ -36,7 +36,8 @@ export class RGBA extends BaseColor {
 
     // create an int32 value from arbitrary values
     public static toUInt32(r: number, g: number, b: number, a: number = 255): number {
-        return ((a & 0xff) << 24) | ((b & 0xff) << 16) | ((g & 0xff) << 8) | (r & 0xff) >>> 0;
+        // unsigned result ('>>>' used to apply to the red component only)
+        return (((a & 0xff) << 24) | ((b & 0xff) << 16) | ((g & 0xff) << 8) | (r & 0xff)) >>> 0;
     }
     public static fromUInt32(v: number): number[] {
         // ensure v is UInt32
@@ -45,7 +46,7 @@ export class RGBA extends BaseColor {
             v & 0x000000ff,
             (v & 0x0000ff00) >> 8,
             (v & 0x00ff0000) >> 16,
-            (v & 0xff000000) >> 24
+            (v & 0xff000000) >>> 24     // unsigned: alpha >= 0x80 used to be negative
         ];
     }
 
