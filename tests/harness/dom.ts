@@ -14,10 +14,8 @@ import path from "path";
 import { PNG } from "pngjs";
 import jpeg from "jpeg-js";
 
-
 //----- globals
 const ROOT = path.resolve(__dirname, "../..");
-
 
 //----- ImageData
 export class FakeImageData {
@@ -33,11 +31,10 @@ export class FakeImageData {
         } else {
             this.data = a;
             this.width = b;
-            this.height = c ?? (a.length / 4 / b);
+            this.height = c ?? a.length / 4 / b;
         }
     }
 }
-
 
 //----- assets
 // map a public URL (/images/assets/<effect>.<file>) back to the source file
@@ -50,7 +47,7 @@ export function resolveAsset(url: string): string {
 }
 
 // decode an image file into RGBA pixels
-function decode(file: string): { width: number, height: number, data: Uint8ClampedArray } {
+function decode(file: string): { width: number; height: number; data: Uint8ClampedArray } {
     const buffer = fs.readFileSync(file);
     if (file.endsWith(".png")) {
         const png = PNG.sync.read(buffer);
@@ -59,7 +56,6 @@ function decode(file: string): { width: number, height: number, data: Uint8Clamp
     const img = jpeg.decode(buffer, { useTArray: true, formatAsRGBA: true });
     return { width: img.width, height: img.height, data: new Uint8ClampedArray(img.data) };
 }
-
 
 //----- Image
 export class FakeImage {
@@ -90,7 +86,6 @@ export class FakeImage {
         }, 0);
     }
 }
-
 
 //----- Canvas
 export class FakeContext2D {
@@ -180,7 +175,6 @@ export class FakeCanvas {
     }
 }
 
-
 //----- install
 export function installDom(): void {
     const g = globalThis as any;
@@ -193,7 +187,7 @@ export function installDom(): void {
                 throw new Error(`Unsupported element: ${tag}`);
             }
             return new FakeCanvas();
-        }
+        },
     };
     g.requestAnimationFrame = () => 0;
 }

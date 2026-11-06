@@ -1,7 +1,7 @@
 # ts-demoscene
 
 ![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg?style=flat-square)
-![Typescript](https://img.shields.io/badge/Typescript-4.4.2-blue?style=flat-square)
+![Typescript](https://img.shields.io/badge/Typescript-5.9-blue?style=flat-square)
 
 ---
 
@@ -30,67 +30,79 @@ An attempt to recreate all the old demoscene effects from the 90s in Typescript 
 - [Scroller](./files/effects/ts-scroller/README.md)
 - [Water](./files/effects/ts-water/README.md)
 
-
 ---
 
-## NodeJS / Typescript / Webpack
+## NodeJS / Typescript / esbuild
 
 ### NodeJS installation (taken from [here](https://nodejs.org/en/download/package-manager))
 
-``` bash
+```bash
 # installs nvm (Node Version Manager)
 $ curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.0/install.sh | bash
 
 # restart the shell
 $ exec $SHELL
 
-# download and install Node.js (you may need to restart the terminal)
-$ nvm install 20
+# download and install Node.js 20 or later
+$ nvm install 22
 
-# verifies the right Node.js version is in the environment
-$ node -v # should print `v20.18.0`
-
-# verifies the right npm version is in the environment
-$ npm -v # should print `10.8.2`
+# verifies the Node.js version
+$ node -v
 ```
 
-### Typescript installation
+### Dependencies installation
 
-``` bash
-# install Typescript
-$ npm install typescript
-
-# verify the installed version
-$ npx tsc --version # should print `Version 4.4.4`
-```
-
-### Webpack installation
-
-``` bash
-# install webpack
-$ npm install webpack
-
-# check the version
-$ npx webpack --version # should print `webpack: 5.95.0`
+```bash
+# install all the dependencies (Typescript, esbuild, ...)
+$ npm install
 ```
 
 ## Compile & Running
 
 ### Compiling the effects
 
-``` bash
-$ npx webpack --mode development
+```bash
+# development build (with source maps)
+$ npm run build
+
+# production build (minified)
+$ npm run build:prod
 ```
 
 All the files will be stored in a `public` directory.
 
 ### Running
 
-``` bash
+```bash
 $ npm start
 ```
 
-An Express backend will start and listen for connections on `localhost:8080`.
+An Express backend will start and listen for connections on `localhost:8080`
+(use the `HOST` and `PORT` environment variables to change it).
+
+### Development
+
+```bash
+# rebuild on changes and restart the server
+$ npm run dev
+```
+
+### Checks & Tests
+
+```bash
+# type checking and linting
+$ npm run typecheck
+$ npm run lint
+
+# frame-hash regression tests (every effect must render the same pixels
+# as the references stored in tests/golden)
+$ npm test
+
+# update the references (only when a visual change is intended)
+$ npm run test:update
+```
+
+A `Makefile` is also available (`make build`, `make run`, `make test`, ...).
 
 ---
 

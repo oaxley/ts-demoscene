@@ -14,32 +14,29 @@ import { IAnimation } from "library/core/animation";
 import { FakeCanvas } from "./dom";
 import { seedRandom } from "./random";
 
-
 //----- globals
 export const WIDTH = 640;
 export const HEIGHT = 480;
 
-const SEED = 0xC0FFEE;
-const FAKE_NOW = 123456.789;    // used as Noise seed through performance.now()
-const T0 = 1000;                // first timestamp (ms)
-const DT = 50;                  // time between frames (ms), > 40ms throttles
-
+const SEED = 0xc0ffee;
+const FAKE_NOW = 123456.789; // used as Noise seed through performance.now()
+const T0 = 1000; // first timestamp (ms)
+const DT = 50; // time between frames (ms), > 40ms throttles
 
 //----- interfaces
 export interface EffectResult {
     frames: number;
-    checkpoints: Record<string, string>;    // frame index -> hash of canvas
-    final: string;                          // hash chained over all frames
+    checkpoints: Record<string, string>; // frame index -> hash of canvas
+    final: string; // hash chained over all frames
 }
 
 type EffectClass = new (display: Display) => IAnimation;
-
 
 //----- functions
 // wait for pending asset loads (setTimeout based) to complete
 async function settle(effect: IAnimation): Promise<void> {
     for (let i = 0; i < 200 && !effect.isAnimated; i++) {
-        await new Promise(resolve => setTimeout(resolve, 0));
+        await new Promise((resolve) => setTimeout(resolve, 0));
     }
     if (!effect.isAnimated) {
         throw new Error(`Effect '${effect.name}' never started`);
@@ -83,7 +80,7 @@ export async function runEffect(Effect: EffectClass, frames = 200, every = 20): 
 
         const h = hash(ctx.buffer);
         chain.update(h);
-        if ((i % every) === every - 1 || i === 0) {
+        if (i % every === every - 1 || i === 0) {
             checkpoints[String(i)] = h;
         }
     }
@@ -93,6 +90,6 @@ export async function runEffect(Effect: EffectClass, frames = 200, every = 20): 
     return {
         frames,
         checkpoints,
-        final: chain.digest("hex").slice(0, 16)
+        final: chain.digest("hex").slice(0, 16),
     };
 }

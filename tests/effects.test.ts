@@ -30,7 +30,6 @@ import { Tunnel } from "../files/effects/ts-tunnel/src/tunnel";
 import { Twister } from "../files/effects/ts-twister/src/twister";
 import { Water } from "../files/effects/ts-water/src/water";
 
-
 //----- globals
 const EFFECTS = {
     "ts-flames": Flames,
@@ -51,12 +50,10 @@ const EFFECTS = {
     "ts-water": Water,
 };
 
-
 //----- tests
 describe("effects render identical frames", () => {
     test.each(Object.entries(EFFECTS))("%s", async (name, Effect) => {
         const result = await runEffect(Effect);
-        await expect(JSON.stringify(result, null, 4) + "\n")
-            .toMatchFileSnapshot(`golden/${name}.json`);
+        await expect(JSON.stringify(result, null, 4) + "\n").toMatchFileSnapshot(`golden/${name}.json`);
     });
 });
