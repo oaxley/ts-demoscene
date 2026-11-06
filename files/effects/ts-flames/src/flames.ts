@@ -14,6 +14,8 @@ import { Palette } from "library/color/palette";
 import { Color } from "library/color/color";
 import { RGBA } from "library/color/RGBA";
 import { Point2D, Point3D } from "library/core/interfaces";
+import { bresenham } from "library/gfx/bresenham";
+import { TrigTables, projectSameAngle } from "library/maths/projection";
 
 
 //----- globals
@@ -31,8 +33,7 @@ export class Flames extends IAnimation {
     private palette_: Palette;
     private flames_ : number[];
 
-    private costable_: number[];            // precomputed cosinus table
-    private sintable_: number[];            // precomputed sinus table
+    private tables_: TrigTables;            // precomputed cosinus/sinus tables
 
     private cube3D_: Point3D[];             // the initial cube in 3D
     private cube2D_: Point2D[];             // the cube after projecting on screen
@@ -50,8 +51,6 @@ export class Flames extends IAnimation {
         // set the vars
         this.palette_ = new Palette();
         this.flames_  = [];
-        this.costable_ = [];
-        this.sintable_ = [];
 
         // create the palette
         this.createPalette();
@@ -62,7 +61,7 @@ export class Flames extends IAnimation {
         }
 
         // create the cos/sin precompute tables
-        this.createTables();
+        this.tables_ = new TrigTables();
 
         // initialize the 3D cube
         this.cube3D_ = [
@@ -132,17 +131,6 @@ export class Flames extends IAnimation {
         }
     }
 
-    // create sin/cos precompute tables
-    private createTables(): void {
-        this.costable_ = [];
-        this.sintable_ = [];
-
-        for (let i = 0; i < 360; i++) {
-            let angle = (i * Math.PI) / 180.0;
-            this.costable_[i] = Math.cos(angle);
-            this.sintable_[i] = Math.sin(angle);
-        }
-    }
 
     // set a white pixel in the flame buffer
     private setPixel(x: number, y: number): void {
@@ -154,83 +142,13 @@ export class Flames extends IAnimation {
 
     // compute the 2D projection of the 3D object
     private projection(angle: number, center: Point2D): void {
-        // because we use the same angle for all the axis, we can optimize
-        // a bit the computation
-        let c = this.costable_[angle];
-        let s = this.sintable_[angle];
-        let ss = this.sintable_[angle] * this.sintable_[angle];
-
-        let m00 = this.costable_[angle] * this.costable_[angle];
-        let m10 = this.sintable_[angle] * this.costable_[angle];
-        let m20 = -this.sintable_[angle];
-
-        let m01 = m10 * this.sintable_[angle] - m10;
-        let m11 = ss * this.sintable_[angle] + m00;
-        let m21 = m10;
-
-        let m02 = m10 * this.costable_[angle] + ss;
-        let m12 = m01;
-        let m22 = m00;
-
-        let a0 = -(m01 * m00);
-        let a1 = -(m11 * m10);
-        let a2 = -(m21 * m20)
-
-        for (let i = 0; i < 8; i++) {
-            let x = this.cube3D_[i].x;
-            let y = this.cube3D_[i].y;
-            let z = this.cube3D_[i].z;
-            let xy = -x*y;
-
-            let px = (m01 + x) * (m00 + y) + a0 + xy + m02*z;
-            let py = (m11 + x) * (m10 + y) + a1 + xy + m12*z;
-            let pz = (m21 + x) * (m20 + y) + a2 + xy + m22*z;
-
-            this.cube2D_[i].x = (center.x) + Math.floor((px * ZOOM) / (pz + this.depth_));
-            this.cube2D_[i].y = (center.y) + Math.floor((py * ZOOM) / (pz + this.depth_));
-        }
+        projectSameAngle(this.cube3D_, this.cube2D_, this.tables_.cos[angle], this.tables_.sin[angle],
+                         center, this.depth_, ZOOM);
     }
 
     // trace a line in the flame buffer with the Bresenham algorithm
     private line(p1: Point2D, p2: Point2D): void {
-        let incrx: number, incry: number, x: number, y: number;
-        let delta: number, dx: number, dy: number;
-
-        [ incrx, incry, x, y ] = [ 1, 1, p1.x, p1.y];
-        this.setPixel(x, y);
-
-        if ( p1.x > p2.x )
-            incrx = -1;
-        if ( p1.y > p2.y )
-            incry = -1;
-
-        dx = Math.abs(p1.x - p2.x);
-        dy = Math.abs(p1.y - p2.y);
-
-        if ( dx > dy ) {
-            delta = dx / 2;
-            for (let i = 1; i <= dx; i++) {
-                x += incrx;
-                delta += dy;
-                if ( delta >= dx ) {
-                    delta -= dx;
-                    y += incry;
-                }
-                this.setPixel(x, y);
-            }
-        }
-        else {
-            delta = dy / 2;
-            for (let i = 1; i <= dy; i++) {
-                y += incry;
-                delta += dx;
-                if ( delta >= dy ) {
-                    delta -= dy;
-                    x += incrx;
-                }
-                this.setPixel(x, y);
-            }
-        }
+        bresenham(p1, p2, (x, y) => this.setPixel(x, y));
     }
 
     // draw the cube

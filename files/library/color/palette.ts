@@ -7,12 +7,14 @@
 
 //----- imports
 import { Color } from "./color";
-import { Components } from "./basecolor";
+import { Components, COLOR_MODEL } from "./basecolor";
+import { RGBA } from "./RGBA";
 
 //----- class
 export class Palette {
     //----- members
     private colors_: Color[];
+    private lut_   : Uint32Array|undefined;     // cached 32-bit values
 
     //----- methods
     constructor() {
@@ -31,6 +33,7 @@ export class Palette {
 
     public set push(c: Color) {
         this.colors_.push(c);
+        this.lut_ = undefined;
     }
 
     public getColor(i: number): Color|undefined {
@@ -44,6 +47,28 @@ export class Palette {
 
     public setColor(i: number, c: Color): void {
         this.colors_[i] = c;
+        this.lut_ = undefined;
+    }
+
+    /* palette as packed 32-bit RGBA values (same layout as Surface.data32)
+     *
+     * The array is cached and rebuilt only when the palette changes. Missing
+     * entries are set to 0.
+     */
+    public toUint32Array(): Uint32Array {
+        if (this.lut_ === undefined || this.lut_.length != this.colors_.length) {
+            let lut = new Uint32Array(this.colors_.length);
+            for (let i = 0; i < this.colors_.length; i++) {
+                let c = this.colors_[i];
+                if (c === undefined) {
+                    continue;
+                }
+                let rgba = (c.color.model == COLOR_MODEL.RGBA) ? <RGBA> c.color : RGBA.from(c.color);
+                lut[i] = rgba ? rgba.uint32 : 0;
+            }
+            this.lut_ = lut;
+        }
+        return this.lut_;
     }
 
     public swap(i1: number, i2: number): void {
@@ -63,6 +88,7 @@ export class Palette {
         }
 
         [ this.colors_[i1], this.colors_[i2] ] = [ this.colors_[i2], this.colors_[i1] ];
+        this.lut_ = undefined;
     }
 
     public gradient(begin: Color, end: Color, steps: number): void {
@@ -95,6 +121,7 @@ export class Palette {
         for(var i = 0; i < steps; i++) {
             // add this new color
             this.colors_.push( new Color(v1.m, x, y, z, a) );
+            this.lut_ = undefined;
 
             // increment values
             x += dx;

@@ -9,7 +9,9 @@
 import { IAnimation } from "library/core/animation";
 import { States } from "library/core/manager";
 import { Display } from "library/core/display";
-import { lerp, radians } from "library/maths/utils";
+import { lerp } from "library/maths/utils";
+import { bresenham } from "library/gfx/bresenham";
+import { TrigTables, projectSameAngle } from "library/maths/projection";
 import { Point2D, Point3D } from "library/core/interfaces";
 import { RGBA } from "library/color/RGBA";
 import { Surface } from "library/gfx/surface";
@@ -24,8 +26,7 @@ const TRANPARENCY = 0.5;
 export class Glenz extends IAnimation {
 
     //----- members
-    private costable_: number[];        // pre-computed cosine table
-    private sintable_: number[];        // pre-computed sine table
+    private tables_: TrigTables;        // pre-computed cosine/sine tables
 
     private plane3D_: Point3D[];        // the 3D plane
     private plane2D_: Point2D[];        // the 3D plane projection on the 2D space
@@ -72,57 +73,14 @@ export class Glenz extends IAnimation {
         ];
 
         // initialize the cos/sin tables
-        this.costable_ = [];
-        this.sintable_ = [];
-        this.createTables();
+        this.tables_ = new TrigTables();
     }
 
-    // precompute cos/sin tables
-    private createTables(): void {
-        for (let i = 0; i < 360; i++) {
-            let angle = radians(i);
-            this.costable_[i] = Math.cos(angle);
-            this.sintable_[i] = Math.sin(angle);
-        }
-    }
 
     // compute the 2D projection
     private projection(angle: number, center: Point2D): void {
-        // because we use the same angle for all the axis, we can optimize
-        // a bit the computation
-        let c = this.costable_[angle];
-        let s = this.sintable_[angle];
-        let ss = this.sintable_[angle] * this.sintable_[angle];
-
-        let m00 = this.costable_[angle] * this.costable_[angle];
-        let m10 = this.sintable_[angle] * this.costable_[angle];
-        let m20 = -this.sintable_[angle];
-
-        let m01 = m10 * this.sintable_[angle] - m10;
-        let m11 = ss * this.sintable_[angle] + m00;
-        let m21 = m10;
-
-        let m02 = m10 * this.costable_[angle] + ss;
-        let m12 = m01;
-        let m22 = m00;
-
-        let a0 = -(m01 * m00);
-        let a1 = -(m11 * m10);
-        let a2 = -(m21 * m20)
-
-        for (let i = 0; i < this.plane3D_.length; i++) {
-            let x = this.plane3D_[i].x;
-            let y = this.plane3D_[i].y;
-            let z = this.plane3D_[i].z;
-            let xy = -x*y;
-
-            let px = (m01 + x) * (m00 + y) + a0 + xy + m02*z;
-            let py = (m11 + x) * (m10 + y) + a1 + xy + m12*z;
-            let pz = (m21 + x) * (m20 + y) + a2 + xy + m22*z;
-
-            this.plane2D_[i].x = (center.x) + Math.floor((px * ZOOM) / (pz + this.depth_));
-            this.plane2D_[i].y = (center.y) + Math.floor((py * ZOOM) / (pz + this.depth_));
-        }
+        projectSameAngle(this.plane3D_, this.plane2D_, this.tables_.cos[angle], this.tables_.sin[angle],
+                         center, this.depth_, ZOOM);
     }
 
     // dummy function to set xmin/xmax/ymin/ymax
@@ -159,44 +117,7 @@ export class Glenz extends IAnimation {
 
     // function to compute xmin/xmax values
     private xline(p1: Point2D, p2: Point2D): void {
-        let incrx: number, incry: number, x: number, y: number;
-        let delta: number, dx: number, dy: number;
-
-        [ incrx, incry, x, y ] = [ 1, 1, p1.x, p1.y];
-        this.xset(x, y);
-
-        if ( p1.x > p2.x )
-            incrx = -1;
-        if ( p1.y > p2.y )
-            incry = -1;
-
-        dx = Math.abs(p1.x - p2.x);
-        dy = Math.abs(p1.y - p2.y);
-
-        if ( dx > dy ) {
-            delta = dx / 2;
-            for (let i = 1; i <= dx; i++) {
-                x += incrx;
-                delta += dy;
-                if ( delta >= dx ) {
-                    delta -= dx;
-                    y += incry;
-                }
-                this.xset(x, y);
-            }
-        }
-        else {
-            delta = dy / 2;
-            for (let i = 1; i <= dy; i++) {
-                y += incry;
-                delta += dx;
-                if ( delta >= dy ) {
-                    delta -= dy;
-                    x += incrx;
-                }
-                this.xset(x, y);
-            }
-        }
+        bresenham(p1, p2, (x, y) => this.xset(x, y));
     }
 
     // update the animation
