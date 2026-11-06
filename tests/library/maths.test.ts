@@ -12,6 +12,7 @@ import { radians, degrees, map, constrain, norm, lerp } from "library/maths/util
 import { Vector2D } from "library/maths/vector2d";
 import { Vector3D } from "library/maths/vector3d";
 import { Fixed } from "library/maths/fixed";
+import { Mersenne } from "library/maths/mersenne";
 
 //----- tests
 describe("utils", () => {
@@ -90,5 +91,34 @@ describe("Fixed (16:16)", () => {
         expect(new Fixed(100).mul(new Fixed(100)).int()).toBe(10000);
         expect(new Fixed(7.5).div(new Fixed(2.5)).float()).toBe(3);
         expect(new Fixed(1).div(new Fixed(4)).float()).toBe(0.25);
+    });
+});
+
+describe("Mersenne (MT19937)", () => {
+    // expose the raw 32-bit output for the reference values
+    class RawMersenne extends Mersenne {
+        public next(): number {
+            return this.value();
+        }
+    }
+
+    test("reference sequence (seed 5489)", () => {
+        const mt = new RawMersenne();
+        mt.initialize(5489);
+        expect([mt.next(), mt.next(), mt.next()]).toEqual([3499211612, 581869302, 3890346734]);
+
+        // 10000th output of the reference implementation
+        for (let i = 3; i < 9999; i++) mt.next();
+        expect(mt.next()).toBe(4123659995);
+    });
+
+    test("rand() in [0, 1]", () => {
+        const mt = new Mersenne();
+        mt.initialize(42);
+        for (let i = 0; i < 2000; i++) {
+            const r = mt.rand();
+            expect(r).toBeGreaterThanOrEqual(0);
+            expect(r).toBeLessThanOrEqual(1);
+        }
     });
 });
