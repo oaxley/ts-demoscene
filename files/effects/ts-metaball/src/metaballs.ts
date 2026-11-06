@@ -12,7 +12,6 @@ import { Display } from "library/core/display";
 import { Palette } from "library/color/palette";
 import { Color } from "library/color/color";
 import { COLOR_MODEL } from "library/color/basecolor";
-import { RGBA } from "library/color/RGBA";
 
 
 //----- globals
@@ -40,6 +39,9 @@ export class Metaballs extends IAnimation {
     //----- members
     private palette_  : Palette;
     private metaballs_: MetaParticule[];
+    private dx2_      : Float64Array;   // squared X distances (scratch)
+    private dy2_      : Float64Array;   // squared Y distances (scratch)
+    private cr_       : Float64Array;   // COEFF * radius (scratch)
 
 
     //----- methods
@@ -49,6 +51,9 @@ export class Metaballs extends IAnimation {
         // set the vars
         this.palette_ = new Palette();
         this.metaballs_ = [];
+        this.dx2_ = new Float64Array(NUM_PARTICULES * display.width);
+        this.dy2_ = new Float64Array(NUM_PARTICULES);
+        this.cr_  = new Float64Array(NUM_PARTICULES);
 
         // create the grayscale palette
         this.createPalette();
@@ -102,28 +107,45 @@ export class Metaballs extends IAnimation {
 
     // render the animation on screen
     protected render(time?: number): void {
-        // compute the effect
-        for (let y = 0; y < this.height_; y++) {
-            for (let x = 0; x < this.width_; x++) {
+        const w = this.width_;
+        const h = this.height_;
+        const data32 = this.display_.surface.data32;
+        const lut = this.palette_.toUint32Array();
+        const balls = this.metaballs_;
 
+        // squared X distances for each particule / column, and COEFF * radius
+        const dx2 = this.dx2_;
+        const dy2 = this.dy2_;
+        const cr  = this.cr_;
+        for (let k = 0; k < NUM_PARTICULES; k++) {
+            const mx = balls[k].x;
+            for (let x = 0; x < w; x++) {
+                dx2[k * w + x] = (x - mx) * (x - mx);
+            }
+            cr[k] = COEFF * balls[k].r;
+        }
+
+        // compute the effect
+        let addr = 0;
+        for (let y = 0; y < h; y++) {
+            for (let k = 0; k < NUM_PARTICULES; k++) {
+                const my = balls[k].y;
+                dy2[k] = (y - my) * (y - my);
+            }
+
+            for (let x = 0; x < w; x++) {
                 // compute the interference between each particules
                 let sum = 0;
                 for (let k = 0; k < NUM_PARTICULES; k++) {
-
-                    let d = Math.sqrt( (x - this.metaballs_[k].x) * (x - this.metaballs_[k].x) + (y - this.metaballs_[k].y) * (y - this.metaballs_[k].y) );
-                    let c = Math.floor(COEFF * this.metaballs_[k].r / d);
-
-                    sum += c;
+                    let d = Math.sqrt(dx2[k * w + x] + dy2[k]);
+                    sum += Math.floor(cr[k] / d);
                 }
 
                 if (sum > 255)
                     sum = 255;
 
-                // retrieve the associated color from the palette
-                let color = <RGBA> this.palette_.getColor(sum)!.color;
-
-                // set the pixel
-                this.display_.surface.setPixel(x, y, color);
+                // set the pixel with the associated color from the palette
+                data32[addr++] = lut[sum];
             }
         }
 
@@ -131,10 +153,4 @@ export class Metaballs extends IAnimation {
         this.display_.draw();
     }
 
-    // main animation function
-    protected main(timestamp: number): void {
-        this.update(timestamp);
-        this.render(timestamp);
-        requestAnimationFrame(this.main.bind(this));
-    }
 }

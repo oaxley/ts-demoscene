@@ -44,36 +44,15 @@ export class ImgNoise extends IAnimation {
 
     // update the animation
     protected update(time?: number): void {
-        // retrieve src and dst image data
-        let src_data = this.image_.image;
-        let dst_data = this.display_.surface.image;
+        const src = this.image_.data32;
+        const dst = this.display_.surface.data32;
+        const noise = this.noiseMap_;
+        const threshold = this.threshold_;
 
         // go through the whole screen to trigger pixels
-        for (let y = 0; y < this.display_.height; y++) {
-            let offset = y * this.display_.width;
-
-            for (let x = 0; x < this.display_.width; x++) {
-                let k = this.noiseMap_[ y * this.display_.width + x ];
-
-                if ( k >= this.threshold_ ) {
-                    dst_data.data[(offset << 2) + 0] = src_data.data[(offset << 2) + 0];
-                    dst_data.data[(offset << 2) + 1] = src_data.data[(offset << 2) + 1];
-                    dst_data.data[(offset << 2) + 2] = src_data.data[(offset << 2) + 2];
-                    dst_data.data[(offset << 2) + 3] = src_data.data[(offset << 2) + 3];
-                } else {
-                    dst_data.data[(offset << 2) + 0] = 0;
-                    dst_data.data[(offset << 2) + 1] = 0;
-                    dst_data.data[(offset << 2) + 2] = 0;
-                    dst_data.data[(offset << 2) + 3] = 0;
-                }
-
-                // next pixel
-                offset++;
-            }
+        for (let i = 0; i < dst.length; i++) {
+            dst[i] = (noise[i] >= threshold) ? src[i] : 0;
         }
-
-        // rewrite the display data
-        this.display_.surface.image = dst_data;
 
         // update the threshold for next frame
         this.threshold_ += this.increment_;

@@ -16,12 +16,14 @@ export class Font {
     //----- members
     private font_: Surface;
     private unit_: Size;
+    private chars_: Map<string, Uint32Array>;    // cached character pixels
 
     //----- methods
     constructor(filename: string, unit: Size) {
         // setup the vars
         this.font_ = new Surface();
         this.unit_ = unit;
+        this.chars_ = new Map();
 
         // load the font
         console.log("Loading font ...");
@@ -38,6 +40,28 @@ export class Font {
     // return the current size unit for this font
     public get unit(): Size {
         return this.unit_;
+    }
+
+    /* return the pixels of a single character (unit.width * unit.height values)
+     *
+     * The returned array is cached and shared: it must not be modified.
+     */
+    public getCharPixels(char: string): Uint32Array {
+        let pixels = this.chars_.get(char);
+        if (pixels === undefined) {
+            let code = char.charCodeAt(0) - 32;
+            let x = (code % 16) * this.unit_.width;
+            let y = (code >> 4) * this.unit_.height;
+
+            pixels = new Uint32Array(this.unit_.width * this.unit_.height);
+
+            // blank character until the font is loaded (not cached)
+            if (this.font_.width > 0) {
+                this.font_.readBlock(x, y, this.unit_.width, this.unit_.height, pixels);
+                this.chars_.set(char, pixels);
+            }
+        }
+        return pixels;
     }
 
     // return the image data for a single character

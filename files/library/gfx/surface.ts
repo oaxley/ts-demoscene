@@ -201,16 +201,14 @@ export class Surface {
         return c;
     }
 
-    /* get a block of data
+    /* read a block of pixels into a 32-bit array (bw * bh values)
      *
      * Pixels are addressed linearly (y * width + x): a block crossing the left
      * or right border wraps on the previous/next line; pixels outside of the
      * framebuffer are read as 0.
      */
-    public getImgBlock(bx: number, by: number, bw: number, bh: number): ImageData {
-        let imgdata = new ImageData(bw, bh);
-        let dst = new Uint32Array(imgdata.data.buffer, imgdata.data.byteOffset, bw * bh);
-        let src = this.framebuffer_!.data32;
+    public readBlock(bx: number, by: number, bw: number, bh: number, out: Uint32Array): void {
+        const src = this.framebuffer_!.data32;
 
         let d_off = 0;
         for (let y = by; y < (by + bh); y++, d_off += bw) {
@@ -218,28 +216,23 @@ export class Surface {
 
             // fast path: the whole row is inside the framebuffer
             if (Number.isInteger(addr) && (addr >= 0) && (addr + bw <= src.length)) {
-                dst.set(src.subarray(addr, addr + bw), d_off);
+                out.set(src.subarray(addr, addr + bw), d_off);
                 continue;
             }
 
             for (let x = 0; x < bw; x++) {
-                dst[d_off + x] = src[(addr + x) | 0] ?? 0;
+                out[d_off + x] = src[((addr + x) << 2) >> 2] ?? 0;
             }
         }
-
-        return imgdata;
     }
 
-    /* put a block of data
+    /* write a block of pixels from a 32-bit array (bw * bh values)
      *
-     * Same addressing as getImgBlock(); pixels outside of the framebuffer are
+     * Same addressing as readBlock(); pixels outside of the framebuffer are
      * ignored.
      */
-    public putImgBlock(imgdata: ImageData, bx: number, by: number): void {
-        let bw = imgdata.width;
-        let bh = imgdata.height;
-        let src = new Uint32Array(imgdata.data.buffer, imgdata.data.byteOffset, bw * bh);
-        let dst = this.framebuffer_!.data32;
+    public writeBlock(data: Uint32Array, bx: number, by: number, bw: number, bh: number): void {
+        const dst = this.framebuffer_!.data32;
 
         let s_off = 0;
         for (let y = by; y < (by + bh); y++, s_off += bw) {
@@ -247,14 +240,28 @@ export class Surface {
 
             // fast path: the whole row is inside the framebuffer
             if (Number.isInteger(addr) && (addr >= 0) && (addr + bw <= dst.length)) {
-                dst.set(src.subarray(s_off, s_off + bw), addr);
+                dst.set(data.subarray(s_off, s_off + bw), addr);
                 continue;
             }
 
             for (let x = 0; x < bw; x++) {
-                dst[(addr + x) | 0] = src[s_off + x];
+                dst[((addr + x) << 2) >> 2] = data[s_off + x];
             }
         }
+    }
+
+    // get a block of data (see readBlock)
+    public getImgBlock(bx: number, by: number, bw: number, bh: number): ImageData {
+        let imgdata = new ImageData(bw, bh);
+        this.readBlock(bx, by, bw, bh, new Uint32Array(imgdata.data.buffer, imgdata.data.byteOffset, bw * bh));
+        return imgdata;
+    }
+
+    // put a block of data (see writeBlock)
+    public putImgBlock(imgdata: ImageData, bx: number, by: number): void {
+        let bw = imgdata.width;
+        let bh = imgdata.height;
+        this.writeBlock(new Uint32Array(imgdata.data.buffer, imgdata.data.byteOffset, bw * bh), bx, by, bw, bh);
     }
 
     // draw a line with the Bresenham algorithm
@@ -274,9 +281,11 @@ export class Surface {
             [x1, x2] = [x2, x1];
         }
 
+        const value  = c.uint32;
+        const data32 = this.framebuffer_!.data32;
         let addr = p1.y * this.width_ + x1;
         for (let i = x1; i <= x2; i++, addr += 1) {
-            this.framebuffer_!.data32[addr] = c.uint32;
+            data32[addr] = value;
         }
     }
 
@@ -290,9 +299,11 @@ export class Surface {
             [y1, y2] = [y2, y1];
         }
 
+        const value  = c.uint32;
+        const data32 = this.framebuffer_!.data32;
         let addr = y1 * this.width_ + p1.x;
         for (let i = y1; i <= y2; i++, addr += this.width_) {
-            this.framebuffer_!.data32[addr] = c.uint32;
+            data32[addr] = value;
         }
     }
 
@@ -481,6 +492,10 @@ export class Surface {
             th = this.height_ - to.y;
         }
 
+        const src = other.framebuffer_!.data32;
+        const dst = this.framebuffer_!.data32;
+        const blending = (opacity !== undefined) && (opacity < 1.0);
+
         // copy the image
         for (let y = ty; y < (ty + th); y++) {
             // compute src / dst addresses
@@ -488,45 +503,45 @@ export class Surface {
             let d_addr = (to.y + (y - ty)) * this.width_;
 
             for (let x = tx; x < (tx + tw); x++) {
-                // set the corresponding frame-buffer to this address
-                other.address = s_addr + x;
-                this.address  = d_addr + (to.x + (x - tx));
+                // frame-buffer indexes (same truncation as the address accessors)
+                let s_idx = ((s_addr + x) << 2) >> 2;
+                let d_idx = ((d_addr + (to.x + (x - tx))) << 2) >> 2;
 
-                // source pixel
-                let src = other.streamW;
+                // source pixel (0 when outside of the source)
+                let value = src[s_idx] >>> 0;
 
                 // transparent pixel
-                if ( (src & 0xFF000000) == 0 ) {
+                if ( (value & 0xFF000000) == 0 ) {
                     continue;
                 }
 
                 // mask is defined
                 if (mask) {
-                    if (src == mask) {
+                    if (value == mask) {
                         continue;
                     }
                 }
 
                 // opacity is defined
-                if ((opacity !== undefined) && (opacity < 1.0)) {
+                if (blending) {
                     // retrieve the destination value
-                    let dst = this.readW;
+                    let dval = dst[d_idx] >>> 0;
 
-                    // extract RGBA values
-                    let [ sr, sg, sb, sa ] = RGBA.fromUInt32(src);
-                    let [ dr, dg, db, da ] = RGBA.fromUInt32(dst);
+                    // extract RGBA values (same as RGBA.fromUInt32)
+                    let sr = value & 0xff, sg = (value & 0xff00) >> 8, sb = (value & 0xff0000) >> 16, sa = (value & 0xff000000) >> 24;
+                    let dr = dval & 0xff,  dg = (dval & 0xff00) >> 8,  db = (dval & 0xff0000) >> 16,  da = (dval & 0xff000000) >> 24;
 
                     // blending
-                    sr = Math.floor(lerp(dr, sr, opacity));
-                    sg = Math.floor(lerp(dg, sg, opacity));
-                    sb = Math.floor(lerp(db, sb, opacity));
-                    sa = Math.floor(lerp(da, sa, opacity));
+                    sr = Math.floor(lerp(dr, sr, opacity!));
+                    sg = Math.floor(lerp(dg, sg, opacity!));
+                    sb = Math.floor(lerp(db, sb, opacity!));
+                    sa = Math.floor(lerp(da, sa, opacity!));
 
                     // 'rebuild' the 32-bit value
-                    src = RGBA.toUInt32(sr, sg, sb, sa);
+                    value = RGBA.toUInt32(sr, sg, sb, sa);
                 }
 
-                this.streamW = src;
+                dst[d_idx] = value;
             }
         }
     }

@@ -112,12 +112,11 @@ export class Starfield extends IAnimation {
             }
 
             // retrieve the correct color
-            let c = <RGBA> this.palette_.getColor(star.color)!.color
+            let c = <RGBA> this.palette_.getColor(star.color)!.color;
             this.display_.surface.line({x:ox, y:oy}, {x:px, y:py}, c);
         }
 
         // flip the back-buffer onto the screen
-        this.display_.clear();
         this.display_.draw();
     }
 }

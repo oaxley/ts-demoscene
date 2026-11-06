@@ -24,8 +24,8 @@ export class Water extends IAnimation {
     //----- members
     private image_: Surface;
 
-    private state1_: Array<number>;
-    private state2_: Array<number>;
+    private state1_: Int32Array;
+    private state2_: Int32Array;
     private state_: number;
 
 
@@ -37,13 +37,13 @@ export class Water extends IAnimation {
         this.image_ = new Surface();
 
         let bsize    = this.width_ * this.height_;
-        this.state1_ = new Array(bsize).fill(0);
-        this.state2_ = new Array(bsize).fill(0);
+        this.state1_ = new Int32Array(bsize);
+        this.state2_ = new Int32Array(bsize);
         this.state_  = 0;
     }
 
     // select the current/previous buffer
-    private states():  [number[], number[]] {
+    private states():  [Int32Array, Int32Array] {
         let cur = (this.state_ == 0) ? this.state1_ : this.state2_;
         let old = (this.state_ == 0) ? this.state2_ : this.state1_;
 
@@ -99,9 +99,9 @@ export class Water extends IAnimation {
         // select the current states
         let [cur, old] = this.states();
 
-        // select src and dst images
-        let src_data = this.image_.image;
-        let dst_data = this.display_.surface.image;
+        // select src and dst frame buffers
+        const src = this.image_.data32;
+        const dst = this.display_.surface.data32;
 
         // compute the effect
         for (let y = 1; y < this.height_ - 1; y++) {
@@ -136,14 +136,9 @@ export class Water extends IAnimation {
                     b = 0;
 
                 // retrieve the correct texture pixel
-                let t_offset = (b * this.width_) + a;
-                dst_data.data[(x_offset << 2) + 0] = src_data.data[(t_offset << 2) + 0];
-                dst_data.data[(x_offset << 2) + 1] = src_data.data[(t_offset << 2) + 1];
-                dst_data.data[(x_offset << 2) + 2] = src_data.data[(t_offset << 2) + 2];
-                dst_data.data[(x_offset << 2) + 3] = src_data.data[(t_offset << 2) + 3];
+                dst[x_offset] = src[(b * this.width_) + a];
             }
         }
-        this.display_.surface.image = dst_data;
         this.state_ = (this.state_ + 1) & 1;
     }
 

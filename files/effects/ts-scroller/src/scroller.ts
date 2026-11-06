@@ -98,14 +98,14 @@ export class Scroller extends IAnimation {
 
         this.fontsfc_.clear();
         for (let i = text.begin; i < text.end; i++) {
-            // retrieve the character data
-            let chardata = this.fontmap_.getCharData(text.text.charAt(i));
+            // retrieve the character pixels
+            let chardata = this.fontmap_.getCharPixels(text.text.charAt(i));
 
             // compute the new position
             let y = text.ypos(cy, 40, x, text.value, this.display_.width);
 
             // copy the character on the font surface
-            this.fontsfc_.putImgBlock(chardata, x, y);
+            this.fontsfc_.writeBlock(chardata, x, y, FONT_CHAR_WIDTH, FONT_CHAR_HEIGHT);
 
             // break the loop before going off screen
             x += FONT_CHAR_WIDTH;

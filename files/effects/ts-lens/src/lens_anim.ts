@@ -16,7 +16,9 @@ export class LensAnimation {
     //----- members
     // private context_ : CanvasRenderingContext2D;
     private surface_ : Surface;         // the drawing surface
-    private transMap_: number[];        // deformation map
+    private transMap_: Int32Array;      // deformation map
+    private src_     : Uint32Array;     // source pixels (scratch)
+    private dst_     : Uint32Array;     // transformed pixels (scratch)
     private zoom_    : number;          // lens magnification
     private radius_  : number;          // lens radius
     private diameter_: number;          // lens diameter
@@ -30,7 +32,9 @@ export class LensAnimation {
         this.radius_  = radius;
         this.diameter_= radius * 2;
         this.zoom_    = zoom;
-        this.transMap_= [];
+        this.transMap_= new Int32Array(this.diameter_ * this.diameter_);
+        this.src_     = new Uint32Array(this.diameter_ * this.diameter_);
+        this.dst_     = new Uint32Array(this.diameter_ * this.diameter_);
 
         // compute the transformation map
         this.transMap();
@@ -80,34 +84,19 @@ export class LensAnimation {
         let xl = xc - this.radius_;
         let yl = yc - this.radius_;
 
-        // retrieve the current image data
-        let src_data = this.surface_.getImgBlock(xl, yl, d, d);
+        // retrieve the current pixels
+        const src = this.src_;
+        const dst = this.dst_;
+        const map = this.transMap_;
+        this.surface_.readBlock(xl, yl, d, d, src);
 
-        // destination image
-        let dst_data: ImageData = new ImageData(d, d);
-
-        // got through all the pixels in the source data
-        for(let y = 0; y < d; y++) {
-            let offset = y * d;
-
-            for(let x = 0; x < d; x++) {
-
-                // retrieve the corresponding offset from the transformation map
-                let t_offset = this.transMap_[offset];
-
-                // copy the pixels accordingly
-                dst_data.data[(offset << 2) + 0] = src_data.data[(t_offset << 2) + 0];
-                dst_data.data[(offset << 2) + 1] = src_data.data[(t_offset << 2) + 1];
-                dst_data.data[(offset << 2) + 2] = src_data.data[(t_offset << 2) + 2];
-                dst_data.data[(offset << 2) + 3] = src_data.data[(t_offset << 2) + 3];
-
-                // next pixel
-                offset++;
-            }
+        // go through all the pixels in the source data
+        for (let i = 0; i < dst.length; i++) {
+            dst[i] = src[map[i]];
         }
 
         // apply the transformation
-        this.surface_.putImgBlock(dst_data, xl, yl);
+        this.surface_.writeBlock(dst, xl, yl, d, d);
 
         // create the buble effect
         let c = new RGBA(224, 224, 224);

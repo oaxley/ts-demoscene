@@ -9,7 +9,6 @@
 import { IAnimation } from "library/core/animation";
 import { Display } from "library/core/display";
 import { Surface } from "library/gfx/surface";
-import { RGBA } from "library/color/RGBA";
 
 
 //----- globals
@@ -20,9 +19,11 @@ export class Tunnel extends IAnimation {
 
     //----- members
     private texture_: Surface;
-    private distance_: number[];
-    private angle_: number[];
-    private shade_: number[];
+    // transformation maps (twice the screen size); Float64Array on purpose:
+    // the distance at the very center is NaN, which reads the first texel
+    private distance_: Float64Array;
+    private angle_: Float64Array;
+    private shade_: Float64Array;           // shade factor [0..1]
 
 
     //----- methods
@@ -32,9 +33,10 @@ export class Tunnel extends IAnimation {
 
         // set the vars
         this.texture_  = new Surface();
-        this.distance_ = [];
-        this.angle_    = [];
-        this.shade_    = [];
+        let size = (display.width << 1) * (display.height << 1);
+        this.distance_ = new Float64Array(size);
+        this.angle_    = new Float64Array(size);
+        this.shade_    = new Float64Array(size);
     }
 
     // compute the transformation maps
@@ -63,7 +65,7 @@ export class Tunnel extends IAnimation {
                 // set the maps
                 this.distance_[offset + x] = d;
                 this.angle_[offset + x] = a;
-                this.shade_[offset + x] = Math.min(sq, 255);
+                this.shade_[offset + x] = Math.min(sq, 255) / 255;
             }
         }
     }
@@ -96,39 +98,39 @@ export class Tunnel extends IAnimation {
         let cameraX = (w >> 1) + Math.floor((w >> 2) * Math.sin(time));
         let cameraY = (h >> 1) + Math.floor((h >> 2) * Math.sin(time * 2.0));
 
+        const distance = this.distance_;
+        const angle = this.angle_;
+        const shades = this.shade_;
+        const src = this.texture_.data32;
+        const dst = this.display_.surface.data32;
+        const mw = w << 1;
+
         // go through all the pixels
-        this.display_.surface.address = 0;
+        let addr = 0;
         for (let y = 0; y < h; y++) {
+            let t_off = (y + cameraY) * mw + cameraX;
 
-            for (let x = 0; x < w; x++) {
-                // texture offset
-                let t_off = (y + cameraY) * (w << 1) + (x + cameraX)
-
+            for (let x = 0; x < w; x++, t_off++) {
                 // texture coordinates
-                let tx = Math.floor(this.distance_[t_off] + effectX) % tw;
-                let ty = Math.floor(this.angle_[t_off] + effectY) % th;
+                let tx = Math.floor(distance[t_off] + effectX) % tw;
+                let ty = Math.floor(angle[t_off] + effectY) % th;
 
                 // adjust ty in case it's negative
                 while (ty < 0) {
                     ty += th;
                 }
 
-                // shade value
-                let shade = this.shade_[t_off] / 255;
-
-                // retrieve texture data
-                this.texture_.address = ty * tw + tx;
-                let value = this.texture_.streamW;
+                // retrieve texture data (NaN index -> first texel)
+                let value = src[((ty * tw + tx) << 2) >> 2];
 
                 // compute the new color with the shade
-                let [r, g, b, a] = RGBA.fromUInt32(value);
-                r = Math.floor(r * shade);
-                g = Math.floor(g * shade);
-                b = Math.floor(b * shade);
-                value = RGBA.toUInt32(r, g, b, a);
+                let shade = shades[t_off];
+                let r = Math.floor((value & 0xff) * shade);
+                let g = Math.floor(((value >> 8) & 0xff) * shade);
+                let b = Math.floor(((value >> 16) & 0xff) * shade);
 
                 // copy the pixel back to the screen
-                this.display_.surface.streamW = value;
+                dst[addr++] = (value & 0xff000000) | (b << 16) | (g << 8) | r;
             }
         }
     }

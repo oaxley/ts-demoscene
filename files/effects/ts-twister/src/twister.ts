@@ -41,6 +41,38 @@ export class Twister extends IAnimation {
         this.slice_ = { width: 0, height: 0}
     }
 
+    /* draw a texture slice on a screen line (only if xb < xe: visible face)
+     *
+     * Args:
+     *      y     : screen line
+     *      ot    : offset of the texture line
+     *      slice : slice index [0..3]
+     *      xb, xe: begin / end X positions on the screen (not integers)
+     */
+    private drawSlice(y: number, ot: number, slice: number, xb: number, xe: number): void {
+        if (xb >= xe) {
+            return;
+        }
+
+        // xt begin/end for this slice
+        const xtb = this.slice_.width * slice;
+        const xte = xtb + this.slice_.width;
+
+        const src = this.texture_.data32;
+        const dst = this.display_.surface.data32;
+
+        // same index truncation as the surface address accessors
+        let d_addr = (y * this.display_.width + xb) << 2;
+        let ratio = (xte - xtb) / (xe - xb);
+        let addr = ot + xtb;
+
+        for (let x = xb; x < xe; x++) {
+            dst[d_addr >> 2] = src[(addr << 2) >> 2];
+            d_addr += 4;
+            addr += ratio;
+        }
+    }
+
     // load the assets
     protected init(): Promise<unknown> {
         return this.texture_
@@ -77,70 +109,11 @@ export class Twister extends IAnimation {
             let yt = Math.floor(fv * this.texture_!.height);
             let ot = yt * this.texture_!.width;
 
-            // draw the lines
-            if (x1 < x2) {
-                // xt begin/end for this slice
-                let xtb = this.slice_.width * 0;
-                let xte = xtb + this.slice_.width;
-
-                this.display_.surface.address = (y * this.display_.width + x1);
-                let ratio = (xte - xtb) / (x2 - x1);
-                let addr = ot + xtb;
-
-                for (let x = x1; x < x2; x++) {
-                    this.texture_.address = addr;
-                    this.display_.surface.streamW = this.texture_.streamW;
-                    addr += ratio;
-                }
-            }
-
-            if (x2 < x3) {
-                // xt begin/end for this slice
-                let xtb = this.slice_.width * 1;
-                let xte = xtb + this.slice_.width;
-
-                this.display_.surface.address = (y * this.display_.width + x2);
-                let ratio = (xte - xtb) / (x3 - x2);
-                let addr = ot + xtb;
-
-                for (let x = x2; x < x3; x++) {
-                    this.texture_.address = addr;
-                    this.display_.surface.streamW = this.texture_.streamW;
-                    addr += ratio;
-                }
-            }
-
-            if (x3 < x4) {
-                // xt begin/end for this slice
-                let xtb = this.slice_.width * 2;
-                let xte = xtb + this.slice_.width;
-
-                this.display_.surface.address = (y * this.display_.width + x3);
-                let ratio = (xte - xtb) / (x4 - x3);
-                let addr = ot + xtb;
-
-                for (let x = x3; x < x4; x++) {
-                    this.texture_.address = addr;
-                    this.display_.surface.streamW = this.texture_.streamW;
-                    addr += ratio;
-                }
-            }
-
-            if (x4 < x1) {
-                // xt begin/end for this slice
-                let xtb = this.slice_.width * 3;
-                let xte = xtb + this.slice_.width;
-
-                this.display_.surface.address = (y * this.display_.width + x4);
-                let ratio = (xte - xtb) / (x1 - x4);
-                let addr = ot + xtb;
-
-                for (let x = x4; x < x1; x++) {
-                    this.texture_.address = addr;
-                    this.display_.surface.streamW = this.texture_.streamW;
-                    addr += ratio;
-                }
-            }
+            // draw the 4 slices
+            this.drawSlice(y, ot, 0, x1, x2);
+            this.drawSlice(y, ot, 1, x2, x3);
+            this.drawSlice(y, ot, 2, x3, x4);
+            this.drawSlice(y, ot, 3, x4, x1);
         }
     }
 
@@ -157,7 +130,6 @@ export class Twister extends IAnimation {
         }
 
         // flip the back-buffer onto the screen
-        this.display_.clear();
         this.display_.draw();
     }
 }

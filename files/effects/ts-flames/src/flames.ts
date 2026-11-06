@@ -30,7 +30,7 @@ export class Flames extends IAnimation {
 
     //----- members
     private palette_: Palette;
-    private flames_ : number[];
+    private flames_ : Uint8Array;           // flames buffer (palette indexes)
 
     private tables_: TrigTables;            // precomputed cosinus/sinus tables
 
@@ -49,15 +49,13 @@ export class Flames extends IAnimation {
 
         // set the vars
         this.palette_ = new Palette();
-        this.flames_  = [];
+        this.flames_  = new Uint8Array(this.width_ * this.height_);
 
         // create the palette
         this.createPalette();
 
         // initialize flames buffer
-        for (let i = 0; i < this.width_ * this.height_; i++) {
-            this.flames_[i] = BLACK_COLOR_INDEX;
-        }
+        this.flames_.fill(BLACK_COLOR_INDEX);
 
         // create the cos/sin precompute tables
         this.tables_ = new TrigTables();
@@ -194,22 +192,21 @@ export class Flames extends IAnimation {
         if ( this.angle_ > 360 )
             this.angle_ = 0;
 
+        const w = this.width_;
+        const flames = this.flames_;
+
         // create the flame effect
         for (let y = 1; y < this.height_ - 1; y++) {
-            let offset = y * this.width_;
-            for (let x = 1; x < this.width_ - 1; x++) {
-                let value = 0;
-                value += this.flames_[offset - this.width_ + x];
-                value += this.flames_[offset + x - 1];
-                value += this.flames_[offset + x + 1];
-                value += this.flames_[offset + this.width_ + x];
+            let offset = y * w;
+            for (let x = 1; x < w - 1; x++) {
+                let value = flames[offset - w + x] + flames[offset + x - 1] + flames[offset + x + 1] + flames[offset + w + x];
 
                 // artificially reduce the flames
                 value = value - 3;
                 value = (value < 0) ? 0 : value;
 
                 // store the new value above the current pixel
-                this.flames_[offset - this.width_ + x] = value >> 2;
+                flames[offset - w + x] = value >> 2;
             }
         }
     }
@@ -217,17 +214,11 @@ export class Flames extends IAnimation {
     // render the animation on the screen
     protected render(time?: number): void {
         // copy the flames
-        for (let y = 0; y < this.height_; y++) {
-            let offset = y * this.width_;
-            for (let x = 0; x < this.width_; x++) {
-
-                // retrieve rgba components
-                let index = this.flames_[offset + x];
-                let rgba  = <RGBA> this.palette_.getColor(index)!.color;
-
-                // set the corresponding pixel in the buffer
-                this.display_.surface.setPixel(x, y, rgba);
-            }
+        const lut = this.palette_.toUint32Array();
+        const flames = this.flames_;
+        const data32 = this.display_.surface.data32;
+        for (let i = 0; i < flames.length; i++) {
+            data32[i] = lut[flames[i]];
         }
 
         // flip the back-buffer onto the screen

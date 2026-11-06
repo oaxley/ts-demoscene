@@ -67,33 +67,35 @@ export class Rotozoom extends IAnimation {
         const cs: number = this.cos_[this.angle_];
         const sn: number = this.sin_[this.angle_];
 
+        const w = this.display_.width;
+        const h = this.display_.height;
+        const src = this.texture_.data32;
+        const dst = this.display_.surface.data32;
+        const zoom = sn + 1;
+
         // go through all the pixels on the screen
-        this.display_.surface.address = 0;
-        for (let y: number = 0; y < this.display_.height; y++) {
-            for (let x: number = 0; x < this.display_.width; x++) {
+        let addr = 0;
+        for (let y: number = 0; y < h; y++) {
+            for (let x: number = 0; x < w; x++) {
 
                 /* apply the rotation to the screen pixels:
                  * x' = x * cos - y * sin
                  * y' = x * sin + y * cos
                  * we multiply by (sin + 1) to have a nice zoom effect
                  */
-                let xb: number = Math.floor((x * cs - y * sn) * (sn + 1));
-                let yb: number = Math.floor((x * sn + y * cs) * (sn + 1));
+                let xb: number = Math.floor((x * cs - y * sn) * zoom);
+                let yb: number = Math.floor((x * sn + y * cs) * zoom);
 
                 /* convert the coordinate to the texture coordinate */
-                let u: number = Math.floor(xb & 0xff);
-                let v: number = Math.floor(yb % height);
+                let u: number = xb & 0xff;
+                let v: number = yb % height;
 
                 while (v < 0) {
                     v += height;
                 }
 
-                // offset in the texture (256x256)
-                let srcoff: number = (u + (v << 8));
-                this.texture_.address = srcoff;
-
-                // copy the rgba values to display surface
-                this.display_.surface.streamW = this.texture_.streamW;
+                // copy the texel (texture is 256 pixels wide) to display surface
+                dst[addr++] = src[(u + (v << 8))];
             }
         }
         // increase the rotation angle

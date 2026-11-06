@@ -36,6 +36,8 @@ export class Sprites extends IAnimation {
     //----- members
     private sprite_: Sprite;                // the sprite
     private particules_: Particule[];       // particule elements
+    private px_: Int32Array;                // integer X positions (scratch)
+    private py_: Int32Array;                // integer Y positions (scratch)
 
     //----- methods
     // constructor
@@ -51,6 +53,8 @@ export class Sprites extends IAnimation {
 
         // create the particules
         this.particules_ = [];
+        this.px_ = new Int32Array(NUM_PARTICULES);
+        this.py_ = new Int32Array(NUM_PARTICULES);
         this.createParticules();
     }
 
@@ -121,30 +125,40 @@ export class Sprites extends IAnimation {
 
         let c1 = new RGBA(255, 255, 255);
         let c2 = new RGBA(255, 0, 0);
-        for (let i = 0; i < this.particules_.length; i++) {
-            let x1 = Math.floor(this.particules_[i].p.x);
-            let y1 = Math.floor(this.particules_[i].p.y);
 
-            for (let j = 0; j < this.particules_.length; j++) {
+        // integer positions of the particules
+        const n = this.particules_.length;
+        const px = this.px_;
+        const py = this.py_;
+        for (let i = 0; i < n; i++) {
+            px[i] = Math.floor(this.particules_[i].p.x);
+            py[i] = Math.floor(this.particules_[i].p.y);
+        }
 
+        // draw the links between close particules, otherwise a dot
+        // (the dot is drawn again only if a line was drawn since the last one)
+        for (let i = 0; i < n; i++) {
+            let x1 = px[i];
+            let y1 = py[i];
+            let dirty = true;
+
+            for (let j = 0; j < n; j++) {
                 if (i == j) {
                     continue;
                 }
 
-                let x2 = Math.floor(this.particules_[j].p.x);
-                let y2 = Math.floor(this.particules_[j].p.y);
+                let xd = (x1 - px[j]);
+                let yd = (y1 - py[j]);
 
-                let xd = (x1 - x2);
-                let yd = (y1 - y2);
-                let d = Math.sqrt(xd * xd + yd * yd);
-
-                if (d < 50) {
-                    s.line({ x: x1, y: y1 }, { x: x2, y: y2 }, c1);
-                } else {
+                if (xd * xd + yd * yd < 2500) {
+                    s.line({ x: x1, y: y1 }, { x: px[j], y: py[j] }, c1);
+                    dirty = true;
+                } else if (dirty) {
                     s.setPixel(x1, y1, c2);
                     s.setPixel(x1 + 1, y1, c2);
                     s.setPixel(x1, y1 + 1, c2);
                     s.setPixel(x1 + 1, y1 + 1, c2);
+                    dirty = false;
                 }
             }
         }

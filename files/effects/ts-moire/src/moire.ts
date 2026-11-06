@@ -20,6 +20,8 @@ const FPS = 25;
 export class Moire extends IAnimation {
 
     //----- members
+    private dx1_: Float64Array;     // squared X distances to circle #1 (scratch)
+    private dx2_: Float64Array;     // squared X distances to circle #2 (scratch)
 
     private sx_: number;            // screen center X
     private sy_: number;            // screen center Y
@@ -33,6 +35,8 @@ export class Moire extends IAnimation {
         super('moire', display, FPS);
 
         // set the vars
+        this.dx1_ = new Float64Array(display.width);
+        this.dx2_ = new Float64Array(display.width);
         this.sx_ = display.width >> 1;
         this.sy_ = display.height >> 1;
         this.ax_ = display.width >> 2;
@@ -41,8 +45,11 @@ export class Moire extends IAnimation {
 
     // update the animation
     protected update(time: number): void {
-        // we will write directly in the frame buffer
-        this.display_.surface.address = 0;
+        const w = this.display_.width;
+        const h = this.display_.height;
+        const data32 = this.display_.surface.data32;
+        const black = RGBA.toUInt32(0, 0, 0);
+        const white = RGBA.toUInt32(255, 255, 255);
 
         // compute the current center of each circles
         let cx1 = this.sx_ + this.ax_ * Math.cos(time/1000);
@@ -50,27 +57,29 @@ export class Moire extends IAnimation {
         let cx2 = this.sx_ + this.ax_ * Math.cos(time/3000);
         let cy2 = this.sy_ + this.ay_ * Math.sin(time/4000);
 
+        // X coefficients (per column)
+        const dx1 = this.dx1_;
+        const dx2 = this.dx2_;
+        for (let x = 0; x < w; x++) {
+            dx1[x] = (x - cx1) * (x - cx1);
+            dx2[x] = (x - cx2) * (x - cx2);
+        }
+
         // draw the effect on the buffer
-        for (let y = 0; y < this.display_.height; y++) {
+        let addr = 0;
+        for (let y = 0; y < h; y++) {
 
             // Y coefficients
             const dy1 = (y - cy1) * (y - cy1);
             const dy2 = (y - cy2) * (y - cy2);
 
-            for (let x = 0; x < this.display_.width; x++) {
-                // X coefficients
-                const dx1 = (x - cx1) * (x - cx1);
-                const dx2 = (x - cx2) * (x - cx2);
-
+            for (let x = 0; x < w; x++) {
                 // distance for both circles
-                const dt1 = Math.sqrt(dx1 + dy1);
-                const dt2 = Math.sqrt(dx2 + dy2);
+                const dt1 = Math.sqrt(dx1[x] + dy1);
+                const dt2 = Math.sqrt(dx2[x] + dy2);
 
-                // compute the black or white "color"
-                let v = 255 * (((dt1 ^ dt2) >> 4) & 0x01);
-
-                // write the value inside the frane buffer
-                this.display_.surface.streamW = RGBA.toUInt32(v, v, v);
+                // compute the black or white "color" and write it in the frame buffer
+                data32[addr++] = (((dt1 ^ dt2) >> 4) & 0x01) ? white : black;
             }
         }
     }
