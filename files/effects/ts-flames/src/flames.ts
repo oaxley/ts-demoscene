@@ -127,7 +127,7 @@ export class Flames extends IAnimation {
 
     // set a white pixel in the flame buffer
     private setPixel(x: number, y: number): void {
-        if ( (x > this.width_ - 2) || (x < 2) || (y > this.height_) || (y < 0) )
+        if ( (x > this.width_ - 2) || (x < 2) || (y >= this.height_) || (y < 0) )
             return;
 
         this.flames_[(y * this.width_) + x] = WHITE_COLOR_INDEX;
@@ -188,9 +188,8 @@ export class Flames extends IAnimation {
         }
 
         // increment angle value
-        this.angle_ += 2;
-        if ( this.angle_ > 360 )
-            this.angle_ = 0;
+        // (the trig tables cover [0..359]: 360 gave NaN projections)
+        this.angle_ = (this.angle_ + 2) % 360;
 
         const w = this.width_;
         const flames = this.flames_;
