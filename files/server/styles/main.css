@@ -1,84 +1,4 @@
-* {
-    box-sizing: border-box;
-}
-
-body {
-    background-color: black;
-}
-
-/* content is composed of left, center and right pane */
-.content {
-    margin: auto;
-    width: 768px;
-    height: 650px;
-}
-
-/* left and right pane are just spacer */
-.left-pane {
-    float: left;
-    width: 64px;
-    height: 100%;
-}
-
-.right-pane {
-    float: left;
-    width: 64px;
-    height: 100%;
-}
-
-/* center pane is composed of top, middle and bottom pane */
-.center-pane {
-    float: left;
-    width: 640px;
-    height: 100%;
-}
-
-/* top-pane is where the title is */
-.top-pane {
-    height: 75px;
-}
-
-#title {
-    display: block;
-    margin: 0%;
-    margin-right: auto;
-    margin-left: auto;
-    padding-top: 12px;
-
-    font-family: Courier;
-    font-size: 32pt;
-    text-align: center;
-    color: white;
-}
-
-/* middle-pane is where the action is displayed */
-.middle-pane {
-    height: 500px;
-}
-
-#output {
-    margin-left: -1px;
-    display: block;
-    border: 1px solid gray;
-}
-
-/* bottom-pane is where the credits and logo are displayed*/
-.bottom-pane {
-    display: block;
-    height: 75px;
-}
-
-/* credits have an artist and website properties */
-.credits {
-    float: left;
-    width: 50%;
-    height: 100%;
-    padding-left: 10px;
-    font-family: Courier;
-    font-size: 10pt;
-    color: white;
-    border-right: 1px solid white;
-}
+/* main page (index.pug, 404.pug) */
 
 #effect-name {
     height: 30%;
@@ -100,27 +20,6 @@ body {
     background-color: rgba(255,70,0,1.0);
 }
 
-/* logo with the text and image */
-.logo {
-    float: left;
-    width: 50%;
-    height: 100%;
-}
-
-.logo > h3 {
-    float: left;
-    font-family: Courier;
-    padding-left: 20px;
-    color: white;
-}
-
-.logo > img {
-    width: 150px;
-    height: 120px;
-    transform: rotate(-15deg);
-    margin-top: -20px;
-}
-
 /* next & prev buttons */
 .prev, .next {
     cursor: pointer;
@@ -134,13 +33,11 @@ body {
 .prev {
     margin-top: 280px;
     margin-left: -750px;
-/*     border-radius: 3px 0 0 3px; */
 }
 
 .next {
     margin-top: 280px;
     margin-left: -50px;
-/*     border-radius: 0 3px 3px 0; */
 }
 
 /* On hover, add a black background color with a little bit see-through */
@@ -150,4 +47,25 @@ body {
 
 .inactive, .inactive:hover {
     color: rgb(92,92,92);
+}
+
+/* 404 page */
+.not-found {
+    padding-top: 180px;
+    font-family: Courier;
+    font-size: 16pt;
+    text-align: center;
+    color: white;
+    border: 1px solid gray;
+    height: 482px;
+}
+
+.not-found a, .not-found a:visited {
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.not-found a:hover {
+    color: rgba(255,70,0,1.0);
 }

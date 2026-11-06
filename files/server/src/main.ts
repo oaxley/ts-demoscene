@@ -2,233 +2,103 @@
  * @file    main.ts
  * @author  Sebastien LEGRAND
  *
- * @brief   Typescript file for the main page
+ * @brief   Typescript file for the main page (effects slider)
  */
 
 //----- imports
-
-//----- globals
-const PREVIOUS_BUTTON = 0;
-const NEXT_BUTTON = 1;
-
-
-//----- interfaces
-// query results
-interface QueryResult {
-    ok: boolean,
-    json: <T>() => T,
-}
-
-// button parameters
-interface Button {
-    enable: boolean,
-    button: HTMLButtonElement
-}
-
-interface Link {
-    link: string,
-    name: string
-}
-
-interface Effect {
-    title: string,
-    description: string,
-    artist?: Link,
-    website?: Link
-}
-
-
-//----- functions
-
+import { Config, Effect } from "./types";
 
 //----- class
 class Slider {
 
     //----- members
     private display_: HTMLCanvasElement;        // the display canvas
-    private buttons_: Button[];                 // element buttons
+    private prev_: HTMLElement;                 // previous button
+    private next_: HTMLElement;                 // next button
 
-    private config_: Record<string, Effect>;                  // configuration from NodeJS
+    private effects_: Array<[string, Effect]>;  // effects from the configuration (name, effect)
+    private current_: number;                   // current effect displayed
 
-    private nImage_: HTMLImageElement;          // next image to display
-
-    private maxImage_: number;                  // max number of images loaded
-    private curImage_: number;                  // current image displayed
+    private image_: HTMLImageElement;           // screenshot being loaded
 
 
     //----- methods
-    constructor(output: HTMLCanvasElement, prev: HTMLButtonElement, next: HTMLButtonElement) {
+    constructor(output: HTMLCanvasElement, prev: HTMLElement, next: HTMLElement) {
         // set the vars
-        this.display_  = output;
-        this.nImage_   = new Image();
-        this.maxImage_ = 0;
-        this.curImage_ = 0;
-
-        // retrieve the configuration from the NodeJS server
-        this.config_ = {};
-        this.request().then((result: QueryResult) => {
-            this.config_ = result.json();
-
-            // initialize counters
-            this.maxImage_ = Object.keys(this.config_).length;
-            this.curImage_ = 0;
-
-            // // load the first image
-            this.loadImage(this.curImage_);
-            this.loadCredits();
-        });
-
-        // set the buttons properties
-        this.buttons_ = [
-            {
-                enable: false,
-                button: prev
-            },
-            {
-                enable: true,
-                button: next
-            }
-        ]
+        this.display_ = output;
+        this.prev_    = prev;
+        this.next_    = next;
+        this.effects_ = [];
+        this.current_ = 0;
+        this.image_   = new Image();
 
         // add handlers to the buttons
-        prev.addEventListener('click', () => {this.previousImage()});
-        next.addEventListener('click', () => {this.nextImage()});
-
-        // set the previous button as inactive
-        prev.className += " inactive";
+        prev.addEventListener("click", () => this.show(this.current_ - 1));
+        next.addEventListener("click", () => this.show(this.current_ + 1));
+        this.updateButtons();
     }
 
-    // parse the result from the Ajax query
-    private parseResult(xhr: XMLHttpRequest): QueryResult {
-        return {
-            ok: (xhr.status >= 200) && (xhr.status < 300),
-            json: <T>() => JSON.parse(xhr.responseText) as T
-        }
-    }
-
-    // Ajax query to retrieve the configuration
-    private request(): Promise<QueryResult> {
-        return new Promise<QueryResult>((resolve, reject) => {
-            const xhr = new XMLHttpRequest();
-            xhr.open("get", "/config");
-
-            xhr.onload = evt => {
-                resolve(this.parseResult(xhr));
-            }
-
-            xhr.send();
-        });
-    }
-
-    // retrieve the nth effect from the config
-    private getEffect(index: number): [string, Effect] {
-        let counter = 0;
-        let name = "";
-        let data: Effect = {
-            title: "",
-            description: ""
-        };
-
-        for(let key in this.config_) {
-            if (index == counter) {
-                name = key;
-                data = this.config_[key];
-                break;
-            }
-
-            counter++;
+    // retrieve the configuration from the NodeJS server and show the first effect
+    public async load(): Promise<void> {
+        const response = await fetch("/config");
+        if (!response.ok) {
+            throw new Error(`Unable to retrieve the configuration (${response.status}).`);
         }
 
-        return [name, data];
+        const config: Config = await response.json();
+        this.effects_ = Object.entries(config);
+        this.show(0);
     }
 
-    // load an image
-    private loadImage(index: number): void {
-        if ((index < 0) || (index >= this.maxImage_)) {
-            console.log(`index (${this.curImage_}) out of boundaries [0, ${this.maxImage_}].`);
+    // show an effect (screenshot and credits)
+    private show(index: number): void {
+        if ((index < 0) || (index >= this.effects_.length)) {
             return;
         }
 
-        // retrieve the effect name
-        let name = this.getEffect(index)[0];
+        this.current_ = index;
+        const [name, effect] = this.effects_[index];
 
-        this.nImage_ = new Image();
-        this.nImage_.onload = () => {
-            this.display_.getContext("2d")!.drawImage(this.nImage_, 0, 0);
+        this.loadImage(name);
+        this.loadCredits(name, effect);
+        this.updateButtons();
+    }
+
+    // enable / disable the buttons
+    private updateButtons(): void {
+        this.prev_.classList.toggle("inactive", this.current_ <= 0);
+        this.next_.classList.toggle("inactive", this.current_ >= this.effects_.length - 1);
+    }
+
+    // load the effect screenshot
+    private loadImage(name: string): void {
+        const image = new Image();
+        image.onload = () => {
+            // ignore a screenshot arriving after a newer one was requested
+            if (image === this.image_) {
+                this.display_.getContext("2d")!.drawImage(image, 0, 0);
+            }
         };
-        this.nImage_.src = '/images/screenshot/' + name + '.png';
+        image.src = `/images/screenshot/${name}.png`;
+        this.image_ = image;
     }
 
     // set the name and description for the effect
-    private loadCredits(): void {
-        let index = this.curImage_;
+    private loadCredits(name: string, effect: Effect): void {
+        const link = document.createElement("a");
+        link.href = `/effect/${name}`;
+        link.textContent = `\u276F\u276F ${effect.title}`;
 
-        // retrieve the effect data
-        let values = this.getEffect(index);
-        let name = values[0];
-        let data = values[1];
-
-        // set the title
-        let html = '<a href="/effect/' + name + '">&#10095;&#10095 ' + data.title + '</a>';
-        document.getElementById("effect-name")!.innerHTML = html;
-        document.getElementById("effect-desc")!.innerText = data.description;
-    }
-
-    // next image
-    public nextImage(): void {
-        if (!this.buttons_[NEXT_BUTTON].enable)
-            return
-
-        this.curImage_ = this.curImage_ + 1;
-
-        // set the next button as inactive if we reached the end
-        if (this.curImage_ == this.maxImage_ - 1) {
-            this.buttons_[NEXT_BUTTON].enable = false;
-            this.buttons_[NEXT_BUTTON].button.className += " inactive";
-        }
-
-        // load the new image
-        this.loadImage(this.curImage_);
-        this.loadCredits();
-
-        // activate the previous button
-        if (!this.buttons_[PREVIOUS_BUTTON].enable) {
-            this.buttons_[PREVIOUS_BUTTON].enable = true;
-            this.buttons_[PREVIOUS_BUTTON].button.className = "prev";
-        }
-    }
-
-    // previous image
-    public previousImage(): void {
-        if (!this.buttons_[PREVIOUS_BUTTON].enable)
-            return
-
-        this.curImage_ = this.curImage_ - 1;
-
-        // set the previous button as inactive if we reached the beginning
-        if (this.curImage_ == 0) {
-            this.buttons_[PREVIOUS_BUTTON].enable = false;
-            this.buttons_[PREVIOUS_BUTTON].button.className += " inactive";
-        }
-
-        // load the new image
-        this.loadImage(this.curImage_);
-        this.loadCredits();
-
-        // activate the next button
-        if (!this.buttons_[NEXT_BUTTON].enable) {
-            this.buttons_[NEXT_BUTTON].enable = true;
-            this.buttons_[NEXT_BUTTON].button.className = "next";
-        }
+        document.getElementById("effect-name")!.replaceChildren(link);
+        document.getElementById("effect-desc")!.textContent = effect.description;
     }
 }
 
 //----- begin
 // retrieve the elements from the page
-let output = <HTMLCanvasElement> document.getElementById("output");
-let prev = <HTMLButtonElement> document.getElementById("prev");
-let next = <HTMLButtonElement> document.getElementById("next");
-
+const output = document.getElementById("output") as HTMLCanvasElement;
+const prev = document.getElementById("prev")!;
+const next = document.getElementById("next")!;
 
 // create a new instance of the slider
-let slider = new Slider(output, prev, next);
+new Slider(output, prev, next).load().catch((error) => console.error(error));

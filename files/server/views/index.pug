@@ -1,32 +1,15 @@
-doctype html
-html
-    head
-        title= title
-        link(rel='stylesheet' type="text/css" href='/css/main.css')
-    body
-        .content
-            .left-pane
+extends layout.pug
 
-            .center-pane
-                .top-pane
-                    h1#title #{title}
+block styles
+    link(rel="stylesheet" type="text/css" href="/css/main.css")
 
-                .middle-pane
-                    canvas#output(width="640", height="480")
-                        p Your browser does not support canvas
+block credits
+    div#effect-name
+    div#effect-desc
 
-                .bottom-pane
-                    .credits
-                        div#effect-name
-                        div#effect-desc
+block extra
+    a.prev#prev &#10094;
+    a.next#next &#10095;
 
-                    .logo
-                        h3 presented by
-                        img(src="/images/assets/server.logo.png", alt="by Oaxley")
-
-            .right-pane
-
-            a.prev#prev &#10094
-            a.next#next &#10095
-
-        script(src='/js/main.bundle.js')
+block scripts
+    script(src="/js/main.bundle.js")

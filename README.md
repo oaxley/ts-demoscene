@@ -94,12 +94,17 @@ $ npm run dev
 $ npm run typecheck
 $ npm run lint
 
-# frame-hash regression tests (every effect must render the same pixels
-# as the references stored in tests/golden)
+# all the tests: frame-hash regression tests (every effect must render the
+# same pixels as the references stored in tests/golden), library unit tests,
+# server routes and main page (run `npm run build` first for the bundle and
+# server tests, they are skipped otherwise)
 $ npm test
 
 # update the references (only when a visual change is intended)
 $ npm run test:update
+
+# rough per-frame timing of every effect
+$ BENCH=1 npx vitest run tests/perf.test.ts --silent=false
 ```
 
 A `Makefile` is also available (`make build`, `make run`, `make test`, ...).

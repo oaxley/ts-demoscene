@@ -1,0 +1,34 @@
+//- shared page layout: title on top, canvas in the middle, credits + logo below
+doctype html
+html
+    head
+        meta(charset="utf-8")
+        title= title
+        link(rel="stylesheet" type="text/css" href="/css/common.css")
+        block styles
+    body
+        .content
+            .left-pane
+
+            .center-pane
+                .top-pane
+                    h1#title #{title}
+
+                .middle-pane
+                    block middle
+                        canvas#output(width="640", height="480")
+                            p Your browser does not support canvas
+
+                .bottom-pane
+                    .credits
+                        block credits
+
+                    .logo
+                        h3 presented by
+                        img(src="/images/assets/server.logo.png", alt="Oaxley")
+
+            .right-pane
+
+            block extra
+
+        block scripts
