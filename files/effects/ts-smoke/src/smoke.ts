@@ -15,6 +15,12 @@ import { RGBA } from "library/color/RGBA";
 
 
 //----- globals
+const EDGE_SAMPLE = 8;      // background columns used to compute the fill color
+const EDGE_FADE   = 96;     // background columns faded into the fill color
+const EDGE_SMOOTH = 24;     // vertical smoothing radius of the fill color (lines)
+
+// 4x4 ordered dithering thresholds (to round the very dark gradient without banding)
+const BAYER4 = [ 0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5 ].map((v) => (v + 0.5) / 16);
 
 
 //----- interfaces
@@ -67,6 +73,7 @@ export class Smoke extends IAnimation {
 
     //----- members
     private background_: Surface;
+    private screen_: Surface;       // full-screen background (built once loaded)
     private bgx0: number = 0;       // background X start position
     private bgy0: number = 0;       // background Y start position
 
@@ -80,6 +87,7 @@ export class Smoke extends IAnimation {
 
         // set the vars
         this.background_ = new Surface();
+        this.screen_     = new Surface();
         this.particules_ = new Array(4);
         this.trails_     = new Array(3);
     }
@@ -145,6 +153,83 @@ export class Smoke extends IAnimation {
         }
     }
 
+    /* build the full-screen background
+     *
+     * The picture is on the right side of the screen and its left edge is
+     * not pure black: against the black area on the left it showed a visible
+     * seam. The left area is filled, line by line, with the (vertically
+     * smoothed) color of the picture edge, and the first columns of the
+     * picture fade into it.
+     */
+    private buildScreen(): void {
+        const bg = this.background_;
+        const bw = bg.width;
+        const bh = bg.height;
+        const src = bg.data32;
+
+        // average color of the left edge, for each line
+        const edge = new Float64Array(bh * 3);
+        for (let y = 0; y < bh; y++) {
+            for (let x = 0; x < EDGE_SAMPLE; x++) {
+                const [ r, g, b ] = RGBA.fromUInt32(src[y * bw + x]);
+                edge[y * 3]     += r / EDGE_SAMPLE;
+                edge[y * 3 + 1] += g / EDGE_SAMPLE;
+                edge[y * 3 + 2] += b / EDGE_SAMPLE;
+            }
+        }
+
+        // smooth it vertically (no visible lines)
+        const fills = new Float64Array(bh * 3);
+        for (let y = 0; y < bh; y++) {
+            let [ r, g, b, n ] = [ 0, 0, 0, 0 ];
+            for (let k = Math.max(0, y - EDGE_SMOOTH); k <= Math.min(bh - 1, y + EDGE_SMOOTH); k++, n++) {
+                r += edge[k * 3]; g += edge[k * 3 + 1]; b += edge[k * 3 + 2];
+            }
+            fills[y * 3] = r / n; fills[y * 3 + 1] = g / n; fills[y * 3 + 2] = b / n;
+        }
+
+        // fill the screen, then copy the picture with a faded left edge
+        const w = this.display_.width;
+        const h = this.display_.height;
+        this.screen_ = new Surface({ width: w, height: h });
+        const dst = this.screen_.data32;
+
+        for (let y = 0; y < h; y++) {
+            const by = y - this.bgy0;
+            const inside = (by >= 0) && (by < bh);
+            if (!inside) {
+                dst.fill(0, y * w, (y + 1) * w);
+                continue;
+            }
+
+            const [ fr, fg, fb ] = [ fills[by * 3], fills[by * 3 + 1], fills[by * 3 + 2] ];
+
+            // left area: (dithered) fill color
+            for (let x = 0; x < Math.min(this.bgx0, w); x++) {
+                const t = BAYER4[((y & 3) << 2) | (x & 3)];
+                dst[y * w + x] = RGBA.toUInt32(Math.floor(fr + t), Math.floor(fg + t), Math.floor(fb + t));
+            }
+            for (let x = 0; x < bw; x++) {
+                const dx = this.bgx0 + x;
+                if ((dx < 0) || (dx >= w)) {
+                    continue;
+                }
+
+                let value = src[by * bw + x];
+                if (x < EDGE_FADE) {
+                    // smoothstep from the fill color to the picture
+                    let k = x / EDGE_FADE;
+                    k = k * k * (3 - 2 * k);
+                    const [ r, g, b ] = RGBA.fromUInt32(value);
+                    const t = BAYER4[((y & 3) << 2) | (dx & 3)];
+                    value = RGBA.toUInt32(
+                        Math.floor(lerp(fr, r, k) + t), Math.floor(lerp(fg, g, k) + t), Math.floor(lerp(fb, b, k) + t));
+                }
+                dst[y * w + dx] = value;
+            }
+        }
+    }
+
     // load the assets
     protected init(): Promise<unknown> {
         return this.background_
@@ -154,6 +239,9 @@ export class Smoke extends IAnimation {
                 this.bgx0 = this.display_.width - this.background_.width;
                 this.bgy0 = 0;
 
+                // build the full-screen background
+                this.buildScreen();
+
                 // setup the particules
                 this.setupParticules();
             });
@@ -162,8 +250,7 @@ export class Smoke extends IAnimation {
     // update the animation
     protected update(time?: number): void {
         // copy the background on the display surface
-        this.display_.surface.clear();
-        this.display_.surface.blend({x: this.bgx0, y: this.bgy0}, this.background_);
+        this.display_.surface.data32.set(this.screen_.data32);
 
         // draw the smoke trails
         let t = this.frames_ / 200;
