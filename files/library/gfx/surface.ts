@@ -190,7 +190,11 @@ export class Surface {
     }
 
     // set the color value for a pixel
+    // (pixels outside of the surface are ignored)
     public setPixel(x: number, y: number, c: RGBA): void {
+        if ((x < 0) || (x >= this.width_) || (y < 0) || (y >= this.height_)) {
+            return;
+        }
         this.framebuffer_!.data32[y * this.width_ + x] = c.uint32;
     }
 
@@ -203,9 +207,7 @@ export class Surface {
 
     /* read a block of pixels into a 32-bit array (bw * bh values)
      *
-     * Pixels are addressed linearly (y * width + x): a block crossing the left
-     * or right border wraps on the previous/next line; pixels outside of the
-     * framebuffer are read as 0.
+     * The block is clipped to the surface: pixels outside of it are read as 0.
      */
     public readBlock(bx: number, by: number, bw: number, bh: number, out: Uint32Array): void {
         const src = this.framebuffer_!.data32;
@@ -215,21 +217,22 @@ export class Surface {
             let addr = y * this.width_ + bx;
 
             // fast path: the whole row is inside the framebuffer
-            if (Number.isInteger(addr) && (addr >= 0) && (addr + bw <= src.length)) {
+            if (Number.isInteger(addr) && (y >= 0) && (y < this.height_) && (bx >= 0) && (bx + bw <= this.width_)) {
                 out.set(src.subarray(addr, addr + bw), d_off);
                 continue;
             }
 
             for (let x = 0; x < bw; x++) {
-                out[d_off + x] = src[((addr + x) << 2) >> 2] ?? 0;
+                let px = bx + x;
+                let inside = (y >= 0) && (y < this.height_) && (px >= 0) && (px < this.width_);
+                out[d_off + x] = inside ? src[(y * this.width_ + px) | 0] : 0;
             }
         }
     }
 
     /* write a block of pixels from a 32-bit array (bw * bh values)
      *
-     * Same addressing as readBlock(); pixels outside of the framebuffer are
-     * ignored.
+     * The block is clipped to the surface: pixels outside of it are ignored.
      */
     public writeBlock(data: Uint32Array, bx: number, by: number, bw: number, bh: number): void {
         const dst = this.framebuffer_!.data32;
@@ -239,13 +242,16 @@ export class Surface {
             let addr = y * this.width_ + bx;
 
             // fast path: the whole row is inside the framebuffer
-            if (Number.isInteger(addr) && (addr >= 0) && (addr + bw <= dst.length)) {
+            if (Number.isInteger(addr) && (y >= 0) && (y < this.height_) && (bx >= 0) && (bx + bw <= this.width_)) {
                 dst.set(data.subarray(s_off, s_off + bw), addr);
                 continue;
             }
 
             for (let x = 0; x < bw; x++) {
-                dst[((addr + x) << 2) >> 2] = data[s_off + x];
+                let px = bx + x;
+                if ((y >= 0) && (y < this.height_) && (px >= 0) && (px < this.width_)) {
+                    dst[(y * this.width_ + px) | 0] = data[s_off + x];
+                }
             }
         }
     }
@@ -268,7 +274,16 @@ export class Surface {
     public line(p1: Point2D, p2: Point2D, c: RGBA): void {
         const value = c.uint32;
         const data32 = this.framebuffer_!.data32;
-        bresenham(p1, p2, (x, y) => { data32[y * this.width_ + x] = value; });
+        const w = this.width_;
+        const h = this.height_;
+
+        // pixels outside of the surface are ignored (they used to wrap on
+        // the previous / next line)
+        bresenham(p1, p2, (x, y) => {
+            if ((x >= 0) && (x < w) && (y >= 0) && (y < h)) {
+                data32[y * w + x] = value;
+            }
+        });
     }
 
     // optimized algorithm for horizontal line

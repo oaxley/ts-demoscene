@@ -139,3 +139,30 @@ describe("TrigTables", () => {
         expect(t.sin[90]).toBe(Math.sin((90 * Math.PI) / 180));
     });
 });
+
+describe("Surface clipping", () => {
+    const red = new RGBA(255, 0, 0);
+
+    test("setPixel / line ignore pixels outside of the surface", () => {
+        const s = new Surface({ width: 4, height: 3 });
+        s.setPixel(4, 0, red); // would wrap on (0, 1)
+        s.setPixel(-1, 1, red); // would wrap on (3, 0)
+        s.setPixel(0, 3, red); // past the end
+        expect(Array.from(s.data32).every((v) => v === 0)).toBe(true);
+
+        s.line({ x: -2, y: 1 }, { x: 5, y: 1 }, red);
+        expect(Array.from(s.data32).map((v) => (v ? 1 : 0))).toEqual([0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0]);
+    });
+
+    test("readBlock / writeBlock clip the block", () => {
+        const s = new Surface({ width: 3, height: 2 });
+        s.data32.set([1, 2, 3, 4, 5, 6]);
+
+        const out = new Uint32Array(4);
+        s.readBlock(2, 0, 2, 2, out);
+        expect(Array.from(out)).toEqual([3, 0, 6, 0]);
+
+        s.writeBlock(new Uint32Array([7, 8, 9, 10]), -1, 1, 2, 2);
+        expect(Array.from(s.data32)).toEqual([1, 2, 3, 8, 5, 6]);
+    });
+});
