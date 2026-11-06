@@ -107,6 +107,11 @@ export class FakeContext2D {
         this.ensure();
         const cw = this.canvas.width;
         const ch = this.canvas.height;
+        // fast path: same size, at the origin
+        if (dx === 0 && dy === 0 && sw === cw && sh === ch) {
+            this.buffer.set(src.subarray(0, this.buffer.length));
+            return;
+        }
         for (let y = 0; y < sh; y++) {
             const ty = dy + y;
             if (ty < 0 || ty >= ch) continue;

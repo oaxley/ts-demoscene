@@ -4,7 +4,7 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
     resolve: {
         alias: {
-            library: path.resolve(__dirname, "files/library"),
+            library: path.resolve(import.meta.dirname, "files/library"),
         },
     },
     test: {

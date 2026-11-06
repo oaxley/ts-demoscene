@@ -53,8 +53,14 @@ function hash(data: Uint8ClampedArray): string {
  *      Effect   : the effect class
  *      frames   : number of frames to run
  *      every    : checkpoint period (in frames)
+ *      onFrame  : (optional) called with the time spent in run() for each frame
  */
-export async function runEffect(Effect: EffectClass, frames = 200, every = 20): Promise<EffectResult> {
+export async function runEffect(
+    Effect: EffectClass,
+    frames = 200,
+    every = 20,
+    onFrame?: (ms: number) => void,
+): Promise<EffectResult> {
     seedRandom(SEED);
 
     const canvas = new FakeCanvas(WIDTH, HEIGHT);
@@ -76,7 +82,9 @@ export async function runEffect(Effect: EffectClass, frames = 200, every = 20): 
     const checkpoints: Record<string, string> = {};
 
     for (let i = 0; i < frames; i++) {
+        const t = performance.now();
         effect.run(T0 + i * DT);
+        onFrame?.(performance.now() - t);
 
         const h = hash(ctx.buffer);
         chain.update(h);
