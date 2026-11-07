@@ -15,7 +15,7 @@ import { RGBA } from "library/color/RGBA";
 
 //----- globals
 const NUMBER_OF_STARS = 2048;
-export const ROTATION_STEP = (2 * Math.PI) / 180 / 100; // clockwise rotation per frame (2 degrees / 100 frames)
+export const ROTATION_STEP = (15 * Math.PI) / 180 / 100; // clockwise rotation per frame (15 degrees / 100 frames)
 
 //----- functions
 /* project a star on the screen, after a rotation around the view axis

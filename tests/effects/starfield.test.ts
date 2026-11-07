@@ -12,8 +12,8 @@ import { project, ROTATION_STEP } from "../../files/effects/ts-starfield/src/sta
 
 //----- tests
 describe("ts-starfield rotation", () => {
-    test("rotates by 2 degrees every 100 frames", () => {
-        expect(ROTATION_STEP * 100).toBeCloseTo((2 * Math.PI) / 180, 12);
+    test("rotates by 15 degrees every 100 frames", () => {
+        expect(ROTATION_STEP * 100).toBeCloseTo((15 * Math.PI) / 180, 12);
     });
 
     test("no rotation: same projection as before", () => {
