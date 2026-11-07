@@ -53,29 +53,36 @@ const drawn: string[] = [];
 const images: StubImage[] = [];
 const elements: Record<string, FakeElement> = {};
 
+// (re)load the main page script with the given URL hash, wait for the first effect shown
+async function loadPage(hash: string, expectedDesc: string): Promise<void> {
+    for (const id of ["output", "prev", "next", "effect-name", "effect-desc"]) {
+        elements[id] = new FakeElement();
+    }
+    vi.stubGlobal("document", {
+        getElementById: (id: string) => elements[id],
+        createElement: () => new FakeElement(),
+    });
+    vi.stubGlobal("location", { hash });
+    vi.stubGlobal("Image", StubImage);
+    vi.stubGlobal("fetch", async () => ({ ok: true, status: 200, json: async () => CONFIG }));
+
+    vi.resetModules();
+    await import("../files/server/src/main");
+    await vi.waitFor(() => expect(elements["effect-desc"].textContent).toBe(expectedDesc));
+}
+
+const name = () => elements["effect-name"].children[0];
+const inactive = (id: string) => elements[id].classes.has("inactive");
+
 //----- tests
 describe("main page slider", () => {
     beforeAll(async () => {
-        for (const id of ["output", "prev", "next", "effect-name", "effect-desc"]) {
-            elements[id] = new FakeElement();
-        }
-        vi.stubGlobal("document", {
-            getElementById: (id: string) => elements[id],
-            createElement: () => new FakeElement(),
-        });
-        vi.stubGlobal("Image", StubImage);
-        vi.stubGlobal("fetch", async () => ({ ok: true, status: 200, json: async () => CONFIG }));
-
-        await import("../files/server/src/main");
-        await vi.waitFor(() => expect(elements["effect-desc"].textContent).toBe("first"));
+        await loadPage("", "first");
     });
 
     afterAll(() => {
         vi.unstubAllGlobals();
     });
-
-    const name = () => elements["effect-name"].children[0];
-    const inactive = (id: string) => elements[id].classes.has("inactive");
 
     test("shows the first effect", () => {
         expect(name().href).toBe("/effect/ts-a");
@@ -108,5 +115,28 @@ describe("main page slider", () => {
         drawn.length = 0;
         stale.onload!();
         expect(drawn).toEqual([]);
+    });
+});
+
+describe("main page slider: start from the URL hash", () => {
+    afterAll(() => {
+        vi.unstubAllGlobals();
+    });
+
+    test("opens on the effect named in the hash", async () => {
+        await loadPage("#ts-b", "second");
+        expect(name().href).toBe("/effect/ts-b");
+        expect(inactive("prev")).toBe(false);
+        expect(inactive("next")).toBe(false);
+    });
+
+    test("opens on the last effect", async () => {
+        await loadPage("#ts-c", "third");
+        expect(inactive("next")).toBe(true);
+    });
+
+    test.each(["#nope", "#toString", "#%E0", "#"])("falls back to the first effect for %s", async (hash) => {
+        await loadPage(hash, "first");
+        expect(name().href).toBe("/effect/ts-a");
     });
 });

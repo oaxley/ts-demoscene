@@ -45,7 +45,20 @@ class Slider {
 
         const config: Config = await response.json();
         this.effects_ = Object.entries(config);
-        this.show(0);
+        this.show(this.startIndex());
+    }
+
+    // index of the effect named in the URL hash (e.g. "/#ts-plasma"), first effect otherwise
+    private startIndex(): number {
+        let wanted: string;
+        try {
+            wanted = decodeURIComponent(location.hash.slice(1));
+        } catch {
+            return 0; // malformed percent-encoding
+        }
+
+        const index = this.effects_.findIndex(([name]) => name === wanted);
+        return index < 0 ? 0 : index;
     }
 
     // show an effect (screenshot and credits)
