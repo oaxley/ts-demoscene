@@ -29,6 +29,7 @@ An attempt to recreate all the old demoscene effects from the 90s in Typescript 
 - [Noise](./files/effects/ts-noise/README.md)
 - [Scroller](./files/effects/ts-scroller/README.md)
 - [Water](./files/effects/ts-water/README.md)
+- [Bump Mapping](./files/effects/ts-bump/README.md)
 
 ---
 
