@@ -5,11 +5,13 @@
 #
 # @brief   Generate the height map of the ts-bump effect: white text on black (640x480)
 #
-#          Usage: python3 scripts/heightmap.py ["Some text"]
-#          Needs Pillow (pip install pillow). The font is downloaded once into tmp/.
+#          Usage: python3 scripts/heightmap.py ["Some\nText"]   (a "\n" starts a new line)
+#          Needs Pillow (pip install pillow; generated with Pillow 12.1.1).
+#          The font is downloaded once into tmp/ (pinned version, checked by SHA-256).
 #
 
 # ----- imports
+import hashlib
 import os
 import sys
 import urllib.request
@@ -19,7 +21,11 @@ from PIL import Image, ImageDraw, ImageFont
 # ----- globals
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-FONT_URL = "https://raw.githubusercontent.com/google/fonts/main/ofl/freckleface/FreckleFace-Regular.ttf"
+FONT_URL = (
+    "https://raw.githubusercontent.com/google/fonts/"
+    "90abd17b4f97671435798b6147b698aa9087612f/ofl/freckleface/FreckleFace-Regular.ttf"
+)
+FONT_SHA256 = "54b61a9f5bac3eb3a3d7f78f99d4d9c5d5688a9859e79bbf8704ae79c7f8f0fc"
 FONT_FILE = os.path.join(ROOT, "tmp", "FreckleFace-Regular.ttf")
 OUTPUT = os.path.join(ROOT, "files", "effects", "ts-bump", "assets", "heightmap.png")
 
@@ -30,12 +36,22 @@ DEFAULT_TEXT = "Bump\nMapping"
 
 
 # ----- functions
+def sha256(file: str) -> str:
+    with open(file, "rb") as f:
+        return hashlib.sha256(f.read()).hexdigest()
+
+
 def font_file() -> str:
-    """download the font once"""
-    if not os.path.exists(FONT_FILE):
+    """download the font once (to a temporary file, renamed when complete and verified)"""
+    if not os.path.exists(FONT_FILE) or sha256(FONT_FILE) != FONT_SHA256:
         os.makedirs(os.path.dirname(FONT_FILE), exist_ok=True)
         print(f"downloading {FONT_URL}")
-        urllib.request.urlretrieve(FONT_URL, FONT_FILE)
+        partial = FONT_FILE + ".part"
+        urllib.request.urlretrieve(FONT_URL, partial)
+        if sha256(partial) != FONT_SHA256:
+            os.remove(partial)
+            sys.exit("downloaded font does not match the expected SHA-256")
+        os.replace(partial, FONT_FILE)
     return FONT_FILE
 
 
@@ -54,7 +70,10 @@ def main() -> None:
 
     image = Image.new("L", (WIDTH, HEIGHT), 0)
     draw = ImageDraw.Draw(image)
-    font = fit(draw, text)
+    try:
+        font = fit(draw, text)
+    except ValueError:
+        sys.exit(f"text too long for {WIDTH}x{HEIGHT}: {text!r}")
 
     # center the text on the screen
     left, top, right, bottom = draw.multiline_textbbox((0, 0), text, font=font, spacing=LINE_GAP, align="center")

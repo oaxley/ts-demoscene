@@ -24,6 +24,21 @@ const LIGHT_SPEED = 0.002; // light path speed (radians per frame)
 const DEPTH = 2; // relief depth (slope multiplier)
 
 //----- functions
+// heights from the height map image (grey: red channel), which must have the screen size
+export function heights(image: Surface, w: number, h: number): Uint8Array {
+    if (image.width !== w || image.height !== h) {
+        throw new Error(`Height map is ${image.width}x${image.height}, expected ${w}x${h}.`);
+    }
+
+    const pixels = image.data32;
+    const map = new Uint8Array(w * h);
+    for (let i = 0; i < map.length; i++) {
+        map[i] = pixels[i] & 0xff;
+    }
+
+    return map;
+}
+
 /* blur a height map (box blur 3x3, repeated)
  *
  * Args:
@@ -184,13 +199,8 @@ export class Bump extends IAnimation {
             const w = this.width_;
             const h = this.height_;
 
-            // brightness (red channel of a grey image) is the height
-            const pixels = this.image_.data32;
-            const map = new Uint8Array(w * h);
-            for (let i = 0; i < map.length; i++) {
-                map[i] = pixels[i] & 0xff;
-            }
-
+            // brightness is the height; |slope| <= 2 * 255 * DEPTH must fit in an Int16
+            const map = heights(this.image_, w, h);
             const { nx, ny } = slopes(blur(map, w, h, BLUR_PASSES), w, h);
             for (let i = 0; i < nx.length; i++) {
                 nx[i] *= DEPTH;

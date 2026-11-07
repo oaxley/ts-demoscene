@@ -8,7 +8,8 @@
 //----- imports
 import { describe, test, expect } from "vitest";
 
-import { blur, slopes, lightSpot, lightPath, shade, SPOT_SIZE } from "../../files/effects/ts-bump/src/bump";
+import { Surface } from "library/gfx/surface";
+import { blur, slopes, lightSpot, lightPath, shade, heights, SPOT_SIZE } from "../../files/effects/ts-bump/src/bump";
 
 //----- tests
 describe("ts-bump", () => {
@@ -24,6 +25,14 @@ describe("ts-bump", () => {
 
         const flat = blur(new Uint8Array(w * h).fill(100), w, h, 3);
         expect(Array.from(flat).every((v) => v === 100)).toBe(true);
+    });
+
+    test("heights: red channel of the height map image, which must match the screen size", () => {
+        const image = new Surface({ width: 4, height: 2 });
+        image.data32[1] = 0xff3c3c3c >>> 0;
+        expect(Array.from(heights(image, 4, 2))).toEqual([0, 0x3c, 0, 0, 0, 0, 0, 0]);
+
+        expect(() => heights(image, 640, 480)).toThrow("640x480");
     });
 
     test("slopes follow the height gradient, zero on flat areas", () => {
