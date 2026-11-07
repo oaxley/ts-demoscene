@@ -15,3 +15,6 @@ tmp/**
 
 # vitest
 .vitest/**
+
+# remove workspace directory (plans, designs, notes)
+workspace/**
