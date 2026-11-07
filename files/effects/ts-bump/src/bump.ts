@@ -20,7 +20,7 @@ import { Surface } from "library/gfx/surface";
 export const SPOT_SIZE = 512; // light spot (environment map) size
 const SPOT_RADIUS = 256; // light spot radius
 const BLUR_PASSES = 8; // height map smoothing (rounded letters)
-const LIGHT_SPEED = 0.002; // light path speed (radians per frame)
+const LIGHT_SPEED = 0.0024; // light path speed (radians per frame)
 const DEPTH = 2; // relief depth (slope multiplier)
 
 //----- functions
