@@ -48,6 +48,13 @@ describe.skipIf(!built)("server routes", () => {
         expect(html).toContain('id="prev"');
     });
 
+    test("every page loads the title font", async () => {
+        for (const url of ["/", `/effect/${Object.keys(config)[0]}`, "/nope"]) {
+            const html = await (await fetch(`${base}${url}`)).text();
+            expect(html, url).toContain("https://fonts.googleapis.com/css2?family=Freckle+Face");
+        }
+    });
+
     test("configuration", async () => {
         const res = await fetch(`${base}/config`);
         expect(res.status).toBe(200);
