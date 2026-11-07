@@ -7,6 +7,7 @@
 
 //----- imports
 import { Bump } from "../files/effects/ts-bump/src/bump";
+import { Cube } from "../files/effects/ts-cube/src/cube";
 import { Flames } from "../files/effects/ts-flames/src/flames";
 import { Glenz } from "../files/effects/ts-glenz/src/glenz";
 import { Lens } from "../files/effects/ts-lens/src/lens";
@@ -27,6 +28,7 @@ import { Water } from "../files/effects/ts-water/src/water";
 //----- globals
 export const EFFECTS = {
     "ts-bump": Bump,
+    "ts-cube": Cube,
     "ts-flames": Flames,
     "ts-glenz": Glenz,
     "ts-lens": Lens,

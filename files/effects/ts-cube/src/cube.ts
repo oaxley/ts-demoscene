@@ -6,10 +6,26 @@
  */
 
 //----- imports
+import { IAnimation } from "library/core/animation";
+import { Display } from "library/core/display";
 import { Point2D, Point3D } from "library/core/interfaces";
+
+import { RGBA } from "library/color/RGBA";
+
+import { Surface } from "library/gfx/surface";
+import { TEXTURE_SIZE, TexVertex, drawTexturedPolygon } from "library/gfx/texture";
+import { TrigTables } from "library/maths/projection";
 
 //----- globals
 export const CUBE_SIZE = 100; // half edge length
+
+const ZOOM = 600; // projection: x * ZOOM / (z + DEPTH)
+const DEPTH = 500; // cube centre distance to the camera (> CUBE_SIZE * sqrt(3))
+const STEP_X = 1; // rotation steps per frame (degrees)
+const STEP_Y = 2;
+const STEP_Z = 1;
+const SKY_TOP: [number, number, number] = [0, 16, 96]; // background gradient: dark blue at the top ...
+const SKY_BOTTOM: [number, number, number] = [0, 0, 0]; // ... black at the bottom
 
 /* 8 corners (camera space: x right, y down, z away from the camera)
  *
@@ -117,4 +133,118 @@ export function faceShade(p: Point3D[], face: number[]): number {
 
     const dot = (nx * LIGHT.x + ny * LIGHT.y + nz * LIGHT.z) / Math.hypot(nx, ny, nz);
     return Math.min(1, AMBIENT + DIFFUSE * Math.max(0, dot));
+}
+
+// background: vertical gradient from SKY_TOP to SKY_BOTTOM (w * h pixels)
+function gradient(w: number, h: number): Uint32Array {
+    const out = new Uint32Array(w * h);
+
+    for (let y = 0; y < h; y++) {
+        const t = y / (h - 1);
+        const [r, g, b] = SKY_TOP.map((c, i) => Math.round(c + (SKY_BOTTOM[i] - c) * t));
+        out.fill(RGBA.toUInt32(r, g, b), y * w, (y + 1) * w);
+    }
+
+    return out;
+}
+
+//----- class
+export class Cube extends IAnimation {
+    //----- members
+    private tables_: TrigTables; // pre-computed cosine/sine tables
+    private texture_: Surface; // face image
+    private background_: Uint32Array; // vertical gradient
+
+    private rotated_: Point3D[]; // rotated vertices (centred on the cube)
+    private projected_: Point2D[]; // projected vertices (screen)
+    private poly_: TexVertex[]; // face polygon given to the filler
+
+    private ax_: number; // rotation angles (degrees)
+    private ay_: number;
+    private az_: number;
+
+    //----- methods
+    constructor(display: Display) {
+        super("cube", display);
+
+        // set the vars
+        this.tables_ = new TrigTables();
+        this.texture_ = new Surface();
+        this.background_ = gradient(this.width_, this.height_);
+
+        this.rotated_ = VERTICES.map(() => ({ x: 0, y: 0, z: 0 }));
+        this.projected_ = VERTICES.map(() => ({ x: 0, y: 0 }));
+        this.poly_ = FACE_UV.map(() => ({ x: 0, y: 0, z: 0, u: 0, v: 0 }));
+
+        this.ax_ = 0;
+        this.ay_ = 0;
+        this.az_ = 0;
+    }
+
+    // load the face image, which must be TEXTURE_SIZE x TEXTURE_SIZE
+    protected init(): Promise<unknown> {
+        return this.texture_.loadImage("/images/assets/ts-cube.texture.png").then(() => {
+            const { width, height } = this.texture_;
+            if (width !== TEXTURE_SIZE || height !== TEXTURE_SIZE) {
+                throw new Error(`Texture is ${width}x${height}, expected ${TEXTURE_SIZE}x${TEXTURE_SIZE}.`);
+            }
+        });
+    }
+
+    // update the animation: rotate and project the cube
+    protected update(): void {
+        const { cos, sin } = this.tables_;
+        const ax = this.ax_;
+        const ay = this.ay_;
+        const az = this.az_;
+        rotate(VERTICES, cos[ax], sin[ax], cos[ay], sin[ay], cos[az], sin[az], this.rotated_);
+
+        const cx = this.width_ >> 1;
+        const cy = this.height_ >> 1;
+        for (let i = 0; i < this.rotated_.length; i++) {
+            const p = this.rotated_[i];
+            const k = ZOOM / (p.z + DEPTH);
+            this.projected_[i].x = cx + p.x * k;
+            this.projected_[i].y = cy + p.y * k;
+        }
+
+        // next angles
+        this.ax_ = (ax + STEP_X) % 360;
+        this.ay_ = (ay + STEP_Y) % 360;
+        this.az_ = (az + STEP_Z) % 360;
+    }
+
+    // render the animation on screen
+    protected render(): void {
+        const dst = this.display_.surface.data32;
+        dst.set(this.background_);
+
+        // texture not loaded yet: background only
+        if (this.texture_.width === TEXTURE_SIZE && this.texture_.height === TEXTURE_SIZE) {
+            const texture = this.texture_.data32;
+            const p2 = this.projected_;
+            const p3 = this.rotated_;
+            const poly = this.poly_;
+
+            // opaque convex solid: the visible faces never overlap
+            for (const face of FACES) {
+                if (!isVisible(p2[face[0]], p2[face[1]], p2[face[2]])) {
+                    continue;
+                }
+
+                for (let i = 0; i < 4; i++) {
+                    const v = poly[i];
+                    v.x = p2[face[i]].x;
+                    v.y = p2[face[i]].y;
+                    v.z = p3[face[i]].z + DEPTH;
+                    v.u = FACE_UV[i].x;
+                    v.v = FACE_UV[i].y;
+                }
+                drawTexturedPolygon(dst, this.width_, this.height_, poly, texture, faceShade(p3, face));
+            }
+        }
+
+        // flip the back-buffer onto the screen
+        this.display_.draw();
+    }
 }
