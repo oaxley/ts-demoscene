@@ -17,6 +17,11 @@ import {
     rotate,
     isVisible,
     faceShade,
+    cubePath,
+    PATH_X,
+    PATH_Y,
+    ZOOM,
+    DEPTH,
 } from "../../files/effects/ts-cube/src/cube";
 
 //----- helpers
@@ -221,5 +226,43 @@ describe("ts-cube", () => {
         expect(faceShade(world, FACES[1])).toBe(0.4);
         expect(faceShade(world, FACES[3])).toBe(0.4);
         expect(faceShade(world, FACES[5])).toBe(0.4);
+    });
+
+    test("cubePath stays within its range and moves smoothly", () => {
+        let minX = 0;
+        let maxX = 0;
+        let prev = cubePath(0);
+        for (let f = 1; f < 20000; f++) {
+            const p = cubePath(f);
+            expect(Math.abs(p.x)).toBeLessThanOrEqual(PATH_X);
+            expect(Math.abs(p.y)).toBeLessThanOrEqual(PATH_Y);
+            // no jump: less than 3 units (about 3.6 px) between two frames
+            expect(Math.hypot(p.x - prev.x, p.y - prev.y)).toBeLessThan(3);
+            minX = Math.min(minX, p.x);
+            maxX = Math.max(maxX, p.x);
+            prev = p;
+        }
+        // it really wanders across the screen
+        expect(maxX - minX).toBeGreaterThan(PATH_X);
+    });
+
+    test("the moving, rotating cube always stays fully on screen", () => {
+        const out: Point3D[] = VERTICES.map(() => ({ x: 0, y: 0, z: 0 }));
+        for (let f = 0; f < 20000; f += 3) {
+            const a = ((f * 1) % 360) * (Math.PI / 180);
+            const b = ((f * 2) % 360) * (Math.PI / 180);
+            const c = ((f * 3) % 360) * (Math.PI / 180);
+            rotate(VERTICES, Math.cos(a), Math.sin(a), Math.cos(b), Math.sin(b), Math.cos(c), Math.sin(c), out);
+            const o = cubePath(f);
+            for (const p of out) {
+                const k = ZOOM / (p.z + DEPTH);
+                const sx = 320 + (p.x + o.x) * k;
+                const sy = 240 + (p.y + o.y) * k;
+                expect(sx).toBeGreaterThanOrEqual(0);
+                expect(sx).toBeLessThan(640);
+                expect(sy).toBeGreaterThanOrEqual(0);
+                expect(sy).toBeLessThan(480);
+            }
+        }
     });
 });

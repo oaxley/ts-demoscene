@@ -17,10 +17,13 @@ import { TEXTURE_SIZE, TexVertex, drawTexturedPolygon } from "library/gfx/textur
 import { TrigTables } from "library/maths/projection";
 
 //----- globals
-export const CUBE_SIZE = 100; // half edge length
+export const CUBE_SIZE = 75; // half edge length
 
-const ZOOM = 600; // projection: x * ZOOM / (z + DEPTH)
-const DEPTH = 500; // cube centre distance to the camera (> CUBE_SIZE * sqrt(3))
+export const ZOOM = 600; // projection: x * ZOOM / (z + DEPTH)
+export const DEPTH = 500; // cube centre distance to the camera (> CUBE_SIZE * sqrt(3))
+export const PATH_X = 110; // cube centre wandering range (camera space, keeps the cube on screen)
+export const PATH_Y = 52;
+const PATH_SPEED = 0.008; // wandering speed (radians per frame)
 const STEP_X = 1; // rotation steps per frame (degrees, distinct per axis)
 const STEP_Y = 2;
 const STEP_Z = 3;
@@ -148,6 +151,16 @@ function gradient(w: number, h: number): Uint32Array {
     return out;
 }
 
+// cube centre for a frame: two sines of unrelated frequencies per axis,
+// smooth (no jump, never stops) and never repeating exactly
+export function cubePath(frame: number): Point2D {
+    const t = frame * PATH_SPEED;
+    return {
+        x: PATH_X * (0.6 * Math.sin(1.0 * t) + 0.4 * Math.sin(2.31 * t + 1.7)),
+        y: PATH_Y * (0.6 * Math.sin(1.37 * t + 0.5) + 0.4 * Math.sin(2.83 * t + 2.9)),
+    };
+}
+
 //----- class
 export class Cube extends IAnimation {
     //----- members
@@ -199,13 +212,15 @@ export class Cube extends IAnimation {
         const az = this.az_;
         rotate(VERTICES, cos[ax], sin[ax], cos[ay], sin[ay], cos[az], sin[az], this.rotated_);
 
+        // move the cube in camera space (real 3D: its side shows when off-centre)
+        const offset = cubePath(this.frames_);
         const cx = this.width_ >> 1;
         const cy = this.height_ >> 1;
         for (let i = 0; i < this.rotated_.length; i++) {
             const p = this.rotated_[i];
             const k = ZOOM / (p.z + DEPTH);
-            this.projected_[i].x = cx + p.x * k;
-            this.projected_[i].y = cy + p.y * k;
+            this.projected_[i].x = cx + (p.x + offset.x) * k;
+            this.projected_[i].y = cy + (p.y + offset.y) * k;
         }
 
         // next angles
