@@ -13,24 +13,24 @@ An attempt to recreate all the old demoscene effects from the 90s in Typescript 
 
 ## **Effects**
 
+- [Bump Mapping](./files/effects/ts-bump/README.md)
+- [Texture Cube](./files/effects/ts-cube/README.md)
 - [FireCube](./files/effects/ts-flames/README.md)
+- [Glenz](./files/effects/ts-glenz/README.md)
 - [Lens](./files/effects/ts-lens/README.md)
 - [Metaballs](./files/effects/ts-metaball/README.md)
 - [Moire](./files/effects/ts-moire/README.md)
-- [Rotozoom](./files/effects/ts-rotozoom/README.md)
-- [Tunnel](./files/effects/ts-tunnel/README.md)
+- [Noise](./files/effects/ts-noise/README.md)
 - [Plasma](./files/effects/ts-plasma/README.md)
-- [Twister](./files/effects/ts-twister/README.md)
+- [Raster](./files/effects/ts-raster/README.md)
+- [Rotozoom](./files/effects/ts-rotozoom/README.md)
+- [Scroller](./files/effects/ts-scroller/README.md)
+- [Smoke](./files/effects/ts-smoke/README.md)
 - [Sprites](./files/effects/ts-sprites/README.md)
 - [Starfield](./files/effects/ts-starfield/README.md)
-- [Glenz](./files/effects/ts-glenz/README.md)
-- [Smoke](./files/effects/ts-smoke/README.md)
-- [Raster](./files/effects/ts-raster/README.md)
-- [Noise](./files/effects/ts-noise/README.md)
-- [Scroller](./files/effects/ts-scroller/README.md)
+- [Tunnel](./files/effects/ts-tunnel/README.md)
+- [Twister](./files/effects/ts-twister/README.md)
 - [Water](./files/effects/ts-water/README.md)
-- [Bump Mapping](./files/effects/ts-bump/README.md)
-- [Texture Cube](./files/effects/ts-cube/README.md)
 
 ---
 
