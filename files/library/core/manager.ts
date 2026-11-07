@@ -77,7 +77,7 @@ export class StatesManager {
     private find(event: States, from: IStateTask | undefined): IStateTransition | undefined {
         // go through all the items
         for (let i = 0; i < StatesManager.transitions_.length; i++) {
-            let transition = StatesManager.transitions_[i];
+            const transition = StatesManager.transitions_[i];
             if (transition.event == event && transition.from == from) return transition;
         }
 
@@ -90,12 +90,12 @@ export class StatesManager {
         if (event == States.S_RUNNING) return;
 
         // retrieve the corresponding transition
-        let from = StatesManager.stack_.top();
-        let transition = this.find(event, from);
+        const from = StatesManager.stack_.top();
+        const transition = this.find(event, from);
 
         // no transition defined for this pair
         if (transition === undefined) {
-            let name = from === undefined ? "undefined" : from.name;
+            const name = from === undefined ? "undefined" : from.name;
             console.log(`Error: no transition defined for '${name}' with event '${event.toString()}'`);
             return;
         }
@@ -135,13 +135,13 @@ export class StatesManager {
     // run the states manager
     private run(time?: number): void {
         // retrieve the task on top of the stack
-        let task = StatesManager.stack_.top();
+        const task = StatesManager.stack_.top();
 
         // no task defined on the top
         if (task === undefined) return;
 
         // run the task
-        let result = task.run(time);
+        const result = task.run(time);
 
         // move the state according to the result
         this.move(result);

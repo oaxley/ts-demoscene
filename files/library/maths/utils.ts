@@ -44,8 +44,8 @@ export function degrees(angle: number): number {
  *  the new value within the destination domain
  */
 export function map(value: number, src_low: number, src_high: number, dst_low: number, dst_high: number): number {
-    let src_range = src_high - src_low;
-    let dst_range = dst_high - dst_low;
+    const src_range = src_high - src_low;
+    const dst_range = dst_high - dst_low;
 
     return dst_low + (1.0 * dst_range * (value - src_low)) / src_range;
 }

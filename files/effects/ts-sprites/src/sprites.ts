@@ -58,13 +58,13 @@ export class Sprites extends IAnimation {
     private createParticules(): void {
         for (let i = 0; i < NUM_PARTICULES; i++) {
             // find a random point
-            let p: Point2D = {
+            const p: Point2D = {
                 x: Math.floor(Math.random() * this.display_.width),
                 y: Math.floor(Math.random() * this.display_.height),
             };
 
             // increment is between -1 and 1
-            let v: Vector2D = new Vector2D(-1 + Math.random() * 2, -1 + Math.random() * 2);
+            const v: Vector2D = new Vector2D(-1 + Math.random() * 2, -1 + Math.random() * 2);
 
             this.particules_.push({ p: p, inc: v });
         }
@@ -111,11 +111,11 @@ export class Sprites extends IAnimation {
 
     // render the animation on the screen
     protected render(): void {
-        let s = this.display_.surface;
+        const s = this.display_.surface;
         s.clear();
 
-        let c1 = new RGBA(255, 255, 255);
-        let c2 = new RGBA(255, 0, 0);
+        const c1 = new RGBA(255, 255, 255);
+        const c2 = new RGBA(255, 0, 0);
 
         // integer positions of the particules
         const n = this.particules_.length;
@@ -129,8 +129,8 @@ export class Sprites extends IAnimation {
         // draw the links between close particules, otherwise a dot
         // (the dot is drawn again only if a line was drawn since the last one)
         for (let i = 0; i < n; i++) {
-            let x1 = px[i];
-            let y1 = py[i];
+            const x1 = px[i];
+            const y1 = py[i];
             let dirty = true;
 
             for (let j = 0; j < n; j++) {
@@ -138,8 +138,8 @@ export class Sprites extends IAnimation {
                     continue;
                 }
 
-                let xd = x1 - px[j];
-                let yd = y1 - py[j];
+                const xd = x1 - px[j];
+                const yd = y1 - py[j];
 
                 if (xd * xd + yd * yd < 2500) {
                     s.line({ x: x1, y: y1 }, { x: px[j], y: py[j] }, c1);

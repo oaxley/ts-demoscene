@@ -52,7 +52,7 @@ export class Color {
     }
 
     public static from(c: RGBA | HSLA | HSVA): Color {
-        let values: Components = c.values;
+        const values: Components = c.values;
         return new Color(values.m, values.x, values.y, values.z, values.a);
     }
 }

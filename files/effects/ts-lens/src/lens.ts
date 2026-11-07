@@ -53,9 +53,9 @@ export class Lens extends IAnimation {
 
     // create wall around the display zone to bounce the lenses
     private createWalls(): void {
-        let dw = this.display_.width;
-        let dh = this.display_.height;
-        let tmp = dh - WALL_SIZE * 2 - 2;
+        const dw = this.display_.width;
+        const dh = this.display_.height;
+        const tmp = dh - WALL_SIZE * 2 - 2;
 
         // top wall
         this.detector_.add(new CollisionWall({ x: 0, y: 0, w: dw, h: WALL_SIZE }));
@@ -72,8 +72,8 @@ export class Lens extends IAnimation {
 
     // create lenses
     private createLenses(): void {
-        let weight = RADIUS * RADIUS_TO_MASS;
-        let surface = this.display_.surface;
+        const weight = RADIUS * RADIUS_TO_MASS;
+        const surface = this.display_.surface;
 
         this.lenses_ = [];
         this.lenses_.push({
@@ -99,8 +99,8 @@ export class Lens extends IAnimation {
 
     // generate a random velocity vector
     private randomVelocity(): Vector2D {
-        let x = -5 + 10 * Math.random();
-        let y = -5 + 10 * Math.random();
+        const x = -5 + 10 * Math.random();
+        const y = -5 + 10 * Math.random();
 
         return new Vector2D(x, y);
     }
@@ -124,7 +124,7 @@ export class Lens extends IAnimation {
         // compute the transformation for all the lenses
         this.lenses_.forEach((element) => {
             // retrieve the center from the collision object
-            let center = element.circle.center;
+            const center = element.circle.center;
 
             // compute the transformation at this spot
             element.lens.compute(center.x, center.y);

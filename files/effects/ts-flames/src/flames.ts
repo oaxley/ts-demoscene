@@ -105,7 +105,7 @@ export class Flames extends IAnimation {
     // generate the flames at the bottom
     private generate(): void {
         for (let y = this.height_ - 2; y < this.height_; y++) {
-            let offset = y * this.width_;
+            const offset = y * this.width_;
             for (let x = 0; x < this.width_; x += 2) {
                 let color = BLACK_COLOR_INDEX;
 
@@ -196,7 +196,7 @@ export class Flames extends IAnimation {
 
         // create the flame effect
         for (let y = 1; y < this.height_ - 1; y++) {
-            let offset = y * w;
+            const offset = y * w;
             for (let x = 1; x < w - 1; x++) {
                 let value =
                     flames[offset - w + x] + flames[offset + x - 1] + flames[offset + x + 1] + flames[offset + w + x];

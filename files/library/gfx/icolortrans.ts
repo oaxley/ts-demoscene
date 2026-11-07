@@ -45,7 +45,7 @@ export abstract class IColorTransition extends IStateTask {
         }
 
         // compute the current time until the end
-        let t = (time - this.start_) / this.delay_;
+        const t = (time - this.start_) / this.delay_;
         if (t >= 1.0) {
             return States.S_END;
         }
@@ -59,7 +59,7 @@ export abstract class IColorTransition extends IStateTask {
         // effect takes place only within the viewport
         const dw = this.display_.width;
         for (let y = values.y; y < values.y + values.h; y++) {
-            let offset = y * dw;
+            const offset = y * dw;
 
             this.refimage_.address = offset + values.x;
             this.display_.address = offset + values.x;

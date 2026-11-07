@@ -38,7 +38,7 @@ export class CollisionDetector {
     // update the collision detection for all objects
     public update(): void {
         // compute the broader & narrow collision detection
-        let collisions = this.broaderCollision();
+        const collisions = this.broaderCollision();
         this.narrowCollision(collisions);
 
         // update the objects after collisions
@@ -56,7 +56,7 @@ export class CollisionDetector {
 
     // compute the broader collision detection (based on bounding rectangle boxes)
     private broaderCollision(): CollisionResult[] {
-        let collisions: CollisionResult[] = [];
+        const collisions: CollisionResult[] = [];
 
         // got through all the objects
         for (let i = 0; i < this.objects_.length; i++) {
@@ -65,7 +65,7 @@ export class CollisionDetector {
 
             // compute the bounding box of this object after simulating its next move
             let center: Vector2D = this.objects_[i].center.add(this.objects_[i].velocity);
-            let left = this.objects_[i].rect(center);
+            const left = this.objects_[i].rect(center);
 
             // check this object against all the other objects in the scene
             for (let j = 0; j < this.objects_.length; j++) {
@@ -106,14 +106,14 @@ export class CollisionDetector {
         // go through all the collisions
         for (let i = 0; i < collisions.length; i++) {
             // objects involved in the collision
-            let left = this.objects_[collisions[i].left];
-            let right = this.objects_[collisions[i].right];
+            const left = this.objects_[collisions[i].left];
+            const right = this.objects_[collisions[i].right];
 
             // wall collision
             if (left instanceof CollisionCircle && right instanceof CollisionWall) {
-                let x = left.center.x;
-                let y = left.center.y;
-                let box = right.rect();
+                const x = left.center.x;
+                const y = left.center.y;
+                const box = right.rect();
 
                 // change the velocity of the circle depending on where it hits the wall
                 if (x < box.x || x > box.x + box.w) left.velocity = new Vector2D(-left.velocity.x, left.velocity.y);
@@ -127,24 +127,24 @@ export class CollisionDetector {
                 if (left.hasCollided && right.hasCollided) continue;
 
                 // ensure it's a true collision (and not bouding box just overlapping)
-                let xc1 = left.center.x;
-                let yc1 = left.center.y;
-                let rc1 = left.radius;
+                const xc1 = left.center.x;
+                const yc1 = left.center.y;
+                const rc1 = left.radius;
 
-                let xc2 = right.center.x;
-                let yc2 = right.center.y;
-                let rc2 = right.radius;
+                const xc2 = right.center.x;
+                const yc2 = right.center.y;
+                const rc2 = right.radius;
 
                 // compute the squared distance between the two circles
-                let dist = (xc2 - xc1) * (xc2 - xc1) + (yc2 - yc1) * (yc2 - yc1);
-                let r2 = (rc1 + rc2) * (rc1 + rc2);
+                const dist = (xc2 - xc1) * (xc2 - xc1) + (yc2 - yc1) * (yc2 - yc1);
+                const r2 = (rc1 + rc2) * (rc1 + rc2);
 
                 if (dist < r2) {
                     // collision vector normalized
-                    let norm = new Vector2D(xc2 - xc1, yc2 - yc1).norm();
+                    const norm = new Vector2D(xc2 - xc1, yc2 - yc1).norm();
 
                     // p-value resulting from the collision
-                    let p =
+                    const p =
                         (2 *
                             (left.velocity.x * norm.x +
                                 left.velocity.y * norm.y -

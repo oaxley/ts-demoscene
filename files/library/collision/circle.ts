@@ -71,9 +71,9 @@ export class CollisionCircle extends CollisionObject {
         ctx.stroke();
 
         // draw the velocity vector on the circle
-        let angle = this.velocity_.heading();
-        let x = this.radius_ * Math.cos(angle);
-        let y = this.radius_ * Math.sin(angle);
+        const angle = this.velocity_.heading();
+        const x = this.radius_ * Math.cos(angle);
+        const y = this.radius_ * Math.sin(angle);
 
         ctx.beginPath();
         ctx.strokeStyle = "green";
@@ -83,7 +83,7 @@ export class CollisionCircle extends CollisionObject {
         ctx.stroke();
 
         // draw the collision box
-        let box = this.rect();
+        const box = this.rect();
         ctx.beginPath();
         ctx.strokeStyle = "red";
         ctx.setLineDash([5, 10]);

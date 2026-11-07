@@ -32,7 +32,7 @@ export namespace Noise {
 
             // setup the Mersenne Twister random generator
             seed = seed === undefined ? performance.now() : seed;
-            let mt = new Mersenne();
+            const mt = new Mersenne();
             mt.initialize(seed);
 
             // fill the grid
@@ -43,9 +43,9 @@ export namespace Noise {
 
         // evaluate the noise at position x
         public eval(x: number): number {
-            let xi = Math.floor(x);
-            let xmin = xi & MAX_VERTICES_MASK;
-            let xmax = (xmin + 1) & MAX_VERTICES_MASK;
+            const xi = Math.floor(x);
+            const xmin = xi & MAX_VERTICES_MASK;
+            const xmax = (xmin + 1) & MAX_VERTICES_MASK;
             return lerp(this.vertices_[xmin], this.vertices_[xmax], smoothStep(x - xi));
         }
     }
@@ -63,7 +63,7 @@ export namespace Noise {
 
             // setup the Mersenne Twister random generator
             seed = seed === undefined ? performance.now() : seed;
-            let mt = new Mersenne();
+            const mt = new Mersenne();
             mt.initialize(seed);
 
             // fill the grid & the permutation table
@@ -74,7 +74,7 @@ export namespace Noise {
 
             // shuffle the values in the permutation table
             for (let i = 0; i < MAX_VERTICES; i++) {
-                let k = mt.randInt(0, MAX_VERTICES);
+                const k = mt.randInt(0, MAX_VERTICES);
                 [this.permutation_[i], this.permutation_[k]] = [this.permutation_[k], this.permutation_[i]];
                 this.permutation_[i + MAX_VERTICES] = this.permutation_[i];
             }
@@ -82,28 +82,28 @@ export namespace Noise {
 
         // evaluate the 2D noise at position (x, y)
         public eval(x: number, y: number): number {
-            let xi = Math.floor(x);
-            let yi = Math.floor(y);
+            const xi = Math.floor(x);
+            const yi = Math.floor(y);
 
             // found the 4 corner of the cell
-            let rx0 = xi & MAX_VERTICES_MASK;
-            let rx1 = (rx0 + 1) & MAX_VERTICES_MASK;
-            let ry0 = yi & MAX_VERTICES_MASK;
-            let ry1 = (ry0 + 1) & MAX_VERTICES_MASK;
+            const rx0 = xi & MAX_VERTICES_MASK;
+            const rx1 = (rx0 + 1) & MAX_VERTICES_MASK;
+            const ry0 = yi & MAX_VERTICES_MASK;
+            const ry1 = (ry0 + 1) & MAX_VERTICES_MASK;
 
             // retrieve the random value at each of the corners
-            let c00 = this.vertices_[this.permutation_[this.permutation_[rx0] + ry0]];
-            let c10 = this.vertices_[this.permutation_[this.permutation_[rx1] + ry0]];
-            let c01 = this.vertices_[this.permutation_[this.permutation_[rx0] + ry1]];
-            let c11 = this.vertices_[this.permutation_[this.permutation_[rx1] + ry1]];
+            const c00 = this.vertices_[this.permutation_[this.permutation_[rx0] + ry0]];
+            const c10 = this.vertices_[this.permutation_[this.permutation_[rx1] + ry0]];
+            const c01 = this.vertices_[this.permutation_[this.permutation_[rx0] + ry1]];
+            const c11 = this.vertices_[this.permutation_[this.permutation_[rx1] + ry1]];
 
             // smoothing of tx & ty
-            let sx = smoothStep(x - xi);
-            let sy = smoothStep(y - yi);
+            const sx = smoothStep(x - xi);
+            const sy = smoothStep(y - yi);
 
             // 1st linear interpolation
-            let nx0 = lerp(c00, c10, sx);
-            let nx1 = lerp(c01, c11, sx);
+            const nx0 = lerp(c00, c10, sx);
+            const nx1 = lerp(c01, c11, sx);
 
             // 2nd linear interpolation
             return lerp(nx0, nx1, sy);
@@ -122,12 +122,12 @@ export namespace Noise {
             amplitude = amplitude === undefined ? 1 : amplitude;
             layers = layers === undefined ? 5 : layers;
 
-            let noise_map = new Array(xmax * ymax);
+            const noise_map = new Array(xmax * ymax);
             let max_value = 0;
 
             // create the noise map
             for (let y = 0; y < ymax; y++) {
-                let offset = y * xmax;
+                const offset = y * xmax;
                 for (let x = 0; x < xmax; x++) {
                     let f = frequency;
                     let a = amplitude;
@@ -147,7 +147,7 @@ export namespace Noise {
 
             // normalize all the values
             for (let y = 0; y < ymax; y++) {
-                let offset = y * xmax;
+                const offset = y * xmax;
                 for (let x = 0; x < xmax; x++) {
                     noise_map[offset + x] /= max_value;
                 }

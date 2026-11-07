@@ -36,8 +36,8 @@ export class HSLA extends BaseColor {
 
     public css(): string {
         // saturation and luminance should be percentages
-        let s: number = Math.floor(this.y_ * 100);
-        let l: number = Math.floor(this.z_ * 100);
+        const s: number = Math.floor(this.y_ * 100);
+        const l: number = Math.floor(this.z_ * 100);
         return `hsla(${this.x_}, ${s}%, ${l}%, ${this.a_})`;
     }
 
@@ -50,13 +50,11 @@ export class HSLA extends BaseColor {
     }
 
     private static fromHSVA(hsva: Components): HSLA {
-        let h: number, s: number, l: number;
-        let v: number, x: number;
-
-        [h, s, v] = [hsva.x, hsva.y, hsva.z];
+        const [h, v] = [hsva.x, hsva.z];
+        let s = hsva.y;
 
         // saturation
-        x = (2 - s) * v;
+        const x = (2 - s) * v;
         if (x < 1) {
             s = (s * v) / x;
         } else {
@@ -64,26 +62,24 @@ export class HSLA extends BaseColor {
         }
 
         // luminance
-        l = x / 2;
+        const l = x / 2;
 
         // set the values (keep 3 decimals)
         return new HSLA(this.clamp(h), this.clamp(s), this.clamp(l), hsva.a);
     }
 
     private static fromRGBA(rgba: Components): HSLA {
-        let tr: number, tg: number, tb: number;
-        let h: number, s: number, l: number;
-        let min: number, max: number, delta: number;
+        let h: number, s: number;
 
         // convert the RGB to [0..1]
-        [tr, tg, tb] = [rgba.x / 255.0, rgba.y / 255.0, rgba.z / 255.0];
+        const [tr, tg, tb] = [rgba.x / 255.0, rgba.y / 255.0, rgba.z / 255.0];
 
-        min = Math.min(tr, tg, tb);
-        max = Math.max(tr, tg, tb);
-        delta = max - min;
+        const min = Math.min(tr, tg, tb);
+        const max = Math.max(tr, tg, tb);
+        const delta = max - min;
 
         // luminance
-        l = (max + min) / 2.0;
+        const l = (max + min) / 2.0;
 
         // saturation
         if (delta < this.EPSILON) {

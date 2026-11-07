@@ -47,10 +47,9 @@ export class HSVA extends BaseColor {
     }
 
     private static fromHSLA(hsla: Components): HSVA {
-        let h: number, s: number, l: number;
-        let v: number, x: number;
-
-        [h, s, l] = [hsla.x, hsla.y, hsla.z];
+        const [h, l] = [hsla.x, hsla.z];
+        let s = hsla.y;
+        let x: number;
 
         if (l < 0.5) {
             x = s * l;
@@ -58,7 +57,7 @@ export class HSVA extends BaseColor {
             x = s * (1 - l);
         }
 
-        v = l + x;
+        const v = l + x;
         s = (2 * x) / v;
 
         // encode the object - keep 3 decimals for precision
@@ -66,15 +65,13 @@ export class HSVA extends BaseColor {
     }
 
     private static fromRGBA(rgba: Components): HSVA {
-        let r: number, g: number, b: number;
-        let h: number, s: number, v: number;
-        let min: number, max: number, delta: number;
+        let h: number, s: number;
 
-        [r, g, b] = [rgba.x / 255.0, rgba.y / 255.0, rgba.z / 255.0];
+        const [r, g, b] = [rgba.x / 255.0, rgba.y / 255.0, rgba.z / 255.0];
 
-        min = Math.min(r, g, b);
-        max = Math.max(r, g, b);
-        delta = max - min;
+        const min = Math.min(r, g, b);
+        const max = Math.max(r, g, b);
+        const delta = max - min;
 
         // hue
         if (delta - this.EPSILON < 0) {
@@ -104,7 +101,7 @@ export class HSVA extends BaseColor {
         }
 
         // value
-        v = max;
+        const v = max;
 
         // encode the object - keep 3 decimals for precision
         return new HSVA(Math.floor(h), this.clamp(s), this.clamp(v), this.clamp(rgba.a / 255.0));

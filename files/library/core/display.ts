@@ -81,7 +81,7 @@ export class Display {
     // take a snapshot of the display screen/back-buffer
     public takeSnapshot(value: EDisplaySource = EDisplaySource.E_BUFFER): void {
         if (value == EDisplaySource.E_DISPLAY) {
-            let imgdata = this.context_.getImageData(0, 0, this.width_, this.height_);
+            const imgdata = this.context_.getImageData(0, 0, this.width_, this.height_);
             this.snapshot_.image = imgdata;
         } else {
             this.snapshot_.copy(this.surface_);

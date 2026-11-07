@@ -35,9 +35,9 @@ export class Plasma extends IAnimation {
     private createPalette(): void {
         this.palette_ = new Palette();
         for (let i = 0; i < 256; i++) {
-            let r = map(Math.sin((Math.PI * i) / 16.0), -1, 1, 0, 255);
-            let g = map(Math.sin((Math.PI * i) / 128.0), -1, 1, 0, 255);
-            let b = 0;
+            const r = map(Math.sin((Math.PI * i) / 16.0), -1, 1, 0, 255);
+            const g = map(Math.sin((Math.PI * i) / 128.0), -1, 1, 0, 255);
+            const b = 0;
 
             this.palette_.setColor(i, new Color(COLOR_MODEL.RGBA, r, g, b));
         }
@@ -50,7 +50,7 @@ export class Plasma extends IAnimation {
         const data32 = this.display_.surface.data32;
         const lut = this.palette_.toUint32Array();
 
-        let time = timestamp / 500;
+        const time = timestamp / 500;
 
         // values depending only on the time / on the column
         const sx = 0.5 * Math.sin(time / 7);

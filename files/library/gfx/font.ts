@@ -47,9 +47,9 @@ export class Font {
     public getCharPixels(char: string): Uint32Array {
         let pixels = this.chars_.get(char);
         if (pixels === undefined) {
-            let code = char.charCodeAt(0) - 32;
-            let x = (code % 16) * this.unit_.width;
-            let y = (code >> 4) * this.unit_.height;
+            const code = char.charCodeAt(0) - 32;
+            const x = (code % 16) * this.unit_.width;
+            const y = (code >> 4) * this.unit_.height;
 
             pixels = new Uint32Array(this.unit_.width * this.unit_.height);
 
@@ -65,11 +65,11 @@ export class Font {
     // return the image data for a single character
     public getCharData(char: string): ImageData {
         // retrieve the ASCII value
-        let code = char.charCodeAt(0) - 32;
+        const code = char.charCodeAt(0) - 32;
 
         // compute the position of the character in the map
-        let x = (code % 16) * this.unit_.width;
-        let y = (code >> 4) * this.unit_.height;
+        const x = (code % 16) * this.unit_.width;
+        const y = (code >> 4) * this.unit_.height;
 
         // return the imagedata
         return this.font_.getImgBlock(x, y, this.unit_.width, this.unit_.height);

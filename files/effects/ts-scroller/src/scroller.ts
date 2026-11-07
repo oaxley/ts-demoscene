@@ -18,7 +18,7 @@ const FONT_CHAR_HEIGHT = 32;
 
 //----- interfaces
 interface TextScroller {
-    text: String; // the string for this scroller
+    text: string; // the string for this scroller
     begin: number; // the begin index for the text
     end: number; // the end index for the text
 
@@ -76,7 +76,7 @@ export class Scroller extends IAnimation {
             xpos: display.width + FONT_CHAR_WIDTH,
             xmax: this.fontsfc_.width - FONT_CHAR_WIDTH,
             ypos: (cy, a, x, v, width) => {
-                let y = cy + Math.floor(a * Math.sin((2 * Math.PI * v * x) / width));
+                const y = cy + Math.floor(a * Math.sin((2 * Math.PI * v * x) / width));
                 return y;
             },
         };
@@ -90,10 +90,10 @@ export class Scroller extends IAnimation {
         this.fontsfc_.clear();
         for (let i = text.begin; i < text.end; i++) {
             // retrieve the character pixels
-            let chardata = this.fontmap_.getCharPixels(text.text.charAt(i));
+            const chardata = this.fontmap_.getCharPixels(text.text.charAt(i));
 
             // compute the new position
-            let y = text.ypos(cy, 40, x, text.value, this.display_.width);
+            const y = text.ypos(cy, 40, x, text.value, this.display_.width);
 
             // copy the character on the font surface
             this.fontsfc_.writeBlock(chardata, x, y, FONT_CHAR_WIDTH, FONT_CHAR_HEIGHT);

@@ -19,7 +19,7 @@ export class TrigTables {
     //----- methods
     constructor() {
         for (let i = 0; i < 360; i++) {
-            let angle = (i * Math.PI) / 180.0;
+            const angle = (i * Math.PI) / 180.0;
             this.cos[i] = Math.cos(angle);
             this.sin[i] = Math.sin(angle);
         }
@@ -50,33 +50,33 @@ export function projectSameAngle(
     depth: number,
     zoom: number,
 ): void {
-    let ss = s * s;
+    const ss = s * s;
 
-    let m00 = c * c;
-    let m10 = s * c;
-    let m20 = -s;
+    const m00 = c * c;
+    const m10 = s * c;
+    const m20 = -s;
 
-    let m01 = m10 * s - m10;
-    let m11 = ss * s + m00;
-    let m21 = m10;
+    const m01 = m10 * s - m10;
+    const m11 = ss * s + m00;
+    const m21 = m10;
 
-    let m02 = m10 * c + ss;
-    let m12 = m01;
-    let m22 = m00;
+    const m02 = m10 * c + ss;
+    const m12 = m01;
+    const m22 = m00;
 
-    let a0 = -(m01 * m00);
-    let a1 = -(m11 * m10);
-    let a2 = -(m21 * m20);
+    const a0 = -(m01 * m00);
+    const a1 = -(m11 * m10);
+    const a2 = -(m21 * m20);
 
     for (let i = 0; i < points.length; i++) {
-        let x = points[i].x;
-        let y = points[i].y;
-        let z = points[i].z;
-        let xy = -x * y;
+        const x = points[i].x;
+        const y = points[i].y;
+        const z = points[i].z;
+        const xy = -x * y;
 
-        let px = (m01 + x) * (m00 + y) + a0 + xy + m02 * z;
-        let py = (m11 + x) * (m10 + y) + a1 + xy + m12 * z;
-        let pz = (m21 + x) * (m20 + y) + a2 + xy + m22 * z;
+        const px = (m01 + x) * (m00 + y) + a0 + xy + m02 * z;
+        const py = (m11 + x) * (m10 + y) + a1 + xy + m12 * z;
+        const pz = (m21 + x) * (m20 + y) + a2 + xy + m22 * z;
 
         output[i].x = center.x + Math.floor((px * zoom) / (pz + depth));
         output[i].y = center.y + Math.floor((py * zoom) / (pz + depth));

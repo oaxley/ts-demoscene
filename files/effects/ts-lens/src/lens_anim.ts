@@ -40,24 +40,24 @@ export class LensAnimation {
     // transformation map
     private transMap(): void {
         // temporary vars
-        let d = this.diameter_;
-        let r = this.radius_;
-        let r2 = r * r;
-        let s = Math.sqrt(r2 - this.zoom_ * this.zoom_);
-        let s2 = s * s;
+        const d = this.diameter_;
+        const r = this.radius_;
+        const r2 = r * r;
+        const s = Math.sqrt(r2 - this.zoom_ * this.zoom_);
+        const s2 = s * s;
 
         // compute the map
         for (let y = -r; y < r; y++) {
-            let y2 = y * y;
+            const y2 = y * y;
 
             for (let x = -r; x < r; x++) {
-                let x2 = x * x;
+                const x2 = x * x;
                 let a = x;
                 let b = y;
 
                 // point inside the circle gets magnified
                 if (x2 + y2 < s2) {
-                    let z = Math.sqrt(r2 - x2 - y2);
+                    const z = Math.sqrt(r2 - x2 - y2);
                     a = Math.floor((x * this.zoom_) / (z + 0.5));
                     b = Math.floor((y * this.zoom_) / (z + 0.5));
                 }
@@ -71,15 +71,15 @@ export class LensAnimation {
     // compute the lens effect at a certain position
     public compute(xc: number, yc: number): void {
         // temporary vars
-        let d = this.diameter_;
+        const d = this.diameter_;
 
         // ensure values are uint32
         xc = xc >>> 0;
         yc = yc >>> 0;
 
         // retrieve the upper corner of the lens
-        let xl = xc - this.radius_;
-        let yl = yc - this.radius_;
+        const xl = xc - this.radius_;
+        const yl = yc - this.radius_;
 
         // retrieve the current pixels
         const src = this.src_;
@@ -96,7 +96,7 @@ export class LensAnimation {
         this.surface_.writeBlock(dst, xl, yl, d, d);
 
         // create the buble effect
-        let c = new RGBA(224, 224, 224);
+        const c = new RGBA(224, 224, 224);
         this.surface_.circle({ x: xc, y: yc }, Math.floor(this.radius_), c);
     }
 }

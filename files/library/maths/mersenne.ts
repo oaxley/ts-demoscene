@@ -43,7 +43,7 @@ export class Mersenne extends IPrng {
     private generate(): void {
         const mt = this.states_;
         for (let i = 0; i < MT_N; i++) {
-            let y = (mt[i] & MT_UPPER_MASK) | (mt[(i + 1) % MT_N] & MT_LOWER_MASK);
+            const y = (mt[i] & MT_UPPER_MASK) | (mt[(i + 1) % MT_N] & MT_LOWER_MASK);
             let v = mt[(i + MT_M) % MT_N] ^ (y >>> 1);
             if ((y & 1) != 0) {
                 v = v ^ MT_A;
@@ -76,7 +76,7 @@ export class Mersenne extends IPrng {
         // seed should be 32-bit number
         mt[0] = seed >>> 0;
         for (let i = 1; i < MT_N; i++) {
-            let prev = mt[i - 1];
+            const prev = mt[i - 1];
             mt[i] = (Math.imul(MT_0, prev ^ (prev >>> 30)) + i) >>> 0;
         }
         this.index_ = 0;

@@ -71,7 +71,7 @@ export class Surface {
 
     // create an imagedata from the surface (the pixels are copied)
     public get image(): ImageData {
-        let img = new ImageData(this.width_, this.height_);
+        const img = new ImageData(this.width_, this.height_);
         img.data.set(this.framebuffer_!.data8);
         return img;
     }
@@ -82,7 +82,7 @@ export class Surface {
      * The object remains valid until the surface is resized.
      */
     public get imageData(): ImageData {
-        let fb = this.framebuffer_!;
+        const fb = this.framebuffer_!;
         if (fb.image === undefined) {
             fb.image = new ImageData(fb.data8, this.width_, this.height_);
         }
@@ -112,7 +112,7 @@ export class Surface {
 
     // get/set a 32-byte to the framebuffer at the current address
     public get streamW(): number {
-        let value = this.framebuffer_!.data32[this.framebuffer_!.address >> 2];
+        const value = this.framebuffer_!.data32[this.framebuffer_!.address >> 2];
         this.framebuffer_!.address += 4;
         return value >>> 0;
     }
@@ -143,8 +143,8 @@ export class Surface {
         }
 
         // we need to x4 because of the 8-bit array to store RGBA values
-        let length = (width * height) << 2;
-        let data = new ArrayBuffer(length);
+        const length = (width * height) << 2;
+        const data = new ArrayBuffer(length);
         this.framebuffer_ = {
             data: data,
             data8: new Uint8ClampedArray(data),
@@ -171,7 +171,7 @@ export class Surface {
 
     // align the current frame-buffer address on a 32-bit boundary
     public alignAddr(): void {
-        let address = this.framebuffer_!.address;
+        const address = this.framebuffer_!.address;
         this.framebuffer_!.address = (address >> 2) << 2;
     }
 
@@ -191,7 +191,7 @@ export class Surface {
 
     // get the color value for a pixel
     public getPixel(x: number, y: number): RGBA {
-        let c = new RGBA();
+        const c = new RGBA();
         c.uint32 = this.framebuffer_!.data32[y * this.width_ + x];
         return c;
     }
@@ -205,7 +205,7 @@ export class Surface {
 
         let d_off = 0;
         for (let y = by; y < by + bh; y++, d_off += bw) {
-            let addr = y * this.width_ + bx;
+            const addr = y * this.width_ + bx;
 
             // fast path: the whole row is inside the framebuffer
             if (Number.isInteger(addr) && y >= 0 && y < this.height_ && bx >= 0 && bx + bw <= this.width_) {
@@ -214,8 +214,8 @@ export class Surface {
             }
 
             for (let x = 0; x < bw; x++) {
-                let px = bx + x;
-                let inside = y >= 0 && y < this.height_ && px >= 0 && px < this.width_;
+                const px = bx + x;
+                const inside = y >= 0 && y < this.height_ && px >= 0 && px < this.width_;
                 out[d_off + x] = inside ? src[(y * this.width_ + px) | 0] : 0;
             }
         }
@@ -230,7 +230,7 @@ export class Surface {
 
         let s_off = 0;
         for (let y = by; y < by + bh; y++, s_off += bw) {
-            let addr = y * this.width_ + bx;
+            const addr = y * this.width_ + bx;
 
             // fast path: the whole row is inside the framebuffer
             if (Number.isInteger(addr) && y >= 0 && y < this.height_ && bx >= 0 && bx + bw <= this.width_) {
@@ -239,7 +239,7 @@ export class Surface {
             }
 
             for (let x = 0; x < bw; x++) {
-                let px = bx + x;
+                const px = bx + x;
                 if (y >= 0 && y < this.height_ && px >= 0 && px < this.width_) {
                     dst[(y * this.width_ + px) | 0] = data[s_off + x];
                 }
@@ -249,15 +249,15 @@ export class Surface {
 
     // get a block of data (see readBlock)
     public getImgBlock(bx: number, by: number, bw: number, bh: number): ImageData {
-        let imgdata = new ImageData(bw, bh);
+        const imgdata = new ImageData(bw, bh);
         this.readBlock(bx, by, bw, bh, new Uint32Array(imgdata.data.buffer, imgdata.data.byteOffset, bw * bh));
         return imgdata;
     }
 
     // put a block of data (see writeBlock)
     public putImgBlock(imgdata: ImageData, bx: number, by: number): void {
-        let bw = imgdata.width;
-        let bh = imgdata.height;
+        const bw = imgdata.width;
+        const bh = imgdata.height;
         this.writeBlock(new Uint32Array(imgdata.data.buffer, imgdata.data.byteOffset, bw * bh), bx, by, bw, bh);
     }
 
@@ -369,8 +369,8 @@ export class Surface {
         let x: number = 0;
         let y: number = 0;
 
-        let dx = p1.x - p0.x;
-        let dy = p1.y - p0.y;
+        const dx = p1.x - p0.x;
+        const dy = p1.y - p0.y;
 
         if (outcode & Region.top) {
             y = 0;
@@ -404,8 +404,8 @@ export class Surface {
                 // both point are outside the window
                 break;
             } else {
-                let outcode = outcode1 > outcode0 ? outcode1 : outcode0;
-                let p: Point2D = this.intersection(p0, p1, outcode);
+                const outcode = outcode1 > outcode0 ? outcode1 : outcode0;
+                const p: Point2D = this.intersection(p0, p1, outcode);
 
                 if (outcode == outcode0) {
                     p0 = p;
@@ -426,10 +426,10 @@ export class Surface {
 
     // load an image
     public loadImage(name: string): Promise<boolean> {
-        let img = new Image();
+        const img = new Image();
 
         // future promise
-        let future = new Promise((resolve, reject) => {
+        const future = new Promise((resolve, reject) => {
             // image event handlers
             img.onload = () => {
                 resolve(true);
@@ -446,14 +446,14 @@ export class Surface {
         return future
             .then(() => {
                 // copy the image on a temporary canvas
-                let canvas = <HTMLCanvasElement>document.createElement("canvas");
+                const canvas = <HTMLCanvasElement>document.createElement("canvas");
                 canvas.width = img.width;
                 canvas.height = img.height;
-                let context = canvas.getContext("2d");
+                const context = canvas.getContext("2d");
                 context!.drawImage(img, 0, 0);
 
                 // create the frame-buffer and copy the image
-                let imgdata = context!.getImageData(0, 0, canvas.width, canvas.height);
+                const imgdata = context!.getImageData(0, 0, canvas.width, canvas.height);
                 this.image = imgdata;
 
                 return true;
@@ -503,13 +503,13 @@ export class Surface {
         // copy the image
         for (let y = ty; y < ty + th; y++) {
             // compute src / dst addresses
-            let s_addr = y * other.width_;
-            let d_addr = (to.y + (y - ty)) * this.width_;
+            const s_addr = y * other.width_;
+            const d_addr = (to.y + (y - ty)) * this.width_;
 
             for (let x = tx; x < tx + tw; x++) {
                 // frame-buffer indexes (same truncation as the address accessors)
-                let s_idx = ((s_addr + x) << 2) >> 2;
-                let d_idx = ((d_addr + (to.x + (x - tx))) << 2) >> 2;
+                const s_idx = ((s_addr + x) << 2) >> 2;
+                const d_idx = ((d_addr + (to.x + (x - tx))) << 2) >> 2;
 
                 // source pixel (0 when outside of the source)
                 let value = src[s_idx] >>> 0;
@@ -529,14 +529,14 @@ export class Surface {
                 // opacity is defined
                 if (blending) {
                     // retrieve the destination value
-                    let dval = dst[d_idx] >>> 0;
+                    const dval = dst[d_idx] >>> 0;
 
                     // extract RGBA values (same as RGBA.fromUInt32)
                     let sr = value & 0xff,
                         sg = (value & 0xff00) >> 8,
                         sb = (value & 0xff0000) >> 16,
                         sa = value >>> 24;
-                    let dr = dval & 0xff,
+                    const dr = dval & 0xff,
                         dg = (dval & 0xff00) >> 8,
                         db = (dval & 0xff0000) >> 16,
                         da = dval >>> 24;

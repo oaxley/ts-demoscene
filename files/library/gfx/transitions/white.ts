@@ -23,7 +23,7 @@ export namespace White {
 
         // compute the new values for RGBA
         protected compute(time: number, value: number): number {
-            let [r, g, b, a] = RGBA.fromUInt32(value);
+            const [r, g, b, a] = RGBA.fromUInt32(value);
             return RGBA.toUInt32(lerp(r, 255, time), lerp(g, 255, time), lerp(b, 255, time), a);
         }
     }
@@ -37,7 +37,7 @@ export namespace White {
 
         // compute the new values for RGBA
         protected compute(time: number, value: number): number {
-            let [r, g, b, a] = RGBA.fromUInt32(value);
+            const [r, g, b, a] = RGBA.fromUInt32(value);
             return RGBA.toUInt32(lerp(255, r, time), lerp(255, g, time), lerp(255, b, time), a);
         }
     }

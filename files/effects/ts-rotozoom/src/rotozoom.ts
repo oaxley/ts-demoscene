@@ -77,11 +77,11 @@ export class Rotozoom extends IAnimation {
                  * y' = x * sin + y * cos
                  * we multiply by (sin + 1) to have a nice zoom effect
                  */
-                let xb: number = Math.floor((x * cs - y * sn) * zoom);
-                let yb: number = Math.floor((x * sn + y * cs) * zoom);
+                const xb: number = Math.floor((x * cs - y * sn) * zoom);
+                const yb: number = Math.floor((x * sn + y * cs) * zoom);
 
                 /* convert the coordinate to the texture coordinate */
-                let u: number = xb & 0xff;
+                const u: number = xb & 0xff;
                 let v: number = yb % height;
 
                 while (v < 0) {

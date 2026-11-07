@@ -22,14 +22,14 @@ export namespace Filter {
 
         // compute the new values for RGBA
         protected compute(_time: number, value: number): number {
-            let [r, g, b, a] = RGBA.fromUInt32(value);
-            let tr = 0.393 * r + 0.769 * g + 0.189 * b;
-            let tg = 0.349 * r + 0.686 * g + 0.168 * b;
-            let tb = 0.272 * r + 0.534 * g + 0.131 * b;
+            const [r0, g0, b0, a] = RGBA.fromUInt32(value);
+            const tr = 0.393 * r0 + 0.769 * g0 + 0.189 * b0;
+            const tg = 0.349 * r0 + 0.686 * g0 + 0.168 * b0;
+            const tb = 0.272 * r0 + 0.534 * g0 + 0.131 * b0;
 
-            r = tr > 255 ? 255 : tr;
-            g = tg > 255 ? 255 : tg;
-            b = tb > 255 ? 255 : tb;
+            const r = tr > 255 ? 255 : tr;
+            const g = tg > 255 ? 255 : tg;
+            const b = tb > 255 ? 255 : tb;
 
             return RGBA.toUInt32(r, g, b, a);
         }
@@ -44,7 +44,7 @@ export namespace Filter {
 
         // compute the new values for RGBA
         protected compute(_time: number, value: number): number {
-            let [r, g, b, a] = RGBA.fromUInt32(value);
+            const [r, g, b, a] = RGBA.fromUInt32(value);
             return RGBA.toUInt32(255 - r, 255 - g, 255 - b, a);
         }
     }

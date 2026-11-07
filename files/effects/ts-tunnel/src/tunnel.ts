@@ -29,7 +29,7 @@ export class Tunnel extends IAnimation {
 
         // set the vars
         this.texture_ = new Surface();
-        let size = (display.width << 1) * (display.height << 1);
+        const size = (display.width << 1) * (display.height << 1);
         this.distance_ = new Float64Array(size);
         this.angle_ = new Float64Array(size);
         this.shade_ = new Float64Array(size);
@@ -46,17 +46,17 @@ export class Tunnel extends IAnimation {
 
         // the maps are twice as big as the screen to be able to move inside it
         for (let y = 0; y < h << 1; y++) {
-            let offset = y * (w << 1);
-            let dy = y - h;
-            let dy2 = dy * dy;
+            const offset = y * (w << 1);
+            const dy = y - h;
+            const dy2 = dy * dy;
             for (let x = 0; x < w << 1; x++) {
-                let dx = x - w;
-                let dx2 = dx * dx;
+                const dx = x - w;
+                const dx2 = dx * dx;
 
                 // compute the values
-                let sq = Math.sqrt(dx2 + dy2);
-                let a = Math.floor((1.0 * tw * Math.atan2(dy, dx)) / Math.PI);
-                let d = Math.floor((ratio * th) / sq) % th;
+                const sq = Math.sqrt(dx2 + dy2);
+                const a = Math.floor((1.0 * tw * Math.atan2(dy, dx)) / Math.PI);
+                const d = Math.floor((ratio * th) / sq) % th;
 
                 // set the maps
                 this.distance_[offset + x] = d;
@@ -85,12 +85,12 @@ export class Tunnel extends IAnimation {
         const time = timestamp / 1000;
 
         // compute the effect
-        let effectX = Math.floor(tw * 1.0 * time);
-        let effectY = Math.floor(th * 0.25 * time);
+        const effectX = Math.floor(tw * 1.0 * time);
+        const effectY = Math.floor(th * 0.25 * time);
 
         // camera movement effect
-        let cameraX = (w >> 1) + Math.floor((w >> 2) * Math.sin(time));
-        let cameraY = (h >> 1) + Math.floor((h >> 2) * Math.sin(time * 2.0));
+        const cameraX = (w >> 1) + Math.floor((w >> 2) * Math.sin(time));
+        const cameraY = (h >> 1) + Math.floor((h >> 2) * Math.sin(time * 2.0));
 
         const distance = this.distance_;
         const angle = this.angle_;
@@ -106,7 +106,7 @@ export class Tunnel extends IAnimation {
 
             for (let x = 0; x < w; x++, t_off++) {
                 // texture coordinates
-                let tx = Math.floor(distance[t_off] + effectX) % tw;
+                const tx = Math.floor(distance[t_off] + effectX) % tw;
                 let ty = Math.floor(angle[t_off] + effectY) % th;
 
                 // adjust ty in case it's negative
@@ -115,13 +115,13 @@ export class Tunnel extends IAnimation {
                 }
 
                 // retrieve texture data (NaN index -> first texel)
-                let value = src[((ty * tw + tx) << 2) >> 2];
+                const value = src[((ty * tw + tx) << 2) >> 2];
 
                 // compute the new color with the shade
-                let shade = shades[t_off];
-                let r = Math.floor((value & 0xff) * shade);
-                let g = Math.floor(((value >> 8) & 0xff) * shade);
-                let b = Math.floor(((value >> 16) & 0xff) * shade);
+                const shade = shades[t_off];
+                const r = Math.floor((value & 0xff) * shade);
+                const g = Math.floor(((value >> 8) & 0xff) * shade);
+                const b = Math.floor(((value >> 16) & 0xff) * shade);
 
                 // copy the pixel back to the screen
                 dst[addr++] = (value & 0xff000000) | (b << 16) | (g << 8) | r;

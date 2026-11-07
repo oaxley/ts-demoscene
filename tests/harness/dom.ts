@@ -182,7 +182,7 @@ export class FakeCanvas {
 
 //----- install
 export function installDom(): void {
-    const g = globalThis as any;
+    const g = globalThis as unknown as Record<string, unknown>;
     g.ImageData = FakeImageData;
     g.Image = FakeImage;
     g.window = g;

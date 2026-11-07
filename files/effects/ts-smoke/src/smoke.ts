@@ -89,8 +89,8 @@ export class Smoke extends IAnimation {
     }
 
     private setupParticules(): void {
-        let cx = this.bgx0 + 137;
-        let cy = this.bgy0 + 235;
+        const cx = this.bgx0 + 137;
+        const cy = this.bgy0 + 235;
 
         let x: Param = { init: cx, amp: 0, freq1: 0, freq2: 0 };
         let y: Param = { init: cy, amp: 0, freq1: 0, freq2: 0 };
@@ -123,22 +123,22 @@ export class Smoke extends IAnimation {
 
             // gray color gradient
             const gray = 0xe0;
-            let delta = (0x30 - gray) / npt;
-            let color: RGBA = new RGBA(gray, gray, gray);
+            const delta = (0x30 - gray) / npt;
+            const color: RGBA = new RGBA(gray, gray, gray);
 
             for (let j = 0; j < npt; j++) {
-                let tt = j / npt;
+                const tt = j / npt;
 
                 // compute the new position of each point
-                let a = src.position(t - src.delay * tt);
-                let b = dst.position(t - dst.delay * (1 - tt));
+                const a = src.position(t - src.delay * tt);
+                const b = dst.position(t - dst.delay * (1 - tt));
 
                 // create the LERP for these
-                let x = lerp(a.x, b.x, tt);
-                let y = lerp(a.y, b.y, tt);
+                const x = lerp(a.x, b.x, tt);
+                const y = lerp(a.y, b.y, tt);
 
                 // compute the color at this position
-                let v = Math.floor(gray + j * delta);
+                const v = Math.floor(gray + j * delta);
                 color.red = v;
                 color.green = v;
                 color.blue = v;
@@ -254,7 +254,7 @@ export class Smoke extends IAnimation {
         this.display_.surface.data32.set(this.screen_.data32);
 
         // draw the smoke trails
-        let t = this.frames_ / 200;
+        const t = this.frames_ / 200;
         this.drawTrails(t);
     }
 

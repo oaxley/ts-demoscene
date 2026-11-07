@@ -22,7 +22,7 @@ export class Palette {
     }
 
     public dump(): void {
-        for (var i = 0; i < this.colors_.length; i++) {
+        for (let i = 0; i < this.colors_.length; i++) {
             console.log(`${i} : ` + this.colors_[i].color.css());
         }
     }
@@ -56,13 +56,13 @@ export class Palette {
      */
     public toUint32Array(): Uint32Array {
         if (this.lut_ === undefined || this.lut_.length != this.colors_.length) {
-            let lut = new Uint32Array(this.colors_.length);
+            const lut = new Uint32Array(this.colors_.length);
             for (let i = 0; i < this.colors_.length; i++) {
-                let c = this.colors_[i];
+                const c = this.colors_[i];
                 if (c === undefined) {
                     continue;
                 }
-                let rgba = c.color.model == COLOR_MODEL.RGBA ? <RGBA>c.color : RGBA.from(c.color);
+                const rgba = c.color.model == COLOR_MODEL.RGBA ? <RGBA>c.color : RGBA.from(c.color);
                 lut[i] = rgba ? rgba.uint32 : 0;
             }
             this.lut_ = lut;
@@ -95,11 +95,8 @@ export class Palette {
             throw Error("gradient(): Both colors need to be in the same space.");
         }
 
-        let x: number, y: number, z: number, a: number;
-        let dx: number, dy: number, dz: number, da: number;
-
-        let v1: Components = begin.color.values;
-        let v2: Components = end.color.values;
+        const v1: Components = begin.color.values;
+        const v2: Components = end.color.values;
 
         // ensure both colors are from the same color space
         if (v1.m != v2.m) {
@@ -107,16 +104,16 @@ export class Palette {
         }
 
         // initialize values
-        [x, y, z, a] = [v1.x, v1.y, v1.z, v1.a];
+        let [x, y, z, a] = [v1.x, v1.y, v1.z, v1.a];
 
         // (-1) so we are sure to go from c1 up to c2
-        dx = (v2.x - x) / (steps - 1);
-        dy = (v2.y - y) / (steps - 1);
-        dz = (v2.z - z) / (steps - 1);
-        da = (v2.a - a) / (steps - 1);
+        const dx = (v2.x - x) / (steps - 1);
+        const dy = (v2.y - y) / (steps - 1);
+        const dz = (v2.z - z) / (steps - 1);
+        const da = (v2.a - a) / (steps - 1);
 
         // create colors
-        for (var i = 0; i < steps; i++) {
+        for (let i = 0; i < steps; i++) {
             // add this new color
             this.colors_.push(new Color(v1.m, x, y, z, a));
             this.lut_ = undefined;

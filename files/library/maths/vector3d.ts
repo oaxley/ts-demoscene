@@ -71,23 +71,23 @@ export class Vector3D {
 
     // compute the distance with another vector
     public dist(other: Vector3D): number {
-        let dx = this.x - other.x;
-        let dy = this.y - other.y;
-        let dz = this.z - other.z;
+        const dx = this.x - other.x;
+        const dy = this.y - other.y;
+        const dz = this.z - other.z;
         return Math.sqrt(dx * dx + dy * dy + dz * dz);
     }
 
     // compute the distance squared with another vector
     public dist2(other: Vector3D): number {
-        let dx = this.x - other.x;
-        let dy = this.y - other.y;
-        let dz = this.z - other.z;
+        const dx = this.x - other.x;
+        const dy = this.y - other.y;
+        const dz = this.z - other.z;
         return dx * dx + dy * dy + dz * dz;
     }
 
     // vector normalization
     public norm(): Vector3D {
-        var mag = this.mag();
+        const mag = this.mag();
         return new Vector3D(this.x / mag, this.y / mag, this.z / mag);
     }
 
@@ -107,8 +107,8 @@ export class Vector3D {
 
     // angle between two vectors
     public angle(other: Vector3D): number {
-        let dot = this.dot(other);
-        let mag = Math.sqrt(this.mag2() * other.mag2());
+        const dot = this.dot(other);
+        const mag = Math.sqrt(this.mag2() * other.mag2());
         return Math.acos(dot / mag);
     }
 

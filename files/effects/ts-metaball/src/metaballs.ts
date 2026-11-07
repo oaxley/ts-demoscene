@@ -65,7 +65,7 @@ export class Metaballs extends IAnimation {
     // create a grayscale palette
     private createPalette(): void {
         for (let index = 0; index < 256; index++) {
-            let v = Math.floor(255.0 * this.ease(index / 256.0));
+            const v = Math.floor(255.0 * this.ease(index / 256.0));
             this.palette_.setColor(index, new Color(COLOR_MODEL.RGBA, v, v, v));
         }
     }
@@ -130,7 +130,7 @@ export class Metaballs extends IAnimation {
                 // compute the interference between each particules
                 let sum = 0;
                 for (let k = 0; k < NUM_PARTICULES; k++) {
-                    let d = Math.sqrt(dx2[k * w + x] + dy2[k]);
+                    const d = Math.sqrt(dx2[k * w + x] + dy2[k]);
                     sum += Math.floor(cr[k] / d);
                 }
 

@@ -54,7 +54,7 @@ export class Sprite {
     //----- functions
     // draw the sprite on another surface a the specified position
     public draw(position: Point2D, other: Surface, opacity?: number, mask?: number): void {
-        let size: Rect = { x: 0, y: 0, w: this.bitmap_.width, h: this.bitmap_.height };
+        const size: Rect = { x: 0, y: 0, w: this.bitmap_.width, h: this.bitmap_.height };
         other.blend(position, this.bitmap_, size, opacity, mask);
     }
 }

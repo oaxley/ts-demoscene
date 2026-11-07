@@ -23,7 +23,7 @@ export namespace Fade {
 
         // compute the new values for RGBA
         protected compute(time: number, value: number): number {
-            let [r, g, b, a] = RGBA.fromUInt32(value);
+            const [r, g, b, a] = RGBA.fromUInt32(value);
             return RGBA.toUInt32(lerp(0, r, time), lerp(0, g, time), lerp(0, b, time), a);
         }
     }
@@ -37,7 +37,7 @@ export namespace Fade {
 
         // compute the new values for RGBA
         protected compute(time: number, value: number): number {
-            let [r, g, b, a] = RGBA.fromUInt32(value);
+            const [r, g, b, a] = RGBA.fromUInt32(value);
             return RGBA.toUInt32(lerp(r, 0, time), lerp(g, 0, time), lerp(b, 0, time), a);
         }
     }

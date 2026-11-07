@@ -18,8 +18,8 @@ export class CollisionWall extends CollisionObject {
     //----- methods
     constructor(r: Rect) {
         // compute the center of the wall
-        let xc = r.x + (r.w >> 1);
-        let yc = r.y + (r.h >> 1);
+        const xc = r.x + (r.w >> 1);
+        const yc = r.y + (r.h >> 1);
 
         // call the base constructor
         super(new Vector2D(xc, yc), new Vector2D(0, 0));

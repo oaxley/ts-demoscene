@@ -116,9 +116,9 @@ export class RGBA extends BaseColor {
             return str;
         }
 
-        let r = _hexConversion(this.x_);
-        let g = _hexConversion(this.y_);
-        let b = _hexConversion(this.z_);
+        const r = _hexConversion(this.x_);
+        const g = _hexConversion(this.y_);
+        const b = _hexConversion(this.z_);
 
         return `#${r}${g}${b}`;
     }
@@ -130,13 +130,23 @@ export class RGBA extends BaseColor {
 
     // create RGBA from another HSLA instance
     private static fromHSLA(hsla: Components): RGBA {
-        let h: number, s: number, l: number, a: number;
-        let t1: number, t2: number;
-        let tr: number, tg: number, tb: number;
+        // setup local values for easy readiness
+        const [s, a] = [hsla.y, hsla.a];
+        let [h, l] = [hsla.x, hsla.z];
+
+        // no saturation, just use the luminance
+        if (s == 0) {
+            l = Math.floor(255 * l);
+            return new RGBA(l, l, l, Math.floor(a * 255));
+        }
+
+        // compute the temporay values
+        const t1 = l < 0.5 ? l * (1.0 + s) : l + s - l * s;
+        const t2 = 2 * l - t1;
 
         // function to compute HSL values
         function _computeValues(x: number): number {
-            let y: number = 0.0;
+            let y: number;
 
             if (6 * x < 1.0) {
                 y = t2 + (t1 - t2) * 6 * x;
@@ -156,26 +166,13 @@ export class RGBA extends BaseColor {
             return Math.min(1.0, Math.max(0.0, y));
         }
 
-        // setup local values for easy readiness
-        [h, s, l, a] = [hsla.x, hsla.y, hsla.z, hsla.a];
-
-        // no saturation, just use the luminance
-        if (s == 0) {
-            l = Math.floor(255 * l);
-            return new RGBA(l, l, l, Math.floor(a * 255));
-        }
-
-        // compute the temporay values
-        t1 = l < 0.5 ? l * (1.0 + s) : l + s - l * s;
-        t2 = 2 * l - t1;
-
         // convert hue to [0..1]
         h = h / 360.0;
 
         // temporary R,G,B
-        tr = h + 1 / 3 > 1.0 ? h + 1 / 3 - 1.0 : h + 1 / 3;
-        tg = h;
-        tb = h - 1 / 3 < 0.0 ? h - 1 / 3 + 1.0 : h - 1 / 3;
+        const tr = h + 1 / 3 > 1.0 ? h + 1 / 3 - 1.0 : h + 1 / 3;
+        const tg = h;
+        const tb = h - 1 / 3 < 0.0 ? h - 1 / 3 + 1.0 : h - 1 / 3;
 
         // set RGB values
         return new RGBA(
@@ -189,15 +186,12 @@ export class RGBA extends BaseColor {
     // create RGBA from another HSVA instance
     private static fromHSVA(hsva: Components): RGBA {
         let r: number, g: number, b: number;
-        let h: number, s: number, v: number;
-        let c: number, x: number, m: number;
-
-        [h, s, v] = [hsva.x, hsva.y, hsva.z];
+        const [h, s, v] = [hsva.x, hsva.y, hsva.z];
 
         // temporary values
-        c = v * s;
-        m = v - c;
-        x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+        const c = v * s;
+        const m = v - c;
+        const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
 
         // map each color from its position on the circle
         if (h >= 0 && h < 60) {

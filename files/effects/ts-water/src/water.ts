@@ -32,7 +32,7 @@ export class Water extends IAnimation {
         // set the vars
         this.image_ = new Surface();
 
-        let bsize = this.width_ * this.height_;
+        const bsize = this.width_ * this.height_;
         this.state1_ = new Int32Array(bsize);
         this.state2_ = new Int32Array(bsize);
         this.state_ = 0;
@@ -40,8 +40,8 @@ export class Water extends IAnimation {
 
     // select the current/previous buffer
     private states(): [Int32Array, Int32Array] {
-        let cur = this.state_ == 0 ? this.state1_ : this.state2_;
-        let old = this.state_ == 0 ? this.state2_ : this.state1_;
+        const cur = this.state_ == 0 ? this.state1_ : this.state2_;
+        const old = this.state_ == 0 ? this.state2_ : this.state1_;
 
         return [cur, old];
     }
@@ -52,17 +52,17 @@ export class Water extends IAnimation {
         const border_min = BORDER_SIZE >> 1;
         const border_max = BORDER_SIZE;
 
-        let x = Math.floor(border_min + (this.width_ - border_max) * Math.random());
-        let y = Math.floor(border_min + (this.height_ - border_max) * Math.random());
+        const x = Math.floor(border_min + (this.width_ - border_max) * Math.random());
+        const y = Math.floor(border_min + (this.height_ - border_max) * Math.random());
 
         // wave perturbation
-        let p = Math.floor(WAVE_MIN + WAVE_MAX * Math.random());
+        const p = Math.floor(WAVE_MIN + WAVE_MAX * Math.random());
 
         // retrieve the current state
-        let cur = this.states()[0];
+        const cur = this.states()[0];
 
         // create the wave at the position defined in the current state buffer
-        let offset = x + y * this.width_;
+        const offset = x + y * this.width_;
 
         cur[offset] += p;
         cur[offset - this.width_] += p;
@@ -93,7 +93,7 @@ export class Water extends IAnimation {
     // update the animation
     protected update(): void {
         // select the current states
-        let [cur, old] = this.states();
+        const [cur, old] = this.states();
 
         // select src and dst frame buffers
         const src = this.image_.data32;
@@ -101,9 +101,9 @@ export class Water extends IAnimation {
 
         // compute the effect
         for (let y = 1; y < this.height_ - 1; y++) {
-            let y_offset = y * this.width_;
+            const y_offset = y * this.width_;
             for (let x = 1; x < this.width_ - 1; x++) {
-                let x_offset = y_offset + x;
+                const x_offset = y_offset + x;
 
                 // compute the current value at (x, y) by adding surrounding values
                 cur[x_offset] =
@@ -118,7 +118,7 @@ export class Water extends IAnimation {
                 cur[x_offset] -= cur[x_offset] >> 7;
 
                 // compute the refraction / texture coordinates by cheating (a bit)
-                let r = 1024 - cur[x_offset];
+                const r = 1024 - cur[x_offset];
                 let a = this.width_ + Math.floor(((x - this.width_) * r) / 1024);
                 let b = this.height_ + Math.floor(((y - this.height_) * r) / 1024);
 

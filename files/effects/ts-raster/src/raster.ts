@@ -41,7 +41,7 @@ export class RasterBars extends IAnimation {
                 angle: 0.6,
                 increment: 0.03,
                 color: (index: number) => {
-                    let v = Math.min(index * 10, 255);
+                    const v = Math.min(index * 10, 255);
                     return new RGBA(v, 0, 0);
                 },
             },
@@ -50,7 +50,7 @@ export class RasterBars extends IAnimation {
                 angle: 0.4,
                 increment: 0.03,
                 color: (index: number) => {
-                    let v = Math.min(index * 10, 255);
+                    const v = Math.min(index * 10, 255);
                     return new RGBA(0, v, 0);
                 },
             },
@@ -59,7 +59,7 @@ export class RasterBars extends IAnimation {
                 angle: 0.2,
                 increment: 0.03,
                 color: (index: number) => {
-                    let v = Math.min(index * 10, 255);
+                    const v = Math.min(index * 10, 255);
                     return new RGBA(v, v, 0);
                 },
             },
@@ -68,7 +68,7 @@ export class RasterBars extends IAnimation {
                 angle: 0.0,
                 increment: 0.03,
                 color: (index: number) => {
-                    let v = Math.min(index * 10, 255);
+                    const v = Math.min(index * 10, 255);
                     return new RGBA(v, 0, v);
                 },
             },
@@ -77,13 +77,13 @@ export class RasterBars extends IAnimation {
 
     // draw a bar on the surface display
     private drawBar(y: number, bar: number): void {
-        let xmin = 0;
-        let xmax = this.display_.width;
+        const xmin = 0;
+        const xmax = this.display_.width;
 
         const half_size = (BAR_SIZE >> 1) - 1;
         for (let i = 0; i <= half_size; i++) {
-            let ymin = y - (half_size - i);
-            let ymax = y + i;
+            const ymin = y - (half_size - i);
+            const ymax = y + i;
 
             this.display_.surface.hline({ x: xmin, y: ymin }, { x: xmax, y: ymin }, this.bars_[bar].color(i));
             this.display_.surface.hline(
@@ -105,12 +105,12 @@ export class RasterBars extends IAnimation {
         this.display_.surface.clear();
 
         // draw all the bars in reverse order to create "depth" impression
-        let ymax = this.display_.height >> 1;
-        let size = ymax - BAR_SIZE;
+        const ymax = this.display_.height >> 1;
+        const size = ymax - BAR_SIZE;
 
         for (let i = this.bars_.length - 1; i >= 0; i--) {
             // compute the bar position
-            let ypos = Math.floor(ymax + size * Math.sin(this.bars_[i].angle));
+            const ypos = Math.floor(ymax + size * Math.sin(this.bars_[i].angle));
 
             // draw the bar
             this.drawBar(ypos, i);
@@ -121,7 +121,7 @@ export class RasterBars extends IAnimation {
         }
 
         // display the sprite on top
-        let xpos = this.display_.width - this.image_.width;
+        const xpos = this.display_.width - this.image_.width;
         this.display_.surface.blend({ x: xpos, y: 0 }, this.image_);
     }
 

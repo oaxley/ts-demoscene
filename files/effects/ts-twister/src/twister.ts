@@ -60,7 +60,7 @@ export class Twister extends IAnimation {
 
         // same index truncation as the surface address accessors
         let d_addr = (y * this.display_.width + xb) << 2;
-        let ratio = (xte - xtb) / (xe - xb);
+        const ratio = (xte - xtb) / (xe - xb);
         let addr = ot + xtb;
 
         for (let x = xb; x < xe; x++) {
@@ -84,25 +84,25 @@ export class Twister extends IAnimation {
     // update the animation
     protected update(): void {
         // setup vars
-        let x0 = this.display_.width >> 1;
-        let w = BAR_WIDTH >> 1;
+        const x0 = this.display_.width >> 1;
+        const w = BAR_WIDTH >> 1;
 
         // erase the surface
         this.display_.surface.clear();
 
         for (let y = 0; y < this.display_.height; y++) {
-            let fv = (1.0 * y) / this.display_.height;
+            const fv = (1.0 * y) / this.display_.height;
 
             // compute the position of each point
-            let a = radians(90);
-            let x1 = x0 + w * Math.sin(this.amplitude_ * fv + this.angle_ + a * 0);
-            let x2 = x0 + w * Math.sin(this.amplitude_ * fv + this.angle_ + a * 1);
-            let x3 = x0 + w * Math.sin(this.amplitude_ * fv + this.angle_ + a * 2);
-            let x4 = x0 + w * Math.sin(this.amplitude_ * fv + this.angle_ + a * 3);
+            const a = radians(90);
+            const x1 = x0 + w * Math.sin(this.amplitude_ * fv + this.angle_ + a * 0);
+            const x2 = x0 + w * Math.sin(this.amplitude_ * fv + this.angle_ + a * 1);
+            const x3 = x0 + w * Math.sin(this.amplitude_ * fv + this.angle_ + a * 2);
+            const x4 = x0 + w * Math.sin(this.amplitude_ * fv + this.angle_ + a * 3);
 
             // compute the texture coordinate / offset
-            let yt = Math.floor(fv * this.texture_!.height);
-            let ot = yt * this.texture_!.width;
+            const yt = Math.floor(fv * this.texture_!.height);
+            const ot = yt * this.texture_!.width;
 
             // draw the 4 slices
             this.drawSlice(y, ot, 0, x1, x2);

@@ -48,10 +48,10 @@ export class Moire extends IAnimation {
         const white = RGBA.toUInt32(255, 255, 255);
 
         // compute the current center of each circles
-        let cx1 = this.sx_ + this.ax_ * Math.cos(time / 1000);
-        let cy1 = this.sy_ + this.ay_ * Math.sin(time / 2000);
-        let cx2 = this.sx_ + this.ax_ * Math.cos(time / 3000);
-        let cy2 = this.sy_ + this.ay_ * Math.sin(time / 4000);
+        const cx1 = this.sx_ + this.ax_ * Math.cos(time / 1000);
+        const cy1 = this.sy_ + this.ay_ * Math.sin(time / 2000);
+        const cx2 = this.sx_ + this.ax_ * Math.cos(time / 3000);
+        const cy2 = this.sy_ + this.ay_ * Math.sin(time / 4000);
 
         // X coefficients (per column)
         const dx1 = this.dx1_;

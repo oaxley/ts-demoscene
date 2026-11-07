@@ -31,7 +31,7 @@ export class ImgNoise extends IAnimation {
         this.increment_ = 0.005;
 
         // build the noise map
-        let noise = new Noise.Noise2D();
+        const noise = new Noise.Noise2D();
         this.noiseMap_ = noise.fractal(display.width, display.height, Math.random() / 10.0);
     }
 

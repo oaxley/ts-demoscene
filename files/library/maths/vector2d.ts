@@ -74,21 +74,21 @@ export class Vector2D {
 
     // normalize the vector
     public norm(): Vector2D {
-        var mag = this.mag();
+        const mag = this.mag();
         return new Vector2D(this.x / mag, this.y / mag);
     }
 
     // compute the distance with another vector
     public dist(other: Vector2D): number {
-        let dx = this.x - other.x;
-        let dy = this.y - other.y;
+        const dx = this.x - other.x;
+        const dy = this.y - other.y;
         return Math.sqrt(dx * dx + dy * dy);
     }
 
     // compute the distance squared with another vector
     public dist2(other: Vector2D): number {
-        let dx = this.x - other.x;
-        let dy = this.y - other.y;
+        const dx = this.x - other.x;
+        const dy = this.y - other.y;
         return dx * dx + dy * dy;
     }
 
@@ -99,8 +99,8 @@ export class Vector2D {
 
     // angle with another vector
     public angle(other: Vector2D): number {
-        let dot = this.dot(other);
-        let mag = Math.sqrt(this.mag2() * other.mag2());
+        const dot = this.dot(other);
+        const mag = Math.sqrt(this.mag2() * other.mag2());
         return Math.acos(dot / mag);
     }
 

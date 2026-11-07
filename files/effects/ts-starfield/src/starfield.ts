@@ -49,7 +49,7 @@ export class Starfield extends IAnimation {
 
     // initialize a star
     private initStar(index: number): void {
-        let z = -200.0 + 400 * Math.random();
+        const z = -200.0 + 400 * Math.random();
         this.stars_[index] = {
             position: {
                 x: -200.0 + 400 * Math.random(),
@@ -74,7 +74,7 @@ export class Starfield extends IAnimation {
     protected update(): void {
         // move the stars
         for (let i = 0; i < NUMBER_OF_STARS; i++) {
-            let star: Star = this.stars_[i];
+            const star: Star = this.stars_[i];
             star.old_z = star.position.z;
             star.position.z -= star.speed;
         }
@@ -94,13 +94,13 @@ export class Starfield extends IAnimation {
         // compute the 2D position of each stars
         for (let i = 0; i < NUMBER_OF_STARS; i++) {
             // retrieve the data for this star
-            let star: Star = this.stars_[i];
+            const star: Star = this.stars_[i];
 
-            let px: number = cx + Math.floor((star.position.x * 256) / (star.position.z + 384));
-            let py: number = cy + Math.floor((star.position.y * 256) / (star.position.z + 384));
+            const px: number = cx + Math.floor((star.position.x * 256) / (star.position.z + 384));
+            const py: number = cy + Math.floor((star.position.y * 256) / (star.position.z + 384));
 
-            let ox: number = cx + Math.floor((star.position.x * 256) / (star.old_z + 384));
-            let oy: number = cy + Math.floor((star.position.y * 256) / (star.old_z + 384));
+            const ox: number = cx + Math.floor((star.position.x * 256) / (star.old_z + 384));
+            const oy: number = cy + Math.floor((star.position.y * 256) / (star.old_z + 384));
 
             if (px < 0 || px > w - 1 || py < 0 || py > h - 1) {
                 this.initStar(i);
@@ -108,7 +108,7 @@ export class Starfield extends IAnimation {
             }
 
             // retrieve the correct color
-            let c = <RGBA>this.palette_.getColor(star.color)!.color;
+            const c = <RGBA>this.palette_.getColor(star.color)!.color;
             this.display_.surface.line({ x: ox, y: oy }, { x: px, y: py }, c);
         }
 

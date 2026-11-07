@@ -36,7 +36,7 @@ export abstract class IPrng {
     // return a value following a normal gaussian law
     public randGaus(mean: number, stdev: number): number {
         let x: number = 0.0;
-        let y: number = 0.0;
+        let y: number;
         let r: number = 0.0;
 
         // find a point inside the circle of radius 1.0 and centered around (0,0)
@@ -46,7 +46,7 @@ export abstract class IPrng {
             r = x * x + y * y;
         }
 
-        let s = Math.sqrt((-2.0 * Math.log(r)) / r);
+        const s = Math.sqrt((-2.0 * Math.log(r)) / r);
         return mean + x * s * stdev;
     }
 }

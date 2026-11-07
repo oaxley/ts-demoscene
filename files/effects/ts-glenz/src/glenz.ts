@@ -148,11 +148,11 @@ export class Glenz extends IAnimation {
     // render the animation on the screen
     protected render(): void {
         // copy the background on the surface
-        let s = this.display_.surface;
+        const s = this.display_.surface;
         s.copy(this.background_);
 
         // draw the transparent plane
-        let c = new RGBA(0, 128, 192);
+        const c = new RGBA(0, 128, 192);
         const [cr, cg, cb] = [c.red, c.green, c.blue];
         const data32 = s.data32;
         for (let y = this.ymin_; y < this.ymax_; y++) {
@@ -170,13 +170,13 @@ export class Glenz extends IAnimation {
 
             // blend the plane and the background color
             // (components are truncated like RGBA.uint32 does)
-            let addr = y * this.width_;
+            const addr = y * this.width_;
             for (let x = this.xmin_[y]; x < this.xmax_[y]; x++) {
-                let v = data32[addr + x];
+                const v = data32[addr + x];
 
-                let r = lerp(cr, v & 0xff, TRANPARENCY) & 0xff;
-                let g = lerp(cg, (v >> 8) & 0xff, TRANPARENCY) & 0xff;
-                let b = lerp(cb, (v >> 16) & 0xff, TRANPARENCY) & 0xff;
+                const r = lerp(cr, v & 0xff, TRANPARENCY) & 0xff;
+                const g = lerp(cg, (v >> 8) & 0xff, TRANPARENCY) & 0xff;
+                const b = lerp(cb, (v >> 16) & 0xff, TRANPARENCY) & 0xff;
 
                 data32[addr + x] = 0xff000000 | (b << 16) | (g << 8) | r;
             }

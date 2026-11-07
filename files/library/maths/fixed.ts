@@ -21,7 +21,7 @@ export class Fixed {
 
     // create a fixed directly from its raw 16:16 value
     public static fromRaw(raw: number): Fixed {
-        let f = new Fixed(0);
+        const f = new Fixed(0);
         f.value_ = raw | 0;
         return f;
     }
