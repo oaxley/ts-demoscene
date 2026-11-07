@@ -50,6 +50,7 @@ export function createApp(config: Config, root: string = "public"): Express {
         const effect = config[name];
         res.render("effect", {
             title: effect.title,
+            name,
             bundle: `/js/${name}.bundle.js`,
             artist: effect.artist,
             website: effect.website,

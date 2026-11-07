@@ -65,6 +65,14 @@ describe.skipIf(!built)("server routes", () => {
         }
     });
 
+    test("every effect page links back to the main page", async () => {
+        for (const name of Object.keys(config)) {
+            const html = await (await fetch(`${base}/effect/${name}`)).text();
+            expect(html, name).toContain(`href="/#${name}"`);
+            expect(html, name).toContain("back to the effects");
+        }
+    });
+
     test("unknown effect / page: 404", async () => {
         for (const url of ["/effect/nope", "/effect/toString", "/nope"]) {
             const res = await fetch(`${base}${url}`);
