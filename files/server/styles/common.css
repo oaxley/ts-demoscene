@@ -47,8 +47,9 @@ body {
     margin-left: auto;
     padding-top: 12px;
 
-    font-family: Courier;
+    font-family: "Freckle Face", Courier;
     font-size: 32pt;
+    font-weight: normal;
     text-align: center;
     color: white;
 }
