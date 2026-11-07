@@ -82,7 +82,7 @@ export class Twister extends IAnimation {
     }
 
     // update the animation
-    protected update(time?: number): void {
+    protected update(): void {
         // setup vars
         let x0 = this.display_.width >> 1;
         let w = BAR_WIDTH >> 1;
@@ -113,7 +113,7 @@ export class Twister extends IAnimation {
     }
 
     // render the animation on the screen
-    protected render(time?: number): void {
+    protected render(): void {
         // update the angle
         this.angle_ += 0.035;
 

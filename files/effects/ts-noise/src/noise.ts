@@ -41,7 +41,7 @@ export class ImgNoise extends IAnimation {
     }
 
     // update the animation
-    protected update(time?: number): void {
+    protected update(): void {
         const src = this.image_.data32;
         const dst = this.display_.surface.data32;
         const noise = this.noiseMap_;
@@ -60,7 +60,7 @@ export class ImgNoise extends IAnimation {
     }
 
     // render the animation on the screen
-    protected render(time?: number): void {
+    protected render(): void {
         // flip the back-buffer onto the screen
         this.display_.draw();
     }

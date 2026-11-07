@@ -127,7 +127,7 @@ export class Glenz extends IAnimation {
     }
 
     // update the animation
-    protected update(time?: number): void {
+    protected update(): void {
         // compute the projection
         this.projection(this.angle_, this.center_);
 
@@ -146,7 +146,7 @@ export class Glenz extends IAnimation {
     }
 
     // render the animation on the screen
-    protected render(time?: number): void {
+    protected render(): void {
         // copy the background on the surface
         let s = this.display_.surface;
         s.copy(this.background_);

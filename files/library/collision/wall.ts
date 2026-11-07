@@ -29,7 +29,7 @@ export class CollisionWall extends CollisionObject {
     }
 
     // return the bounding box of the object
-    public rect(center?: Vector2D): Rect {
+    public rect(_center?: Vector2D): Rect {
         return this.coord_;
     }
 

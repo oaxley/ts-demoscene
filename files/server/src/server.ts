@@ -29,14 +29,14 @@ export function createApp(config: Config, root: string = "public"): Express {
     app.use(express.static(root));
 
     // default route
-    app.get("/", (req: Request, res: Response) => {
+    app.get("/", (_req: Request, res: Response) => {
         res.render("index", {
             title: "90's Demoscene effects",
         });
     });
 
     // retrieve the configuration
-    app.get("/config", (req: Request, res: Response) => {
+    app.get("/config", (_req: Request, res: Response) => {
         res.json(config);
     });
 
@@ -57,7 +57,7 @@ export function createApp(config: Config, root: string = "public"): Express {
     });
 
     // everything else
-    app.use((req: Request, res: Response) => {
+    app.use((_req: Request, res: Response) => {
         res.status(404).render("404", { title: "Effect not found" });
     });
 

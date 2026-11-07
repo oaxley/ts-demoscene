@@ -27,10 +27,10 @@ export class Font {
         console.log("Loading font ...");
         this.font_
             .loadImage(filename)
-            .then((result) => {
+            .then(() => {
                 console.log("Font: asset properly loaded");
             })
-            .catch((result) => {
+            .catch(() => {
                 console.log(`Font: unable to load asset ${filename}`);
             });
     }

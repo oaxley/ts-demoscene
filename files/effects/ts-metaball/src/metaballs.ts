@@ -84,7 +84,7 @@ export class Metaballs extends IAnimation {
     }
 
     // update the animation
-    protected update(time?: number): void {
+    protected update(): void {
         // move the particules around
         for (let k = 0; k < NUM_PARTICULES; k++) {
             this.metaballs_[k].x += this.metaballs_[k].vx;
@@ -99,7 +99,7 @@ export class Metaballs extends IAnimation {
     }
 
     // render the animation on screen
-    protected render(time?: number): void {
+    protected render(): void {
         const w = this.width_;
         const h = this.height_;
         const data32 = this.display_.surface.data32;

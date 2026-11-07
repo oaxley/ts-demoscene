@@ -8,7 +8,6 @@
 //----- imports
 import { RGBA } from "library/color/RGBA";
 import { Size, Rect, Point2D } from "library/core/interfaces";
-import { Viewport } from "./viewport";
 import { lerp } from "library/maths/utils";
 import { bresenham } from "./bresenham";
 
@@ -40,13 +39,9 @@ export class Surface {
     private length_: number = 0; // Surface length
 
     private framebuffer_: IFrameBuffer | undefined;
-    private viewport_: Viewport;
 
     //----- methods
     constructor(size?: Size) {
-        // set the vars
-        this.viewport_ = new Viewport();
-
         if (size) {
             this.create(size.width, size.height);
         }
@@ -436,10 +431,10 @@ export class Surface {
         // future promise
         let future = new Promise((resolve, reject) => {
             // image event handlers
-            img.onload = (event) => {
+            img.onload = () => {
                 resolve(true);
             };
-            img.onerror = (event) => {
+            img.onerror = () => {
                 reject(false);
             };
 
@@ -449,7 +444,7 @@ export class Surface {
 
         // execute the future
         return future
-            .then((result) => {
+            .then(() => {
                 // copy the image on a temporary canvas
                 let canvas = <HTMLCanvasElement>document.createElement("canvas");
                 canvas.width = img.width;
@@ -463,7 +458,7 @@ export class Surface {
 
                 return true;
             })
-            .catch((result) => {
+            .catch(() => {
                 console.log(`Error: unable to load the image ${name}`);
                 return false;
             });

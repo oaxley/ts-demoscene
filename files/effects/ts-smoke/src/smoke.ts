@@ -249,7 +249,7 @@ export class Smoke extends IAnimation {
     }
 
     // update the animation
-    protected update(time?: number): void {
+    protected update(): void {
         // copy the background on the display surface
         this.display_.surface.data32.set(this.screen_.data32);
 
@@ -259,7 +259,7 @@ export class Smoke extends IAnimation {
     }
 
     // render the animation on the screen
-    protected render(time?: number): void {
+    protected render(): void {
         // flip the back-buffer onto the screen
         this.display_.draw();
     }

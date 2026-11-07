@@ -163,7 +163,7 @@ export class Flames extends IAnimation {
     }
 
     // update the animation
-    protected update(time?: number): void {
+    protected update(): void {
         // fuel the flames at the bottom
         this.generate();
 
@@ -212,7 +212,7 @@ export class Flames extends IAnimation {
     }
 
     // render the animation on the screen
-    protected render(time?: number): void {
+    protected render(): void {
         // copy the flames
         const lut = this.palette_.toUint32Array();
         const flames = this.flames_;

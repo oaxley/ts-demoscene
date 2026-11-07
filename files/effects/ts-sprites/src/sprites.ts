@@ -82,7 +82,7 @@ export class Sprites extends IAnimation {
     }
 
     // update the animation
-    protected update(time?: number): void {
+    protected update(): void {
         // update the particules
         for (let i = 0; i < this.particules_.length; i++) {
             // update the X value
@@ -110,7 +110,7 @@ export class Sprites extends IAnimation {
     }
 
     // render the animation on the screen
-    protected render(time?: number): void {
+    protected render(): void {
         let s = this.display_.surface;
         s.clear();
 

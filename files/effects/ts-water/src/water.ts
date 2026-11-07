@@ -91,7 +91,7 @@ export class Water extends IAnimation {
     }
 
     // update the animation
-    protected update(time?: number): void {
+    protected update(): void {
         // select the current states
         let [cur, old] = this.states();
 
@@ -136,7 +136,7 @@ export class Water extends IAnimation {
     }
 
     // render the animation onto the screen
-    protected render(time?: number): void {
+    protected render(): void {
         this.display_.draw();
 
         // add a new rain droplet every 10 frames

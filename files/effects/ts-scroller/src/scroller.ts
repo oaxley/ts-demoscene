@@ -110,7 +110,7 @@ export class Scroller extends IAnimation {
     }
 
     // update the animation
-    protected update(time?: number): void {
+    protected update(): void {
         // draw the text on the font surface
         this.drawText(this.text_);
 
@@ -135,7 +135,7 @@ export class Scroller extends IAnimation {
     }
 
     // render the animation
-    protected render(time?: number): void {
+    protected render(): void {
         // surface clearing
         this.display_.surface.clear();
 

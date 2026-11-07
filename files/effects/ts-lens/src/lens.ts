@@ -111,13 +111,13 @@ export class Lens extends IAnimation {
     }
 
     // update the animation
-    protected update(time?: number): void {
+    protected update(): void {
         // update the collision detector
         this.detector_.update();
     }
 
     // render the animation on screen
-    protected render(time?: number): void {
+    protected render(): void {
         // load the background image in the back-buffer
         this.display_.surface.copy(this.image_);
 

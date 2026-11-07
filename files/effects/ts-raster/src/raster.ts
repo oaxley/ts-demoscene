@@ -100,7 +100,7 @@ export class RasterBars extends IAnimation {
     }
 
     // update the animation
-    protected update(time?: number): void {
+    protected update(): void {
         // clear the screen
         this.display_.surface.clear();
 
@@ -126,7 +126,7 @@ export class RasterBars extends IAnimation {
     }
 
     // render the animation
-    protected render(time?: number): void {
+    protected render(): void {
         // flip the back-buffer onto the screen
         this.display_.draw();
     }

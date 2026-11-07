@@ -54,7 +54,7 @@ export class Rotozoom extends IAnimation {
     }
 
     // update the animation
-    protected update(timestamp: number): void {
+    protected update(): void {
         // height of the texture
         const height = this.texture_.height;
 
@@ -97,7 +97,7 @@ export class Rotozoom extends IAnimation {
     }
 
     // render the animation on screen
-    protected render(timestamp: number): void {
+    protected render(): void {
         // flip the back-buffer onto the screen
         this.display_.draw();
     }

@@ -21,7 +21,7 @@ export namespace Filter {
         }
 
         // compute the new values for RGBA
-        protected compute(time: number, value: number): number {
+        protected compute(_time: number, value: number): number {
             let [r, g, b, a] = RGBA.fromUInt32(value);
             let tr = 0.393 * r + 0.769 * g + 0.189 * b;
             let tg = 0.349 * r + 0.686 * g + 0.168 * b;
@@ -43,7 +43,7 @@ export namespace Filter {
         }
 
         // compute the new values for RGBA
-        protected compute(time: number, value: number): number {
+        protected compute(_time: number, value: number): number {
             let [r, g, b, a] = RGBA.fromUInt32(value);
             return RGBA.toUInt32(255 - r, 255 - g, 255 - b, a);
         }

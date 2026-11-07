@@ -71,7 +71,7 @@ export class Starfield extends IAnimation {
     }
 
     // update the animation
-    protected update(time?: number): void {
+    protected update(): void {
         // move the stars
         for (let i = 0; i < NUMBER_OF_STARS; i++) {
             let star: Star = this.stars_[i];
@@ -81,7 +81,7 @@ export class Starfield extends IAnimation {
     }
 
     // render the animation on the screen
-    protected render(time?: number): void {
+    protected render(): void {
         // image backbuffer
         this.display_.surface.clear();
 
