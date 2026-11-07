@@ -9,6 +9,5 @@
 import { runEffect } from "library/core/bootstrap";
 import { RasterBars } from "./raster";
 
-
 //----- begin
 runEffect(RasterBars);

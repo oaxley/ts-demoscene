@@ -10,27 +10,25 @@ import { Config, Effect } from "./types";
 
 //----- class
 class Slider {
-
     //----- members
-    private display_: HTMLCanvasElement;        // the display canvas
-    private prev_: HTMLElement;                 // previous button
-    private next_: HTMLElement;                 // next button
+    private display_: HTMLCanvasElement; // the display canvas
+    private prev_: HTMLElement; // previous button
+    private next_: HTMLElement; // next button
 
-    private effects_: Array<[string, Effect]>;  // effects from the configuration (name, effect)
-    private current_: number;                   // current effect displayed
+    private effects_: Array<[string, Effect]>; // effects from the configuration (name, effect)
+    private current_: number; // current effect displayed
 
-    private image_: HTMLImageElement;           // screenshot being loaded
-
+    private image_: HTMLImageElement; // screenshot being loaded
 
     //----- methods
     constructor(output: HTMLCanvasElement, prev: HTMLElement, next: HTMLElement) {
         // set the vars
         this.display_ = output;
-        this.prev_    = prev;
-        this.next_    = next;
+        this.prev_ = prev;
+        this.next_ = next;
         this.effects_ = [];
         this.current_ = 0;
-        this.image_   = new Image();
+        this.image_ = new Image();
 
         // add handlers to the buttons
         prev.addEventListener("click", () => this.show(this.current_ - 1));
@@ -52,7 +50,7 @@ class Slider {
 
     // show an effect (screenshot and credits)
     private show(index: number): void {
-        if ((index < 0) || (index >= this.effects_.length)) {
+        if (index < 0 || index >= this.effects_.length) {
             return;
         }
 

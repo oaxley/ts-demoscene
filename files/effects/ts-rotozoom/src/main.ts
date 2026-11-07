@@ -9,6 +9,5 @@
 import { runEffect } from "library/core/bootstrap";
 import { Rotozoom } from "./rotozoom";
 
-
 //----- begin
 runEffect(Rotozoom);

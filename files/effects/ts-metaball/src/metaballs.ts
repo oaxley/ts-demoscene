@@ -13,7 +13,6 @@ import { Palette } from "library/color/palette";
 import { Color } from "library/color/color";
 import { COLOR_MODEL } from "library/color/basecolor";
 
-
 //----- globals
 const RADIUS: number = 60;
 const RADIUS_INCREASE: number = 40;
@@ -22,38 +21,34 @@ const MAX_VELOCITY_X: number = 5;
 const MAX_VELOCITY_Y: number = 5;
 const COEFF: number = 40;
 
-
 //----- interfaces
 interface MetaParticule {
-    x: number,              // X position
-    y: number,              // Y position
-    vx: number,             // X velocity
-    vy: number,             // Y velocity
-    r: number               // Radius
+    x: number; // X position
+    y: number; // Y position
+    vx: number; // X velocity
+    vy: number; // Y velocity
+    r: number; // Radius
 }
-
 
 //----- class
 export class Metaballs extends IAnimation {
-
     //----- members
-    private palette_  : Palette;
+    private palette_: Palette;
     private metaballs_: MetaParticule[];
-    private dx2_      : Float64Array;   // squared X distances (scratch)
-    private dy2_      : Float64Array;   // squared Y distances (scratch)
-    private cr_       : Float64Array;   // COEFF * radius (scratch)
-
+    private dx2_: Float64Array; // squared X distances (scratch)
+    private dy2_: Float64Array; // squared Y distances (scratch)
+    private cr_: Float64Array; // COEFF * radius (scratch)
 
     //----- methods
     constructor(display: Display) {
-        super('metaballs', display);
+        super("metaballs", display);
 
         // set the vars
         this.palette_ = new Palette();
         this.metaballs_ = [];
         this.dx2_ = new Float64Array(NUM_PARTICULES * display.width);
         this.dy2_ = new Float64Array(NUM_PARTICULES);
-        this.cr_  = new Float64Array(NUM_PARTICULES);
+        this.cr_ = new Float64Array(NUM_PARTICULES);
 
         // create the grayscale palette
         this.createPalette();
@@ -78,15 +73,13 @@ export class Metaballs extends IAnimation {
     // create the metaballs particules
     private createParticules(): void {
         for (let i = 0; i < NUM_PARTICULES; i++) {
-            this.metaballs_.push(
-                {
-                    x: Math.floor(this.width_ * Math.random()),
-                    y: Math.floor(this.height_ * Math.random()),
-                    vx: MAX_VELOCITY_X * Math.random(),
-                    vy: MAX_VELOCITY_Y * Math.random(),
-                    r: Math.floor(RADIUS + RADIUS_INCREASE * Math.random())
-                }
-            )
+            this.metaballs_.push({
+                x: Math.floor(this.width_ * Math.random()),
+                y: Math.floor(this.height_ * Math.random()),
+                vx: MAX_VELOCITY_X * Math.random(),
+                vy: MAX_VELOCITY_Y * Math.random(),
+                r: Math.floor(RADIUS + RADIUS_INCREASE * Math.random()),
+            });
         }
     }
 
@@ -97,10 +90,10 @@ export class Metaballs extends IAnimation {
             this.metaballs_[k].x += this.metaballs_[k].vx;
             this.metaballs_[k].y += this.metaballs_[k].vy;
 
-            if ((this.metaballs_[k].x < 0) || (this.metaballs_[k].x > this.width_))
+            if (this.metaballs_[k].x < 0 || this.metaballs_[k].x > this.width_)
                 this.metaballs_[k].vx = -this.metaballs_[k].vx;
 
-            if ((this.metaballs_[k].y < 0) || (this.metaballs_[k].y > this.height_))
+            if (this.metaballs_[k].y < 0 || this.metaballs_[k].y > this.height_)
                 this.metaballs_[k].vy = -this.metaballs_[k].vy;
         }
     }
@@ -116,7 +109,7 @@ export class Metaballs extends IAnimation {
         // squared X distances for each particule / column, and COEFF * radius
         const dx2 = this.dx2_;
         const dy2 = this.dy2_;
-        const cr  = this.cr_;
+        const cr = this.cr_;
         for (let k = 0; k < NUM_PARTICULES; k++) {
             const mx = balls[k].x;
             for (let x = 0; x < w; x++) {
@@ -141,8 +134,7 @@ export class Metaballs extends IAnimation {
                     sum += Math.floor(cr[k] / d);
                 }
 
-                if (sum > 255)
-                    sum = 255;
+                if (sum > 255) sum = 255;
 
                 // set the pixel with the associated color from the palette
                 data32[addr++] = lut[sum];
@@ -152,5 +144,4 @@ export class Metaballs extends IAnimation {
         // flip the back-buffer onto the screen
         this.display_.draw();
     }
-
 }

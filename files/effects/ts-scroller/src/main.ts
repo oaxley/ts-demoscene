@@ -9,6 +9,5 @@
 import { runEffect } from "library/core/bootstrap";
 import { Scroller } from "./scroller";
 
-
 //----- begin
 runEffect(Scroller);

@@ -11,16 +11,13 @@ import { Display } from "library/core/display";
 
 import { Surface } from "library/gfx/surface";
 
-
 //----- globals
-const BORDER_SIZE = 10;         // border size to prevent the wave to be outside
-const WAVE_MIN = 100;           // minimum wave height
-const WAVE_MAX = 200;           // maximum wave height
-
+const BORDER_SIZE = 10; // border size to prevent the wave to be outside
+const WAVE_MIN = 100; // minimum wave height
+const WAVE_MAX = 200; // maximum wave height
 
 //----- class
 export class Water extends IAnimation {
-
     //----- members
     private image_: Surface;
 
@@ -28,26 +25,25 @@ export class Water extends IAnimation {
     private state2_: Int32Array;
     private state_: number;
 
-
     //----- methods
     constructor(display: Display) {
-        super('water', display);
+        super("water", display);
 
         // set the vars
         this.image_ = new Surface();
 
-        let bsize    = this.width_ * this.height_;
+        let bsize = this.width_ * this.height_;
         this.state1_ = new Int32Array(bsize);
         this.state2_ = new Int32Array(bsize);
-        this.state_  = 0;
+        this.state_ = 0;
     }
 
     // select the current/previous buffer
-    private states():  [Int32Array, Int32Array] {
-        let cur = (this.state_ == 0) ? this.state1_ : this.state2_;
-        let old = (this.state_ == 0) ? this.state2_ : this.state1_;
+    private states(): [Int32Array, Int32Array] {
+        let cur = this.state_ == 0 ? this.state1_ : this.state2_;
+        let old = this.state_ == 0 ? this.state2_ : this.state1_;
 
-        return [ cur, old ];
+        return [cur, old];
     }
 
     // add rain
@@ -91,7 +87,7 @@ export class Water extends IAnimation {
 
     // load the assets
     protected init(): Promise<unknown> {
-        return this.image_.loadImage('/images/assets/ts-water.background.png');
+        return this.image_.loadImage("/images/assets/ts-water.background.png");
     }
 
     // update the animation
@@ -110,33 +106,30 @@ export class Water extends IAnimation {
                 let x_offset = y_offset + x;
 
                 // compute the current value at (x, y) by adding surrounding values
-                cur[x_offset] = ((
-                    old[x_offset - 1] +
-                    old[x_offset + 1] +
-                    old[x_offset - this.width_] +
-                    old[x_offset + this.width_]
-                ) >> 1) - cur[x_offset];
+                cur[x_offset] =
+                    ((old[x_offset - 1] +
+                        old[x_offset + 1] +
+                        old[x_offset - this.width_] +
+                        old[x_offset + this.width_]) >>
+                        1) -
+                    cur[x_offset];
 
                 // damp the value along the time
                 cur[x_offset] -= cur[x_offset] >> 7;
 
                 // compute the refraction / texture coordinates by cheating (a bit)
                 let r = 1024 - cur[x_offset];
-                let a = this.width_ + Math.floor((x - this.width_) * r / 1024)
-                let b = this.height_ + Math.floor((y - this.height_) * r / 1024);
+                let a = this.width_ + Math.floor(((x - this.width_) * r) / 1024);
+                let b = this.height_ + Math.floor(((y - this.height_) * r) / 1024);
 
-                if (a >= this.width_)
-                    a = this.width_ - 1;
-                if (a < 0)
-                    a = 0;
+                if (a >= this.width_) a = this.width_ - 1;
+                if (a < 0) a = 0;
 
-                if (b >= this.height_)
-                    b = this.height_ - 1;
-                if (b < 0)
-                    b = 0;
+                if (b >= this.height_) b = this.height_ - 1;
+                if (b < 0) b = 0;
 
                 // retrieve the correct texture pixel
-                dst[x_offset] = src[(b * this.width_) + a];
+                dst[x_offset] = src[b * this.width_ + a];
             }
         }
         this.state_ = (this.state_ + 1) & 1;

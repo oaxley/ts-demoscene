@@ -1,4 +1,4 @@
-# *A Noisy Apparition*
+# _A Noisy Apparition_
 
 ![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg?style=flat-square)
 

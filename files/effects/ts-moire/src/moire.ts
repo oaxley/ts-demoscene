@@ -11,28 +11,24 @@ import { IAnimation } from "library/core/animation";
 import { Display } from "library/core/display";
 import { RGBA } from "library/color/RGBA";
 
-
 //----- globals
 const FPS = 25;
 
-
 //----- class
 export class Moire extends IAnimation {
-
     //----- members
-    private dx1_: Float64Array;     // squared X distances to circle #1 (scratch)
-    private dx2_: Float64Array;     // squared X distances to circle #2 (scratch)
+    private dx1_: Float64Array; // squared X distances to circle #1 (scratch)
+    private dx2_: Float64Array; // squared X distances to circle #2 (scratch)
 
-    private sx_: number;            // screen center X
-    private sy_: number;            // screen center Y
+    private sx_: number; // screen center X
+    private sy_: number; // screen center Y
 
-    private ax_: number;            // amplitude X for circle movements
-    private ay_: number;            // amplitude Y for circle movements
-
+    private ax_: number; // amplitude X for circle movements
+    private ay_: number; // amplitude Y for circle movements
 
     //----- methods
     constructor(display: Display) {
-        super('moire', display, FPS);
+        super("moire", display, FPS);
 
         // set the vars
         this.dx1_ = new Float64Array(display.width);
@@ -52,10 +48,10 @@ export class Moire extends IAnimation {
         const white = RGBA.toUInt32(255, 255, 255);
 
         // compute the current center of each circles
-        let cx1 = this.sx_ + this.ax_ * Math.cos(time/1000);
-        let cy1 = this.sy_ + this.ay_ * Math.sin(time/2000);
-        let cx2 = this.sx_ + this.ax_ * Math.cos(time/3000);
-        let cy2 = this.sy_ + this.ay_ * Math.sin(time/4000);
+        let cx1 = this.sx_ + this.ax_ * Math.cos(time / 1000);
+        let cy1 = this.sy_ + this.ay_ * Math.sin(time / 2000);
+        let cx2 = this.sx_ + this.ax_ * Math.cos(time / 3000);
+        let cy2 = this.sy_ + this.ay_ * Math.sin(time / 4000);
 
         // X coefficients (per column)
         const dx1 = this.dx1_;
@@ -68,7 +64,6 @@ export class Moire extends IAnimation {
         // draw the effect on the buffer
         let addr = 0;
         for (let y = 0; y < h; y++) {
-
             // Y coefficients
             const dy1 = (y - cy1) * (y - cy1);
             const dy2 = (y - cy2) * (y - cy2);
@@ -79,7 +74,7 @@ export class Moire extends IAnimation {
                 const dt2 = Math.sqrt(dx2[x] + dy2);
 
                 // compute the black or white "color" and write it in the frame buffer
-                data32[addr++] = (((dt1 ^ dt2) >> 4) & 0x01) ? white : black;
+                data32[addr++] = ((dt1 ^ dt2) >> 4) & 0x01 ? white : black;
             }
         }
     }

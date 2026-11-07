@@ -9,14 +9,12 @@
 import { Size } from "library/core/interfaces";
 import { Surface } from "library/gfx/surface";
 
-
 //----- class
 export class Font {
-
     //----- members
     private font_: Surface;
     private unit_: Size;
-    private chars_: Map<string, Uint32Array>;    // cached character pixels
+    private chars_: Map<string, Uint32Array>; // cached character pixels
 
     //----- methods
     constructor(filename: string, unit: Size) {
@@ -29,10 +27,10 @@ export class Font {
         console.log("Loading font ...");
         this.font_
             .loadImage(filename)
-            .then(result => {
-                console.log('Font: asset properly loaded');
+            .then((result) => {
+                console.log("Font: asset properly loaded");
             })
-            .catch(result => {
+            .catch((result) => {
                 console.log(`Font: unable to load asset ${filename}`);
             });
     }

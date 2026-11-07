@@ -8,21 +8,19 @@
 //----- interface
 // stack interface
 interface IStack<T> {
-    push(item: T): void;        // push a new item on the stack
-    pop(): T | undefined;       // pop the top item from the stack
-    top(): T | undefined;       // peek at the top item from the stack
-    size(): number;             // return the current stack size
+    push(item: T): void; // push a new item on the stack
+    pop(): T | undefined; // pop the top item from the stack
+    top(): T | undefined; // peek at the top item from the stack
+    size(): number; // return the current stack size
 }
-
 
 //----- class
 export class Stack<T> implements IStack<T> {
     //----- members
     private fifo_: T[] = [];
 
-
     //----- methods
-    public constructor() { }
+    public constructor() {}
 
     // return the current size of the stack
     public size(): number {

@@ -9,6 +9,5 @@
 import { runEffect } from "library/core/bootstrap";
 import { Sprites } from "./sprites";
 
-
 //----- begin
 runEffect(Sprites);

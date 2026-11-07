@@ -6,12 +6,10 @@
  */
 
 //----- imports
-import { BaseColor, Components, COLOR_MODEL } from "./basecolor"
-
+import { BaseColor, Components, COLOR_MODEL } from "./basecolor";
 
 //---- class
 export class RGBA extends BaseColor {
-
     //----- methods
 
     constructor(r: number = 0, g: number = 0, b: number = 0, alpha: number = 255) {
@@ -21,17 +19,14 @@ export class RGBA extends BaseColor {
     //----- statics
 
     // constructor from another base color
-    public static from(color: BaseColor): RGBA|undefined {
-        if ( color.model == COLOR_MODEL.RGBA ) {
+    public static from(color: BaseColor): RGBA | undefined {
+        if (color.model == COLOR_MODEL.RGBA) {
             return this.fromRGBA(color.values);
-        }
-        else if ( color.model == COLOR_MODEL.HSLA ) {
+        } else if (color.model == COLOR_MODEL.HSLA) {
             return this.fromHSLA(color.values);
-        }
-        else if ( color.model == COLOR_MODEL.HSVA ) {
+        } else if (color.model == COLOR_MODEL.HSVA) {
             return this.fromHSVA(color.values);
         }
-
     }
 
     // create an int32 value from arbitrary values
@@ -46,16 +41,15 @@ export class RGBA extends BaseColor {
             v & 0x000000ff,
             (v & 0x0000ff00) >> 8,
             (v & 0x00ff0000) >> 16,
-            (v & 0xff000000) >>> 24     // unsigned: alpha >= 0x80 used to be negative
+            (v & 0xff000000) >>> 24, // unsigned: alpha >= 0x80 used to be negative
         ];
     }
-
 
     //----- accessors
 
     // get/set for red component
     public get red(): number {
-        return (this.x_ & 0xff);
+        return this.x_ & 0xff;
     }
     public set red(v: number) {
         this.x_ = v & 0xff;
@@ -63,7 +57,7 @@ export class RGBA extends BaseColor {
 
     // get/set for green component
     public get green(): number {
-        return (this.y_ & 0xff);
+        return this.y_ & 0xff;
     }
     public set green(v: number) {
         this.y_ = v & 0xff;
@@ -71,7 +65,7 @@ export class RGBA extends BaseColor {
 
     // get/set for blue component
     public get blue(): number {
-        return (this.z_ & 0xff);
+        return this.z_ & 0xff;
     }
     public set blue(v: number) {
         this.z_ = v & 0xff;
@@ -79,10 +73,10 @@ export class RGBA extends BaseColor {
 
     // get/set for array component
     public get array(): number[] {
-        return [ this.x_, this.y_, this.z_, this.a_ ];
+        return [this.x_, this.y_, this.z_, this.a_];
     }
     public set array(v: number[]) {
-        [ this.x_, this.y_, this.z_, this.a_ ] = v;
+        [this.x_, this.y_, this.z_, this.a_] = v;
     }
 
     // get/set from an int32
@@ -92,7 +86,7 @@ export class RGBA extends BaseColor {
     public set uint32(v: number) {
         v = v >>> 0;
         this.x_ = v & 0xff;
-        this.y_ = (v >>  8) & 0xff;
+        this.y_ = (v >> 8) & 0xff;
         this.z_ = (v >> 16) & 0xff;
         this.a_ = (v >> 24) & 0xff;
     }
@@ -116,9 +110,9 @@ export class RGBA extends BaseColor {
 
     // create HEX string
     public hex(): string {
-        function _hexConversion(value:number):string {
+        function _hexConversion(value: number): string {
             let str = value.toString(16);
-            str = (str.length < 2) ? '0' + str : str;
+            str = str.length < 2 ? "0" + str : str;
             return str;
         }
 
@@ -141,21 +135,18 @@ export class RGBA extends BaseColor {
         let tr: number, tg: number, tb: number;
 
         // function to compute HSL values
-        function _computeValues(x:number):number {
+        function _computeValues(x: number): number {
             let y: number = 0.0;
 
-            if ( (6 * x) < 1.0 ) {
-                y = t2 + ((t1 - t2) * 6 * x);
-            }
-            else {
-                if ( (2 * x) < 1.0 ) {
+            if (6 * x < 1.0) {
+                y = t2 + (t1 - t2) * 6 * x;
+            } else {
+                if (2 * x < 1.0) {
                     y = t1;
-                }
-                else {
-                    if ( (3 * x) < 2.0 ) {
-                        y = t2 + ((t1 - t2) * ((2 / 3) - x) * 6);
-                    }
-                    else {
+                } else {
+                    if (3 * x < 2.0) {
+                        y = t2 + (t1 - t2) * (2 / 3 - x) * 6;
+                    } else {
                         y = t2;
                     }
                 }
@@ -163,74 +154,73 @@ export class RGBA extends BaseColor {
 
             // guard against rounding errors
             return Math.min(1.0, Math.max(0.0, y));
-        };
+        }
 
         // setup local values for easy readiness
-        [ h, s, l, a ]= [ hsla.x, hsla.y, hsla.z, hsla.a ];
-
+        [h, s, l, a] = [hsla.x, hsla.y, hsla.z, hsla.a];
 
         // no saturation, just use the luminance
-        if ( s == 0 ) {
-            l = Math.floor(255 * l)
-            return new RGBA(l, l, l, Math.floor(a*255));
+        if (s == 0) {
+            l = Math.floor(255 * l);
+            return new RGBA(l, l, l, Math.floor(a * 255));
         }
 
         // compute the temporay values
-        t1 = ( l < 0.5 ) ? (l * (1.0 + s)) : ((l + s) - (l * s));
-        t2 = (2 * l) - t1;
+        t1 = l < 0.5 ? l * (1.0 + s) : l + s - l * s;
+        t2 = 2 * l - t1;
 
         // convert hue to [0..1]
         h = h / 360.0;
 
         // temporary R,G,B
-        tr = ((h + 1 / 3) > 1.0) ? (h + 1 / 3 - 1.0) : (h + 1 / 3);
+        tr = h + 1 / 3 > 1.0 ? h + 1 / 3 - 1.0 : h + 1 / 3;
         tg = h;
-        tb = ((h - 1 / 3) < 0.0) ? (h - 1 / 3 + 1.0) : (h - 1 / 3);
+        tb = h - 1 / 3 < 0.0 ? h - 1 / 3 + 1.0 : h - 1 / 3;
 
         // set RGB values
         return new RGBA(
-                Math.floor(255 * _computeValues(tr)),
-                Math.floor(255 * _computeValues(tg)),
-                Math.floor(255 * _computeValues(tb)),
-                Math.floor(a * 255)
+            Math.floor(255 * _computeValues(tr)),
+            Math.floor(255 * _computeValues(tg)),
+            Math.floor(255 * _computeValues(tb)),
+            Math.floor(a * 255),
         );
     }
 
     // create RGBA from another HSVA instance
     private static fromHSVA(hsva: Components): RGBA {
-        let r:number, g:number, b:number
-        let h:number, s:number, v:number
-        let c:number, x:number, m:number
+        let r: number, g: number, b: number;
+        let h: number, s: number, v: number;
+        let c: number, x: number, m: number;
 
-        [ h, s, v ] = [ hsva.x, hsva.y, hsva.z ];
+        [h, s, v] = [hsva.x, hsva.y, hsva.z];
 
         // temporary values
         c = v * s;
         m = v - c;
-        x = c * (1 - Math.abs( ((h/60) % 2) - 1 ) );
+        x = c * (1 - Math.abs(((h / 60) % 2) - 1));
 
         // map each color from its position on the circle
-        if( (h >= 0) && (h < 60) ) {
-            [ r, g, b ] = [ c, x, 0 ]
-        } else if( (h >= 60) && (h < 120) ) {
-            [ r, g, b ] = [ x, c, 0 ]
-        } else if( (h >= 120) && (h < 180) ) {
-            [ r, g, b ] = [ 0, c, x ]
-        } else if( (h >= 180) && (h < 240) ) {
-            [ r, g, b ] = [ 0, x, c ]
-        } else if( (h >= 240) && (h < 300) ) {
-            [ r, g, b ] = [ x, 0, c ]
-        } else if( (h >= 300) && (h < 360) ) {
-            [ r, g, b ] = [ c, 0, x ]
+        if (h >= 0 && h < 60) {
+            [r, g, b] = [c, x, 0];
+        } else if (h >= 60 && h < 120) {
+            [r, g, b] = [x, c, 0];
+        } else if (h >= 120 && h < 180) {
+            [r, g, b] = [0, c, x];
+        } else if (h >= 180 && h < 240) {
+            [r, g, b] = [0, x, c];
+        } else if (h >= 240 && h < 300) {
+            [r, g, b] = [x, 0, c];
+        } else if (h >= 300 && h < 360) {
+            [r, g, b] = [c, 0, x];
         } else {
-            [ r, g, b ] = [0, 0, 0]
+            [r, g, b] = [0, 0, 0];
         }
 
         return new RGBA(
-                Math.floor((r + m) * 255),
-                Math.floor((g + m) * 255),
-                Math.floor((b + m) * 255),
-                Math.floor(hsva.a * 255)
+            Math.floor((r + m) * 255),
+            Math.floor((g + m) * 255),
+            Math.floor((b + m) * 255),
+            Math.floor(hsva.a * 255),
         );
     }
 }

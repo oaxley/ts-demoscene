@@ -18,33 +18,28 @@ import { CollisionCircle } from "library/collision/circle";
 
 import { LensAnimation } from "./lens_anim";
 
-
 //----- globals
-export const RADIUS_TO_MASS = 0.1;              // radius to mass ratio
-export const RADIUS = 40;                       // default lens radius
-export const LENS_MAGNIFICATION = 20;           // lens magnification
-export const WALL_SIZE = 3;                     // wall size
-
+export const RADIUS_TO_MASS = 0.1; // radius to mass ratio
+export const RADIUS = 40; // default lens radius
+export const LENS_MAGNIFICATION = 20; // lens magnification
+export const WALL_SIZE = 3; // wall size
 
 //----- interfaces
 interface LensObject {
-    circle: CollisionCircle,
-    lens: LensAnimation
+    circle: CollisionCircle;
+    lens: LensAnimation;
 }
-
 
 //----- class
 export class Lens extends IAnimation {
-
     //----- members
-    private image_   : Surface;
-    private lenses_  : LensObject[];            // list of lenses in the animation
-    private detector_: CollisionDetector;       // Collision detector instance
-
+    private image_: Surface;
+    private lenses_: LensObject[]; // list of lenses in the animation
+    private detector_: CollisionDetector; // Collision detector instance
 
     //----- methods
     constructor(display: Display) {
-        super('lens', display);
+        super("lens", display);
 
         // set the vars
         this.lenses_ = [];
@@ -60,27 +55,19 @@ export class Lens extends IAnimation {
     private createWalls(): void {
         let dw = this.display_.width;
         let dh = this.display_.height;
-        let tmp = dh - (WALL_SIZE * 2) - 2;
+        let tmp = dh - WALL_SIZE * 2 - 2;
 
         // top wall
-        this.detector_.add(
-            new CollisionWall({x: 0, y: 0, w: dw, h: WALL_SIZE})
-        );
+        this.detector_.add(new CollisionWall({ x: 0, y: 0, w: dw, h: WALL_SIZE }));
 
         // left wall
-        this.detector_.add(
-            new CollisionWall({x: 0, y: WALL_SIZE + 1, w: WALL_SIZE, h: tmp})
-        );
+        this.detector_.add(new CollisionWall({ x: 0, y: WALL_SIZE + 1, w: WALL_SIZE, h: tmp }));
 
         // right wall
-        this.detector_.add(
-            new CollisionWall({x: dw - WALL_SIZE, y: WALL_SIZE + 1, w: WALL_SIZE, h: tmp})
-        );
+        this.detector_.add(new CollisionWall({ x: dw - WALL_SIZE, y: WALL_SIZE + 1, w: WALL_SIZE, h: tmp }));
 
         // bottom wall
-        this.detector_.add(
-            new CollisionWall({x: 0, y: dh - WALL_SIZE, w: dw, h: WALL_SIZE})
-        );
+        this.detector_.add(new CollisionWall({ x: 0, y: dh - WALL_SIZE, w: dw, h: WALL_SIZE }));
     }
 
     // create lenses
@@ -90,22 +77,22 @@ export class Lens extends IAnimation {
 
         this.lenses_ = [];
         this.lenses_.push({
-            circle: new CollisionCircle(new Vector2D(200, 2*RADIUS), this.randomVelocity(), RADIUS, weight),
-            lens: new LensAnimation(surface, RADIUS, LENS_MAGNIFICATION)
+            circle: new CollisionCircle(new Vector2D(200, 2 * RADIUS), this.randomVelocity(), RADIUS, weight),
+            lens: new LensAnimation(surface, RADIUS, LENS_MAGNIFICATION),
         });
 
         this.lenses_.push({
-            circle: new CollisionCircle(new Vector2D(400, 4*RADIUS), this.randomVelocity(), 2*RADIUS, 2*weight),
-            lens: new LensAnimation(surface, 2*RADIUS, LENS_MAGNIFICATION)
+            circle: new CollisionCircle(new Vector2D(400, 4 * RADIUS), this.randomVelocity(), 2 * RADIUS, 2 * weight),
+            lens: new LensAnimation(surface, 2 * RADIUS, LENS_MAGNIFICATION),
         });
 
         this.lenses_.push({
             circle: new CollisionCircle(new Vector2D(400, 400), this.randomVelocity(), RADIUS, weight),
-            lens: new LensAnimation(surface, RADIUS, LENS_MAGNIFICATION)
+            lens: new LensAnimation(surface, RADIUS, LENS_MAGNIFICATION),
         });
 
         // add the lenses to the collision detector
-        this.lenses_.forEach(element => {
+        this.lenses_.forEach((element) => {
             this.detector_.add(element.circle);
         });
     }
@@ -120,14 +107,13 @@ export class Lens extends IAnimation {
 
     // load the assets
     protected init(): Promise<unknown> {
-        return this.image_.loadImage('/images/assets/ts-lens.background.jpg');
+        return this.image_.loadImage("/images/assets/ts-lens.background.jpg");
     }
 
-     // update the animation
+    // update the animation
     protected update(time?: number): void {
         // update the collision detector
         this.detector_.update();
-
     }
 
     // render the animation on screen
@@ -136,7 +122,7 @@ export class Lens extends IAnimation {
         this.display_.surface.copy(this.image_);
 
         // compute the transformation for all the lenses
-        this.lenses_.forEach(element => {
+        this.lenses_.forEach((element) => {
             // retrieve the center from the collision object
             let center = element.circle.center;
 

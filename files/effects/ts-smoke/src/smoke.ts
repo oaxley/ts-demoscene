@@ -13,40 +13,37 @@ import { Point2D } from "library/core/interfaces";
 import { lerp } from "library/maths/utils";
 import { RGBA } from "library/color/RGBA";
 
-
 //----- globals
-const EDGE_SAMPLE = 8;      // background columns used to compute the fill color
-const EDGE_FADE   = 96;     // background columns faded into the fill color
-const EDGE_SMOOTH = 24;     // vertical smoothing radius of the fill color (lines)
+const EDGE_SAMPLE = 8; // background columns used to compute the fill color
+const EDGE_FADE = 96; // background columns faded into the fill color
+const EDGE_SMOOTH = 24; // vertical smoothing radius of the fill color (lines)
 
 // 4x4 ordered dithering thresholds (to round the very dark gradient without banding)
-const BAYER4 = [ 0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5 ].map((v) => (v + 0.5) / 16);
-
+const BAYER4 = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5].map((v) => (v + 0.5) / 16);
 
 //----- interfaces
 // particule parameters
 interface Param {
-    init : number;      // initial value
-    amp  : number;      // amplitude
-    freq1: number;      // frequency #1
-    freq2: number;      // frequency #2
+    init: number; // initial value
+    amp: number; // amplitude
+    freq1: number; // frequency #1
+    freq2: number; // frequency #2
 }
 
 // trail between 2 particules
 interface Trail {
-    src: Particule;     // src particule
-    dst: Particule;     // dst particule
-    points: number;     // number of points between these particules
+    src: Particule; // src particule
+    dst: Particule; // dst particule
+    points: number; // number of points between these particules
 }
 
 //----- classes
 // particule class
 class Particule {
     //----- members
-    private x_    : Param;      // parameters to compute the X value
-    private y_    : Param;      // parameters to compute the Y value
-    private delay_: number;     // delay factor
-
+    private x_: Param; // parameters to compute the X value
+    private y_: Param; // parameters to compute the Y value
+    private delay_: number; // delay factor
 
     //----- methods
     constructor(x: Param, y: Param, delay: number) {
@@ -63,19 +60,18 @@ class Particule {
     public position(t: number): Point2D {
         return {
             x: this.x_.init + this.x_.amp * Math.cos(this.x_.freq1 * Math.PI * this.x_.freq2 * t),
-            y: this.y_.init + this.y_.amp * Math.sin(this.y_.freq1 * Math.PI * this.y_.freq2 * t)
+            y: this.y_.init + this.y_.amp * Math.sin(this.y_.freq1 * Math.PI * this.y_.freq2 * t),
         };
     }
 }
 
 // animation class
 export class Smoke extends IAnimation {
-
     //----- members
     private background_: Surface;
-    private screen_: Surface;       // full-screen background (built once loaded)
-    private bgx0: number = 0;       // background X start position
-    private bgy0: number = 0;       // background Y start position
+    private screen_: Surface; // full-screen background (built once loaded)
+    private bgx0: number = 0; // background X start position
+    private bgy0: number = 0; // background Y start position
 
     private particules_: Array<Particule>;
     private trails_: Array<Trail>;
@@ -83,39 +79,39 @@ export class Smoke extends IAnimation {
     //----- methods
     // constructor
     constructor(display: Display) {
-        super('smoke', display);
+        super("smoke", display);
 
         // set the vars
         this.background_ = new Surface();
-        this.screen_     = new Surface();
+        this.screen_ = new Surface();
         this.particules_ = new Array(4);
-        this.trails_     = new Array(3);
+        this.trails_ = new Array(3);
     }
 
     private setupParticules(): void {
         let cx = this.bgx0 + 137;
         let cy = this.bgy0 + 235;
 
-        let x: Param = {init: cx, amp: 0, freq1: 0, freq2: 0};
-        let y: Param = {init: cy, amp: 0, freq1: 0, freq2: 0};
+        let x: Param = { init: cx, amp: 0, freq1: 0, freq2: 0 };
+        let y: Param = { init: cy, amp: 0, freq1: 0, freq2: 0 };
         this.particules_[0] = new Particule(x, y, 0);
 
-        x = {init: cx - 5, amp: 5, freq1: 2.25, freq2: 1.0};
-        y = {init: 10 , amp: 7, freq1: 5.00, freq2: 1.0};
-        this.particules_[1] = new Particule(x, y, -3.00);
+        x = { init: cx - 5, amp: 5, freq1: 2.25, freq2: 1.0 };
+        y = { init: 10, amp: 7, freq1: 5.0, freq2: 1.0 };
+        this.particules_[1] = new Particule(x, y, -3.0);
 
-        x = {init: cx - 7, amp: 2.5, freq1: 3.75, freq2: 1.0};
-        y = {init: 22 , amp: 5.0, freq1: 2.50, freq2: 1.0};
+        x = { init: cx - 7, amp: 2.5, freq1: 3.75, freq2: 1.0 };
+        y = { init: 22, amp: 5.0, freq1: 2.5, freq2: 1.0 };
         this.particules_[2] = new Particule(x, y, -3.14);
 
-        x = {init: cx - 10, amp: 3.5, freq1: 4.75, freq2: 1.0};
-        y = {init: 17 , amp: 9.0, freq1: 7.00, freq2: 1.0};
-        this.particules_[3] = new Particule(x, y, -1.50);
+        x = { init: cx - 10, amp: 3.5, freq1: 4.75, freq2: 1.0 };
+        y = { init: 17, amp: 9.0, freq1: 7.0, freq2: 1.0 };
+        this.particules_[3] = new Particule(x, y, -1.5);
 
         // create the trails between these particules
-        this.trails_[0] = {src: this.particules_[0], dst: this.particules_[1], points: 500};
-        this.trails_[1] = {src: this.particules_[0], dst: this.particules_[2], points: 500};
-        this.trails_[2] = {src: this.particules_[0], dst: this.particules_[3], points: 500};
+        this.trails_[0] = { src: this.particules_[0], dst: this.particules_[1], points: 500 };
+        this.trails_[1] = { src: this.particules_[0], dst: this.particules_[2], points: 500 };
+        this.trails_[2] = { src: this.particules_[0], dst: this.particules_[3], points: 500 };
     }
 
     // draw the trails between points
@@ -142,10 +138,10 @@ export class Smoke extends IAnimation {
                 let y = lerp(a.y, b.y, tt);
 
                 // compute the color at this position
-                let v = Math.floor(gray + (j * delta));
-                color.red   = v;
+                let v = Math.floor(gray + j * delta);
+                color.red = v;
                 color.green = v;
-                color.blue  = v;
+                color.blue = v;
 
                 // draw the point
                 this.display_.surface.setPixel(Math.floor(x), Math.floor(y), color);
@@ -171,8 +167,8 @@ export class Smoke extends IAnimation {
         const edge = new Float64Array(bh * 3);
         for (let y = 0; y < bh; y++) {
             for (let x = 0; x < EDGE_SAMPLE; x++) {
-                const [ r, g, b ] = RGBA.fromUInt32(src[y * bw + x]);
-                edge[y * 3]     += r / EDGE_SAMPLE;
+                const [r, g, b] = RGBA.fromUInt32(src[y * bw + x]);
+                edge[y * 3] += r / EDGE_SAMPLE;
                 edge[y * 3 + 1] += g / EDGE_SAMPLE;
                 edge[y * 3 + 2] += b / EDGE_SAMPLE;
             }
@@ -181,11 +177,15 @@ export class Smoke extends IAnimation {
         // smooth it vertically (no visible lines)
         const fills = new Float64Array(bh * 3);
         for (let y = 0; y < bh; y++) {
-            let [ r, g, b, n ] = [ 0, 0, 0, 0 ];
+            let [r, g, b, n] = [0, 0, 0, 0];
             for (let k = Math.max(0, y - EDGE_SMOOTH); k <= Math.min(bh - 1, y + EDGE_SMOOTH); k++, n++) {
-                r += edge[k * 3]; g += edge[k * 3 + 1]; b += edge[k * 3 + 2];
+                r += edge[k * 3];
+                g += edge[k * 3 + 1];
+                b += edge[k * 3 + 2];
             }
-            fills[y * 3] = r / n; fills[y * 3 + 1] = g / n; fills[y * 3 + 2] = b / n;
+            fills[y * 3] = r / n;
+            fills[y * 3 + 1] = g / n;
+            fills[y * 3 + 2] = b / n;
         }
 
         // fill the screen, then copy the picture with a faded left edge
@@ -196,13 +196,13 @@ export class Smoke extends IAnimation {
 
         for (let y = 0; y < h; y++) {
             const by = y - this.bgy0;
-            const inside = (by >= 0) && (by < bh);
+            const inside = by >= 0 && by < bh;
             if (!inside) {
                 dst.fill(0, y * w, (y + 1) * w);
                 continue;
             }
 
-            const [ fr, fg, fb ] = [ fills[by * 3], fills[by * 3 + 1], fills[by * 3 + 2] ];
+            const [fr, fg, fb] = [fills[by * 3], fills[by * 3 + 1], fills[by * 3 + 2]];
 
             // left area: (dithered) fill color
             for (let x = 0; x < Math.min(this.bgx0, w); x++) {
@@ -211,7 +211,7 @@ export class Smoke extends IAnimation {
             }
             for (let x = 0; x < bw; x++) {
                 const dx = this.bgx0 + x;
-                if ((dx < 0) || (dx >= w)) {
+                if (dx < 0 || dx >= w) {
                     continue;
                 }
 
@@ -220,10 +220,13 @@ export class Smoke extends IAnimation {
                     // smoothstep from the fill color to the picture
                     let k = x / EDGE_FADE;
                     k = k * k * (3 - 2 * k);
-                    const [ r, g, b ] = RGBA.fromUInt32(value);
+                    const [r, g, b] = RGBA.fromUInt32(value);
                     const t = BAYER4[((y & 3) << 2) | (dx & 3)];
                     value = RGBA.toUInt32(
-                        Math.floor(lerp(fr, r, k) + t), Math.floor(lerp(fg, g, k) + t), Math.floor(lerp(fb, b, k) + t));
+                        Math.floor(lerp(fr, r, k) + t),
+                        Math.floor(lerp(fg, g, k) + t),
+                        Math.floor(lerp(fb, b, k) + t),
+                    );
                 }
                 dst[y * w + dx] = value;
             }
@@ -232,19 +235,17 @@ export class Smoke extends IAnimation {
 
     // load the assets
     protected init(): Promise<unknown> {
-        return this.background_
-            .loadImage('/images/assets/ts-smoke.background.png')
-            .then(() => {
-                // set the background position
-                this.bgx0 = this.display_.width - this.background_.width;
-                this.bgy0 = 0;
+        return this.background_.loadImage("/images/assets/ts-smoke.background.png").then(() => {
+            // set the background position
+            this.bgx0 = this.display_.width - this.background_.width;
+            this.bgy0 = 0;
 
-                // build the full-screen background
-                this.buildScreen();
+            // build the full-screen background
+            this.buildScreen();
 
-                // setup the particules
-                this.setupParticules();
-            });
+            // setup the particules
+            this.setupParticules();
+        });
     }
 
     // update the animation

@@ -9,6 +9,5 @@
 import { runEffect } from "library/core/bootstrap";
 import { Lens } from "./lens";
 
-
 //----- begin
 runEffect(Lens);

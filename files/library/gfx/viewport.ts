@@ -8,22 +8,20 @@
 //----- imports
 import { Rect } from "library/core/interfaces";
 
-
 //----- class
 export class Viewport {
-
     //----- members
-    private x_: number;             // left corner X
-    private y_: number;             // left corner Y
-    private w_: number;             // width
-    private h_: number;             // height
+    private x_: number; // left corner X
+    private y_: number; // left corner Y
+    private w_: number; // width
+    private h_: number; // height
 
-    private enabled_: boolean;      // =true if the viewport is active
+    private enabled_: boolean; // =true if the viewport is active
 
     //----- methods
     constructor() {
         // set the vars
-        [ this.x_, this.y_, this.w_, this.h_ ] = [ 0, 0, 0, 0 ];
+        [this.x_, this.y_, this.w_, this.h_] = [0, 0, 0, 0];
         this.enabled_ = false;
     }
 
@@ -39,19 +37,19 @@ export class Viewport {
             x: this.x_,
             y: this.y_,
             w: this.w_,
-            h: this.h_
-        }
+            h: this.h_,
+        };
     }
 
     // set the viewport parameters
     public set view(v: Rect) {
-        [ this.x_, this.y_, this.w_, this.h_ ] = [ v.x, v.y, v.w, v.h ];
+        [this.x_, this.y_, this.w_, this.h_] = [v.x, v.y, v.w, v.h];
         this.enabled_ = true;
     }
 
     // reset the viewport
     public reset(): void {
-        [ this.x_, this.y_, this.w_, this.h_ ] = [ 0, 0, 0, 0 ];
+        [this.x_, this.y_, this.w_, this.h_] = [0, 0, 0, 0];
         this.enabled_ = false;
     }
 }

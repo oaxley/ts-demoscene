@@ -16,7 +16,7 @@
  *  the angle in radians
  */
 export function radians(angle: number): number {
-    return angle * Math.PI / 180.0;
+    return (angle * Math.PI) / 180.0;
 }
 
 /* convert an angle from radians to degrees
@@ -28,7 +28,7 @@ export function radians(angle: number): number {
  *  the angle in degrees
  */
 export function degrees(angle: number): number {
-    return angle * 180 / Math.PI;
+    return (angle * 180) / Math.PI;
 }
 
 /* map a value from a value domain to another one
@@ -61,13 +61,10 @@ export function map(value: number, src_low: number, src_high: number, dst_low: n
  *  the new value within the boundaries
  */
 export function constrain(value: number, min: number, max: number): number {
-    if (value < min)
-        return min
+    if (value < min) return min;
     else {
-        if (value > max)
-            return max
-        else
-            return value
+        if (value > max) return max;
+        else return value;
     }
 }
 

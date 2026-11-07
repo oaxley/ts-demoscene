@@ -9,6 +9,5 @@
 import { runEffect } from "library/core/bootstrap";
 import { Moire } from "./moire";
 
-
 //----- begin
 runEffect(Moire);

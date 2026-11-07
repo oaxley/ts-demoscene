@@ -14,15 +14,15 @@ import { RGBA } from "./RGBA";
 export class Palette {
     //----- members
     private colors_: Color[];
-    private lut_   : Uint32Array|undefined;     // cached 32-bit values
+    private lut_: Uint32Array | undefined; // cached 32-bit values
 
     //----- methods
     constructor() {
-        this.colors_ = [ ];
+        this.colors_ = [];
     }
 
     public dump(): void {
-        for(var i = 0; i < this.colors_.length; i++) {
+        for (var i = 0; i < this.colors_.length; i++) {
             console.log(`${i} : ` + this.colors_[i].color.css());
         }
     }
@@ -36,11 +36,10 @@ export class Palette {
         this.lut_ = undefined;
     }
 
-    public getColor(i: number): Color|undefined {
-        if ( (i < 0) || (i >= this.colors_.length) ) {
+    public getColor(i: number): Color | undefined {
+        if (i < 0 || i >= this.colors_.length) {
             return undefined;
-        }
-        else {
+        } else {
             return this.colors_[i];
         }
     }
@@ -63,7 +62,7 @@ export class Palette {
                 if (c === undefined) {
                     continue;
                 }
-                let rgba = (c.color.model == COLOR_MODEL.RGBA) ? <RGBA> c.color : RGBA.from(c.color);
+                let rgba = c.color.model == COLOR_MODEL.RGBA ? <RGBA>c.color : RGBA.from(c.color);
                 lut[i] = rgba ? rgba.uint32 : 0;
             }
             this.lut_ = lut;
@@ -72,28 +71,27 @@ export class Palette {
     }
 
     public swap(i1: number, i2: number): void {
-
         // check indexes values are within the authorized range
-        if ( (i1 < 0) || (i1 >= this.colors_.length) ) {
+        if (i1 < 0 || i1 >= this.colors_.length) {
             throw RangeError("swap(): Index #1 is out of range.");
         }
 
-        if ( (i2 < 0) || (i2 >= this.colors_.length) ) {
+        if (i2 < 0 || i2 >= this.colors_.length) {
             throw RangeError("swap(): Index #2 is out of range.");
         }
 
         // nothing to be done if both indexes are equals
-        if ( i1 == i2 ) {
+        if (i1 == i2) {
             return;
         }
 
-        [ this.colors_[i1], this.colors_[i2] ] = [ this.colors_[i2], this.colors_[i1] ];
+        [this.colors_[i1], this.colors_[i2]] = [this.colors_[i2], this.colors_[i1]];
         this.lut_ = undefined;
     }
 
     public gradient(begin: Color, end: Color, steps: number): void {
         // ensure both color are in the same space
-        if ( begin.color.model != end.color.model ) {
+        if (begin.color.model != end.color.model) {
             throw Error("gradient(): Both colors need to be in the same space.");
         }
 
@@ -104,12 +102,12 @@ export class Palette {
         let v2: Components = end.color.values;
 
         // ensure both colors are from the same color space
-        if ( v1.m != v2.m ) {
+        if (v1.m != v2.m) {
             throw Error("Both colors should be from the same color space.");
         }
 
         // initialize values
-        [ x, y, z, a ] = [ v1.x, v1.y, v1.z, v1.a ];
+        [x, y, z, a] = [v1.x, v1.y, v1.z, v1.a];
 
         // (-1) so we are sure to go from c1 up to c2
         dx = (v2.x - x) / (steps - 1);
@@ -118,9 +116,9 @@ export class Palette {
         da = (v2.a - a) / (steps - 1);
 
         // create colors
-        for(var i = 0; i < steps; i++) {
+        for (var i = 0; i < steps; i++) {
             // add this new color
-            this.colors_.push( new Color(v1.m, x, y, z, a) );
+            this.colors_.push(new Color(v1.m, x, y, z, a));
             this.lut_ = undefined;
 
             // increment values

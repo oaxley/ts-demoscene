@@ -1,4 +1,4 @@
-# *Easy Rotozoomer*
+# _Easy Rotozoomer_
 
 ![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg?style=flat-square)
 
@@ -13,14 +13,14 @@ power of 2.
 
 ## **Algorithm**
 
-For each pixels (x,y), you perform a standard rotation at a predefine angle and map it back to 
+For each pixels (x,y), you perform a standard rotation at a predefine angle and map it back to
 the original coordinates of the texture.
 
 On the 2D plan, a rotation can be expressed with
 
-``` javascript
-xb = Math.floor( x * Math.cos(angle) - y * Math.sin(angle) )
-yb = Math.floor( x * Math.sin(angle) + y * Math.cos(angle) )
+```javascript
+xb = Math.floor(x * Math.cos(angle) - y * Math.sin(angle));
+yb = Math.floor(x * Math.sin(angle) + y * Math.cos(angle));
 ```
 
 To spice things up, and add a forward and back movement towards the camera, you can multiply these

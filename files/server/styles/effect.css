@@ -6,13 +6,17 @@
     font-size: 11pt;
 }
 
-.artist:link, .artist:visited, .website:link, .website:visited {
+.artist:link,
+.artist:visited,
+.website:link,
+.website:visited {
     font-weight: bold;
     text-decoration: none;
     color: pink;
 }
 
-.artist:hover, .website:hover {
+.artist:hover,
+.website:hover {
     background-color: pink;
     color: white;
 }

@@ -10,33 +10,29 @@ import { IAnimation } from "library/core/animation";
 import { Display } from "library/core/display";
 import { Surface } from "library/gfx/surface";
 
-
 //----- globals
-
 
 //----- class
 export class Tunnel extends IAnimation {
-
     //----- members
     private texture_: Surface;
     // transformation maps (twice the screen size); Float64Array on purpose:
     // the distance at the very center is NaN, which reads the first texel
     private distance_: Float64Array;
     private angle_: Float64Array;
-    private shade_: Float64Array;           // shade factor [0..1]
-
+    private shade_: Float64Array; // shade factor [0..1]
 
     //----- methods
     // constructor
     constructor(display: Display) {
-        super('tunnel', display);
+        super("tunnel", display);
 
         // set the vars
-        this.texture_  = new Surface();
+        this.texture_ = new Surface();
         let size = (display.width << 1) * (display.height << 1);
         this.distance_ = new Float64Array(size);
-        this.angle_    = new Float64Array(size);
-        this.shade_    = new Float64Array(size);
+        this.angle_ = new Float64Array(size);
+        this.shade_ = new Float64Array(size);
     }
 
     // compute the transformation maps
@@ -51,16 +47,16 @@ export class Tunnel extends IAnimation {
         // the maps are twice as big as the screen to be able to move inside it
         for (let y = 0; y < h << 1; y++) {
             let offset = y * (w << 1);
-            let dy  = y - h;
+            let dy = y - h;
             let dy2 = dy * dy;
-            for (let x = 0; x < (w << 1); x++) {
-                let dx  = x - w;
+            for (let x = 0; x < w << 1; x++) {
+                let dx = x - w;
                 let dx2 = dx * dx;
 
                 // compute the values
                 let sq = Math.sqrt(dx2 + dy2);
-                let a  = Math.floor(1.0 * tw * Math.atan2(dy, dx) / Math.PI);
-                let d  = Math.floor(ratio * th / sq) % th;
+                let a = Math.floor((1.0 * tw * Math.atan2(dy, dx)) / Math.PI);
+                let d = Math.floor((ratio * th) / sq) % th;
 
                 // set the maps
                 this.distance_[offset + x] = d;
@@ -72,12 +68,10 @@ export class Tunnel extends IAnimation {
 
     // load the assets
     protected init(): Promise<unknown> {
-        return this.texture_
-            .loadImage('/images/assets/ts-tunnel.texture.jpg')
-            .then(() => {
-                // compute the maps
-                this.computeMaps();
-            });
+        return this.texture_.loadImage("/images/assets/ts-tunnel.texture.jpg").then(() => {
+            // compute the maps
+            this.computeMaps();
+        });
     }
 
     // update the animation
@@ -91,7 +85,7 @@ export class Tunnel extends IAnimation {
         const time = timestamp / 1000;
 
         // compute the effect
-        let effectX = Math.floor(tw * 1.00 * time);
+        let effectX = Math.floor(tw * 1.0 * time);
         let effectY = Math.floor(th * 0.25 * time);
 
         // camera movement effect

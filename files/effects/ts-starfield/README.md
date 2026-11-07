@@ -1,4 +1,4 @@
-# *In the stars*
+# _In the stars_
 
 ![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg?style=flat-square)
 
@@ -11,18 +11,19 @@
 The color palette for this effect is a simple grayscale palette.
 
 For every stars (we have 2,048 here), you randomly select an X, Y and Z value as well as a color.  
-You also need to select a speed for each of them so they will move towards the observer at different speed.  
+You also need to select a speed for each of them so they will move towards the observer at different speed.
 
 Then for every frame you need to do the following:
+
 - update the z value with the speed
 - do the 3D to 2D projection
 - render the stars
 
 The 3D to 2D projection is done with:
 
-``` javascript
+```javascript
 // center of the screen
-const cx = DISPLAY_WIDTH  >> 1;
+const cx = DISPLAY_WIDTH >> 1;
 const cy = DISPLAY_HEIGHT >> 1;
 
 // projection
@@ -33,7 +34,7 @@ let y = cy + Math.floor((star.y * ZOOM) / (star.z + DEPTH));
 If either the X or Y of the 2D projection is out of the canvas, you discard the drawing and generate a new star.  
 This way, you will always have 2,048 stars on the screen.
 
-To improve the sensation of speed, you can record the previous Z value of the star before updating it with the speed. Then, instead of drawing just a point on the screen, you can draw a line between the previous position and the new position. 
+To improve the sensation of speed, you can record the previous Z value of the star before updating it with the speed. Then, instead of drawing just a point on the screen, you can draw a line between the previous position and the new position.
 
 ## **License**
 

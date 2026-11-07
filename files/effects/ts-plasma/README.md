@@ -1,4 +1,4 @@
-# *Colorful Plasma*
+# _Colorful Plasma_
 
 ![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg?style=flat-square)
 
@@ -11,18 +11,17 @@
 For this effect the palette of 256 colors is build around 2 sine functions.  
 Only the Red and Green components are used.
 
-``` javascript
+```javascript
 function createPalette() {
   for (var i = 0; i < 256; i++) {
-      var r = Math.floor(128 + 128 * Math.sin(Math.PI * i / 16.0));
-      var g = Math.floor(128 + 128 * Math.sin(Math.PI * i / 128.0));
-      var b = 0;
+    var r = Math.floor(128 + 128 * Math.sin((Math.PI * i) / 16.0));
+    var g = Math.floor(128 + 128 * Math.sin((Math.PI * i) / 128.0));
+    var b = 0;
   }
 }
 ```
 
 This gives a glowing green-ish colors to the plasma.
-
 
 ## **Algorithm**
 

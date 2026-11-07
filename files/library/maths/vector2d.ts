@@ -7,7 +7,6 @@
 
 //----- class
 export class Vector2D {
-
     //----- members
     public x: number;
     public y: number;
@@ -22,10 +21,7 @@ export class Vector2D {
 
     // create a vector from an angle
     public fromAngle(angle: number): Vector2D {
-        return new Vector2D(
-            Math.cos(angle),
-            Math.sin(angle)
-        );
+        return new Vector2D(Math.cos(angle), Math.sin(angle));
     }
 
     // create a string out of our vector information
@@ -40,67 +36,46 @@ export class Vector2D {
 
     // add a vector to us
     public add(other: Vector2D): Vector2D {
-        return new Vector2D(
-            this.x + other.x,
-            this.y + other.y
-        );
+        return new Vector2D(this.x + other.x, this.y + other.y);
     }
 
     // substract a vector from us
     public sub(other: Vector2D): Vector2D {
-        return new Vector2D(
-            this.x - other.x,
-            this.y - other.y
-        );
+        return new Vector2D(this.x - other.x, this.y - other.y);
     }
 
     // multiply the vector by a number or another vector
-    public mult(value: number|Vector2D): Vector2D {
+    public mult(value: number | Vector2D): Vector2D {
         if (value instanceof Vector2D) {
-            return new Vector2D(
-                this.x * value.x,
-                this.y * value.y
-            );
+            return new Vector2D(this.x * value.x, this.y * value.y);
         } else {
-            return new Vector2D(
-                this.x * value,
-                this.y * value
-            );
+            return new Vector2D(this.x * value, this.y * value);
         }
     }
 
     // divide the vector by a number or another vector
-    public div(value: number|Vector2D): Vector2D {
+    public div(value: number | Vector2D): Vector2D {
         if (value instanceof Vector2D) {
-            return new Vector2D(
-                this.x / value.x,
-                this.y / value.y
-            );
+            return new Vector2D(this.x / value.x, this.y / value.y);
         } else {
-            return new Vector2D(
-                this.x / value,
-                this.y / value
-            );
+            return new Vector2D(this.x / value, this.y / value);
         }
     }
 
     // compute the magnitude of this vector
     public mag(): number {
-        return Math.sqrt((this.x * this.x) + (this.y * this.y));
+        return Math.sqrt(this.x * this.x + this.y * this.y);
     }
 
     // compute the magnitude square of this vector
     public mag2(): number {
-        return (this.x * this.x) + (this.y * this.y);
+        return this.x * this.x + this.y * this.y;
     }
 
     // normalize the vector
     public norm(): Vector2D {
         var mag = this.mag();
-        return new Vector2D(
-            this.x / mag,
-            this.y / mag
-        );
+        return new Vector2D(this.x / mag, this.y / mag);
     }
 
     // compute the distance with another vector
@@ -114,12 +89,12 @@ export class Vector2D {
     public dist2(other: Vector2D): number {
         let dx = this.x - other.x;
         let dy = this.y - other.y;
-        return (dx * dx + dy * dy);
+        return dx * dx + dy * dy;
     }
 
     // compute the dot product with another vector
     public dot(other: Vector2D): number {
-        return (this.x * other.x + this.y * other.y);
+        return this.x * other.x + this.y * other.y;
     }
 
     // angle with another vector
@@ -138,7 +113,7 @@ export class Vector2D {
     public rotate(angle: number): Vector2D {
         return new Vector2D(
             this.x * Math.cos(angle) - this.y * Math.sin(angle),
-            this.x * Math.sin(angle) + this.y * Math.cos(angle)
-        )
+            this.x * Math.sin(angle) + this.y * Math.cos(angle),
+        );
     }
 }

@@ -8,24 +8,20 @@
 //----- imports
 import { BaseColor, Components, COLOR_MODEL } from "./basecolor";
 
-
 //---- class
 export class HSLA extends BaseColor {
-
     //----- methods
 
     constructor(h: number = 0, s: number = 0, l: number = 0, alpha: number = 1.0) {
         super(COLOR_MODEL.HSLA, h, s, l, alpha);
     }
 
-    public static from(color: BaseColor): HSLA|undefined {
-        if ( color.model == COLOR_MODEL.HSLA ) {
+    public static from(color: BaseColor): HSLA | undefined {
+        if (color.model == COLOR_MODEL.HSLA) {
             return this.fromHSLA(color.values);
-        }
-        else if ( color.model == COLOR_MODEL.RGBA ) {
+        } else if (color.model == COLOR_MODEL.RGBA) {
             return this.fromRGBA(color.values);
-        }
-        else if ( color.model == COLOR_MODEL.HSVA ) {
+        } else if (color.model == COLOR_MODEL.HSVA) {
             return this.fromHSVA(color.values);
         }
     }
@@ -57,14 +53,13 @@ export class HSLA extends BaseColor {
         let h: number, s: number, l: number;
         let v: number, x: number;
 
-        [ h, s, v ] = [ hsva.x, hsva.y, hsva.z ];
+        [h, s, v] = [hsva.x, hsva.y, hsva.z];
 
         // saturation
         x = (2 - s) * v;
-        if ( x < 1 ) {
+        if (x < 1) {
             s = (s * v) / x;
-        }
-        else {
+        } else {
             s = (s * v) / (2 - x);
         }
 
@@ -81,7 +76,7 @@ export class HSLA extends BaseColor {
         let min: number, max: number, delta: number;
 
         // convert the RGB to [0..1]
-        [ tr, tg, tb ] = [ (rgba.x / 255.0), (rgba.y / 255.0), (rgba.z / 255.0) ]
+        [tr, tg, tb] = [rgba.x / 255.0, rgba.y / 255.0, rgba.z / 255.0];
 
         min = Math.min(tr, tg, tb);
         max = Math.max(tr, tg, tb);
@@ -91,29 +86,26 @@ export class HSLA extends BaseColor {
         l = (max + min) / 2.0;
 
         // saturation
-        if ( delta < this.EPSILON ) {
-            s = 0;      // no saturation
-        }
-        else {
-            if ( l > 0.5) {
+        if (delta < this.EPSILON) {
+            s = 0; // no saturation
+        } else {
+            if (l > 0.5) {
                 s = delta / (2.0 - max - min);
-            }
-            else {
+            } else {
                 s = delta / (max + min);
             }
         }
 
         // hue
-        if ( delta < this.EPSILON ) {
-            h = 0;      // no saturation = no hue
-        }
-        else {
+        if (delta < this.EPSILON) {
+            h = 0; // no saturation = no hue
+        } else {
             // RED is the maximum
-            if ( (max - tr) < this.EPSILON ) {
+            if (max - tr < this.EPSILON) {
                 h = (tg - tb) / delta;
             }
             // GREEN is the maximum
-            else if ( (max - tg) < this.EPSILON ) {
+            else if (max - tg < this.EPSILON) {
                 h = 2.0 + (tb - tr) / delta;
             }
             // BLUE is the maximum
@@ -126,7 +118,7 @@ export class HSLA extends BaseColor {
         h = h * 60;
 
         // take care of negative values
-        while ( h < 0 ) {
+        while (h < 0) {
             h = h + 360;
         }
 

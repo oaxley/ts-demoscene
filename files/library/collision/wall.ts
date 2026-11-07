@@ -10,13 +10,10 @@ import { Vector2D } from "library/maths/vector2d";
 import { Rect } from "library/core/interfaces";
 import { CollisionObject } from "./objects";
 
-
 //----- class
 export class CollisionWall extends CollisionObject {
-
     //----- members
     private coord_: Rect;
-
 
     //----- methods
     constructor(r: Rect) {
@@ -46,7 +43,7 @@ export class CollisionWall extends CollisionObject {
         // use canvas drawing routines for that
         ctx.beginPath();
         ctx.rect(this.coord_.x, this.coord_.y, this.coord_.w, this.coord_.h);
-        ctx.strokeStyle = 'green';
+        ctx.strokeStyle = "green";
         ctx.stroke();
     }
 }

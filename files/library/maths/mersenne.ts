@@ -10,24 +10,22 @@ import { IPrng } from "./prng";
 
 //----- globals
 // MT19937 parameters
-const MT_0 = 0x6C078965;            // initialization multiplier (1812433253)
-const MT_N = 624;                   // degree of recurrence
-const MT_M = 397;                   // middle word offset
-const MT_A = 0x9908B0DF;            // twist matrix coefficients
-const MT_U = 11;                    // tempering shifts / masks
+const MT_0 = 0x6c078965; // initialization multiplier (1812433253)
+const MT_N = 624; // degree of recurrence
+const MT_M = 397; // middle word offset
+const MT_A = 0x9908b0df; // twist matrix coefficients
+const MT_U = 11; // tempering shifts / masks
 const MT_S = 7;
-const MT_B = 0x9D2C5680;
+const MT_B = 0x9d2c5680;
 const MT_T = 15;
-const MT_C = 0xEFC60000;
+const MT_C = 0xefc60000;
 const MT_I = 18;
 
-const MT_UPPER_MASK = 0x80000000;   // most significant bit
-const MT_LOWER_MASK = 0x7fffffff;   // least significant 31 bits
-
+const MT_UPPER_MASK = 0x80000000; // most significant bit
+const MT_LOWER_MASK = 0x7fffffff; // least significant 31 bits
 
 //----- class
 export class Mersenne extends IPrng {
-
     //----- members
     private states_: Uint32Array;
     private index_: number;
@@ -38,7 +36,7 @@ export class Mersenne extends IPrng {
 
         // set the vars
         this.index_ = 0;
-        this.states_= new Uint32Array(MT_N);
+        this.states_ = new Uint32Array(MT_N);
     }
 
     // generate a new set of values (twist)

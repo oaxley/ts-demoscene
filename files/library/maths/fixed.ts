@@ -10,16 +10,13 @@ const SHIFT = 16;
 
 //----- class
 export class Fixed {
-
     //----- members
     private value_: number;
 
     //----- methods
     constructor(value: number) {
-        if (Number.isInteger(value))
-            this.value_ = value << SHIFT;
-        else
-            this.value_ = this.floatToFixed(value);
+        if (Number.isInteger(value)) this.value_ = value << SHIFT;
+        else this.value_ = this.floatToFixed(value);
     }
 
     // create a fixed directly from its raw 16:16 value
@@ -46,7 +43,7 @@ export class Fixed {
 
     // convert a fixed format to int
     public int(): number {
-        return this.value_ >> SHIFT
+        return this.value_ >> SHIFT;
     }
 
     // addition between two fixed

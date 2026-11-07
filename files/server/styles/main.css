@@ -8,16 +8,17 @@
     height: 70%;
 }
 
-.credits a, a:visited {
+.credits a,
+a:visited {
     color: white;
     text-decoration: none;
     font-size: 12pt;
     font-weight: bold;
-    transition: 1.0s ease;
+    transition: 1s ease;
 }
 
 .credits a:hover {
-    background-color: rgba(255,70,0,1.0);
+    background-color: rgba(255, 70, 0, 1);
 }
 
 /* next & prev buttons: centered in the left / right panes (64px each) and
@@ -26,7 +27,8 @@
     position: relative;
 }
 
-.prev, .next {
+.prev,
+.next {
     cursor: pointer;
     color: white;
     position: absolute;
@@ -49,12 +51,14 @@
 }
 
 /* On hover, add a black background color with a little bit see-through */
-.prev:hover, .next:hover {
-    color: rgba(255,70,0,1.0);
+.prev:hover,
+.next:hover {
+    color: rgba(255, 70, 0, 1);
 }
 
-.inactive, .inactive:hover {
-    color: rgb(92,92,92);
+.inactive,
+.inactive:hover {
+    color: rgb(92, 92, 92);
 }
 
 /* 404 page */
@@ -68,12 +72,13 @@
     height: 482px;
 }
 
-.not-found a, .not-found a:visited {
+.not-found a,
+.not-found a:visited {
     color: white;
     text-decoration: none;
     font-weight: bold;
 }
 
 .not-found a:hover {
-    color: rgba(255,70,0,1.0);
+    color: rgba(255, 70, 0, 1);
 }

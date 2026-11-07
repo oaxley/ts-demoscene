@@ -9,6 +9,5 @@
 import { runEffect } from "library/core/bootstrap";
 import { Smoke } from "./smoke";
 
-
 //----- begin
 runEffect(Smoke);

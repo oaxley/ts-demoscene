@@ -8,7 +8,6 @@
 //----- imports
 import { Point2D, Point3D } from "library/core/interfaces";
 
-
 //----- class
 
 // precomputed cosine / sine tables for integer angles in degrees [0..359]
@@ -27,7 +26,6 @@ export class TrigTables {
     }
 }
 
-
 //----- functions
 
 /* project 3D points on the screen, rotated by the same angle on the 3 axis
@@ -43,8 +41,15 @@ export class TrigTables {
  *      depth : distance between the eye and the screen
  *      zoom  : zoom factor
  */
-export function projectSameAngle(points: Point3D[], output: Point2D[], c: number, s: number,
-                                 center: Point2D, depth: number, zoom: number): void {
+export function projectSameAngle(
+    points: Point3D[],
+    output: Point2D[],
+    c: number,
+    s: number,
+    center: Point2D,
+    depth: number,
+    zoom: number,
+): void {
     let ss = s * s;
 
     let m00 = c * c;
@@ -67,13 +72,13 @@ export function projectSameAngle(points: Point3D[], output: Point2D[], c: number
         let x = points[i].x;
         let y = points[i].y;
         let z = points[i].z;
-        let xy = -x*y;
+        let xy = -x * y;
 
-        let px = (m01 + x) * (m00 + y) + a0 + xy + m02*z;
-        let py = (m11 + x) * (m10 + y) + a1 + xy + m12*z;
-        let pz = (m21 + x) * (m20 + y) + a2 + xy + m22*z;
+        let px = (m01 + x) * (m00 + y) + a0 + xy + m02 * z;
+        let py = (m11 + x) * (m10 + y) + a1 + xy + m12 * z;
+        let pz = (m21 + x) * (m20 + y) + a2 + xy + m22 * z;
 
-        output[i].x = (center.x) + Math.floor((px * zoom) / (pz + depth));
-        output[i].y = (center.y) + Math.floor((py * zoom) / (pz + depth));
+        output[i].x = center.x + Math.floor((px * zoom) / (pz + depth));
+        output[i].y = center.y + Math.floor((py * zoom) / (pz + depth));
     }
 }

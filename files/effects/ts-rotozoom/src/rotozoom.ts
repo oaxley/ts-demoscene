@@ -11,27 +11,22 @@ import { Display } from "library/core/display";
 import { Surface } from "library/gfx/surface";
 import { radians } from "library/maths/utils";
 
-
 //---- globals
 const FPS: number = 25;
 
-
 //----- class
 export class Rotozoom extends IAnimation {
-
     //----- members
-    private texture_: Surface;                      // the texture for the RotoZoom
+    private texture_: Surface; // the texture for the RotoZoom
 
-    private angle_: number;                         // current rotation angle
+    private angle_: number; // current rotation angle
 
-    private cos_ : number[];                        // cos lookup table
-    private sin_ : number[];                        // sin lookup table
-
-
+    private cos_: number[]; // cos lookup table
+    private sin_: number[]; // sin lookup table
 
     //----- methods
     constructor(display: Display) {
-        super('rotozoom', display, FPS);
+        super("rotozoom", display, FPS);
 
         // set the vars
         this.angle_ = 0;
@@ -55,7 +50,7 @@ export class Rotozoom extends IAnimation {
 
     // load the assets
     protected init(): Promise<unknown> {
-        return this.texture_.loadImage('/images/assets/ts-rotozoom.texture.jpg');
+        return this.texture_.loadImage("/images/assets/ts-rotozoom.texture.jpg");
     }
 
     // update the animation
@@ -77,7 +72,6 @@ export class Rotozoom extends IAnimation {
         let addr = 0;
         for (let y: number = 0; y < h; y++) {
             for (let x: number = 0; x < w; x++) {
-
                 /* apply the rotation to the screen pixels:
                  * x' = x * cos - y * sin
                  * y' = x * sin + y * cos
@@ -95,7 +89,7 @@ export class Rotozoom extends IAnimation {
                 }
 
                 // copy the texel (texture is 256 pixels wide) to display surface
-                dst[addr++] = src[(u + (v << 8))];
+                dst[addr++] = src[u + (v << 8)];
             }
         }
         // increase the rotation angle

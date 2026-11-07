@@ -1,4 +1,4 @@
-# *Elastic Lens*
+# _Elastic Lens_
 
 ![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg?style=flat-square)
 
@@ -6,29 +6,28 @@
 
 ![screenshot](screenshot.png)
 
-
 ## **Algorithm**
 
-The algorithm is based on the concept of Transformation Map. It's a pre-calculated table that contains how the source pixel 
+The algorithm is based on the concept of Transformation Map. It's a pre-calculated table that contains how the source pixel
 should be modified to achieve the effect:
 
 ```
 output_pixel = transformation[input_pixel]
 ```
 
-The size of the transformation box is known at the beginning because we want to modify only a part of the initial image and 
+The size of the transformation box is known at the beginning because we want to modify only a part of the initial image and
 not the whole.
 
 Here are some simple transformations:
 
-``` javascript
+```javascript
 // no transformation at all
-for (var i = 0; i < width*height; i++) {
+for (var i = 0; i < width * height; i++) {
   transformation[i] = i;
 }
 ```
 
-``` javascript
+```javascript
 // flip on the X axis
 for (var y = 0; y < height; y++) {
   for (var x = 0; x < width; x++) {
@@ -39,24 +38,24 @@ for (var y = 0; y < height; y++) {
 
 For the lens effect, we need to consider every points that are inside the circle and apply a zoom factor proportional to its distance in the circle.
 
-``` javascript
+```javascript
 // x goes from -Radius to +Radius
 // y goes from -Radius to +Radius
-x2 = x * x
-y2 = y * y
+x2 = x * x;
+y2 = y * y;
 
 // point inside the circle gets magnified
-if( (x2 + y2 ) < s2) {
-    let z = Math.sqrt(r2 - x2 - y2);
-    a = Math.floor( (x * this.zoom_) / (z + 0.5) );
-    b = Math.floor( (y * this.zoom_) / (z + 0.5) );
+if (x2 + y2 < s2) {
+  let z = Math.sqrt(r2 - x2 - y2);
+  a = Math.floor((x * this.zoom_) / (z + 0.5));
+  b = Math.floor((y * this.zoom_) / (z + 0.5));
 }
 
 // transformation map
-this.transMap_[(y+r)*d + (x+r)] = (b+r)*d + (a+r);
+this.transMap_[(y + r) * d + (x + r)] = (b + r) * d + (a + r);
 ```
 
-## *Elastic collision*
+## _Elastic collision_
 
 The collision detection between the lenses is done via a broader and narrow detector.  
 Each object has a bouding box that is used to determine if a broader collision has occured.  

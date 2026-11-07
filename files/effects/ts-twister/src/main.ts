@@ -9,6 +9,5 @@
 import { runEffect } from "library/core/bootstrap";
 import { Twister } from "./twister";
 
-
 //----- begin
 runEffect(Twister);

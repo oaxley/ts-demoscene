@@ -15,42 +15,39 @@ import { Point2D, Point3D } from "library/core/interfaces";
 import { RGBA } from "library/color/RGBA";
 import { Surface } from "library/gfx/surface";
 
-
 //----- globals
 const ZOOM = 256;
 const TRANPARENCY = 0.5;
 
-
 //----- class
 export class Glenz extends IAnimation {
-
     //----- members
-    private tables_: TrigTables;        // pre-computed cosine/sine tables
+    private tables_: TrigTables; // pre-computed cosine/sine tables
 
-    private plane3D_: Point3D[];        // the 3D plane
-    private plane2D_: Point2D[];        // the 3D plane projection on the 2D space
+    private plane3D_: Point3D[]; // the 3D plane
+    private plane2D_: Point2D[]; // the 3D plane projection on the 2D space
 
-    private angle_: number;             // rotation angle
-    private depth_: number;             // screen Z coordinate
-    private center_: Point2D;           // screen center
+    private angle_: number; // rotation angle
+    private depth_: number; // screen Z coordinate
+    private center_: Point2D; // screen center
 
-    private background_: Surface;       // background image
+    private background_: Surface; // background image
 
-    private xmin_: Uint16Array;         // xmin values
-    private xmax_: Uint16Array;         // xmax values
-    private ymin_: number;              // ymin value
-    private ymax_: number;              // ymax value
+    private xmin_: Uint16Array; // xmin values
+    private xmax_: Uint16Array; // xmax values
+    private ymin_: number; // ymin value
+    private ymax_: number; // ymax value
 
     //----- methods
     // constructor
     constructor(display: Display) {
-        super('glenz', display);
+        super("glenz", display);
 
         // set the vars
         this.background_ = new Surface();
         this.angle_ = 0;
         this.depth_ = 192;
-        this.center_= {x: display.width >> 1, y: display.height >> 1};
+        this.center_ = { x: display.width >> 1, y: display.height >> 1 };
 
         this.xmin_ = new Uint16Array(this.display_.height);
         this.xmax_ = new Uint16Array(this.display_.height);
@@ -59,32 +56,38 @@ export class Glenz extends IAnimation {
 
         // initialize the plane
         this.plane3D_ = [
-            { x: 100, y:-100, z: 100 },
-            { x:-100, y:-100, z: 100 },
-            { x:-100, y: 100, z: 100 },
-            { x: 100, y: 100, z: 100 }
+            { x: 100, y: -100, z: 100 },
+            { x: -100, y: -100, z: 100 },
+            { x: -100, y: 100, z: 100 },
+            { x: 100, y: 100, z: 100 },
         ];
         this.plane2D_ = [
-            { x: 0, y: 0},
-            { x: 0, y: 0},
-            { x: 0, y: 0},
-            { x: 0, y: 0}
+            { x: 0, y: 0 },
+            { x: 0, y: 0 },
+            { x: 0, y: 0 },
+            { x: 0, y: 0 },
         ];
 
         // initialize the cos/sin tables
         this.tables_ = new TrigTables();
     }
 
-
     // compute the 2D projection
     private projection(angle: number, center: Point2D): void {
-        projectSameAngle(this.plane3D_, this.plane2D_, this.tables_.cos[angle], this.tables_.sin[angle],
-                         center, this.depth_, ZOOM);
+        projectSameAngle(
+            this.plane3D_,
+            this.plane2D_,
+            this.tables_.cos[angle],
+            this.tables_.sin[angle],
+            center,
+            this.depth_,
+            ZOOM,
+        );
     }
 
     // dummy function to set xmin/xmax/ymin/ymax
     private xset(x: number, y: number): void {
-        if ((y < 0) || (y > this.height_)) {
+        if (y < 0 || y > this.height_) {
             return;
         }
 
@@ -111,7 +114,6 @@ export class Glenz extends IAnimation {
         if (x > this.xmax_[y]) {
             this.xmax_[y] = x;
         }
-
     }
 
     // function to compute xmin/xmax values
@@ -121,7 +123,7 @@ export class Glenz extends IAnimation {
 
     // load the assets
     protected init(): Promise<unknown> {
-        return this.background_.loadImage('/images/assets/ts-glenz.background.jpg');
+        return this.background_.loadImage("/images/assets/ts-glenz.background.jpg");
     }
 
     // update the animation
@@ -136,7 +138,7 @@ export class Glenz extends IAnimation {
         this.ymax_ = 0;
 
         for (let i = 0; i < this.plane2D_.length; i++) {
-            this.xline(this.plane2D_[i], this.plane2D_[(i+1) % 4]);
+            this.xline(this.plane2D_[i], this.plane2D_[(i + 1) % 4]);
         }
 
         // increment angle value
@@ -155,12 +157,12 @@ export class Glenz extends IAnimation {
         const data32 = s.data32;
         for (let y = this.ymin_; y < this.ymax_; y++) {
             // nothing to do there
-            if ((this.xmax_[y] == 0) || (this.xmin_[y] == this.width_)) {
+            if (this.xmax_[y] == 0 || this.xmin_[y] == this.width_) {
                 continue;
             }
 
             if (this.xmax_[y] == 0) {
-                this.xmax_[y] = this.width_ - 1 ;
+                this.xmax_[y] = this.width_ - 1;
             }
             if (this.xmin_[y] == this.width_) {
                 this.xmin_[y] = 0;

@@ -8,22 +8,20 @@
 //----- imports
 import { Stack } from "./stack";
 
-
 //----- interfaces
 export enum States {
     S_BEGIN = 0,
     S_END,
     S_RUNNING,
     S_PAUSE,
-    S_RESUME
+    S_RESUME,
 }
 
 interface IStateTransition {
-    event: States,
-    from?: IStateTask,
-    to?: IStateTask
+    event: States;
+    from?: IStateTask;
+    to?: IStateTask;
 }
-
 
 //----- classes
 // an simple task to run on the State Manager
@@ -43,16 +41,16 @@ export abstract class IStateTask {
     public abstract cleanup(): void;
 
     // main running function
-    public abstract run(time: number|undefined): States;
+    public abstract run(time: number | undefined): States;
 }
 
 // states manager main class
 export class StatesManager {
     //----- members
-    private static instance_: StatesManager;             // singleton instance
+    private static instance_: StatesManager; // singleton instance
 
-    private static stack_: Stack<IStateTask>;           // the running stack
-    private static transitions_: IStateTransition[];    // transition between tasks
+    private static stack_: Stack<IStateTask>; // the running stack
+    private static transitions_: IStateTransition[]; // transition between tasks
 
     //----- methods
     private constructor() {
@@ -76,12 +74,11 @@ export class StatesManager {
     }
 
     // find the transition corresponding to a particular (event/task)
-    private find(event: States, from:IStateTask|undefined): IStateTransition|undefined {
+    private find(event: States, from: IStateTask | undefined): IStateTransition | undefined {
         // go through all the items
         for (let i = 0; i < StatesManager.transitions_.length; i++) {
             let transition = StatesManager.transitions_[i];
-            if ((transition.event == event) && (transition.from == from))
-                return transition;
+            if (transition.event == event && transition.from == from) return transition;
         }
 
         return undefined;
@@ -90,8 +87,7 @@ export class StatesManager {
     // move to another state if possible
     private move(event: States): void {
         // if the task is still running, nothing to be done
-        if (event == States.S_RUNNING)
-            return;
+        if (event == States.S_RUNNING) return;
 
         // retrieve the corresponding transition
         let from = StatesManager.stack_.top();
@@ -99,20 +95,21 @@ export class StatesManager {
 
         // no transition defined for this pair
         if (transition === undefined) {
-            let name = (from === undefined) ? "undefined" : from.name;
+            let name = from === undefined ? "undefined" : from.name;
             console.log(`Error: no transition defined for '${name}' with event '${event.toString()}'`);
             return;
         }
 
-
         // perform the action depending on the event and transition result
-        switch(event) {
-            case States.S_BEGIN: {  // add first task to the stack
+        switch (event) {
+            case States.S_BEGIN: {
+                // add first task to the stack
                 StatesManager.stack_.push(transition.to!);
                 StatesManager.stack_.top()!.setup();
                 break;
             }
-            case States.S_END: {    // remove previous task, push new one
+            case States.S_END: {
+                // remove previous task, push new one
                 from!.cleanup();
                 if (transition.to !== undefined) {
                     StatesManager.stack_.push(transition.to);
@@ -120,12 +117,14 @@ export class StatesManager {
                 }
                 break;
             }
-            case States.S_PAUSE: {  // pause the current task, add a new one on top
+            case States.S_PAUSE: {
+                // pause the current task, add a new one on top
                 StatesManager.stack_.push(transition.to!);
                 StatesManager.stack_.top()!.setup();
                 break;
             }
-            case States.S_RESUME: { // remove top task
+            case States.S_RESUME: {
+                // remove top task
                 from!.cleanup();
                 StatesManager.stack_.pop();
                 break;
@@ -139,8 +138,7 @@ export class StatesManager {
         let task = StatesManager.stack_.top();
 
         // no task defined on the top
-        if (task === undefined)
-            return;
+        if (task === undefined) return;
 
         // run the task
         let result = task.run(time);

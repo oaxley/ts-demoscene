@@ -1,4 +1,4 @@
-# *Death Smoking*
+# _Death Smoking_
 
 ![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg?style=flat-square)
 
@@ -6,13 +6,11 @@
 
 ![screenshot](screenshot.png)
 
-
 ## **Algorithm**
 
 The smoke is created from 1 fixed point located in the cigarette end, and 3 points that move independently.
 The trail is make with a Linear Interpolation between the fixed point and one other point.  
-The parameter *t* in the lerp is compute with different delay to create the "smoke" effect.
-
+The parameter _t_ in the lerp is compute with different delay to create the "smoke" effect.
 
 ## **License**
 

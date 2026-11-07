@@ -9,6 +9,5 @@
 import { runEffect } from "library/core/bootstrap";
 import { Plasma } from "./plasma";
 
-
 //----- begin
 runEffect(Plasma);

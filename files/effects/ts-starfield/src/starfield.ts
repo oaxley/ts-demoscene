@@ -13,29 +13,26 @@ import { Palette } from "library/color/palette";
 import { Color } from "library/color/color";
 import { RGBA } from "library/color/RGBA";
 
-
 //----- globals
 const NUMBER_OF_STARS = 2048;
 
-
 //----- interface
 interface Star {
-    position: Point3D
-    speed: number
-    color: number
-    old_z: number
+    position: Point3D;
+    speed: number;
+    color: number;
+    old_z: number;
 }
 
 //----- class
 export class Starfield extends IAnimation {
-
     //----- members
     private stars_: Star[];
     private palette_: Palette;
 
     //----- methods
     constructor(display: Display) {
-        super('starfield', display);
+        super("starfield", display);
 
         // set the vars
         this.stars_ = [];
@@ -52,17 +49,17 @@ export class Starfield extends IAnimation {
 
     // initialize a star
     private initStar(index: number): void {
-        let z = (-200.0 + (400 * Math.random()));
+        let z = -200.0 + 400 * Math.random();
         this.stars_[index] = {
             position: {
-                x: (-200.0 + (400 * Math.random())),
-                y: (-200.0 + (400 * Math.random())),
+                x: -200.0 + 400 * Math.random(),
+                y: -200.0 + 400 * Math.random(),
                 z: z,
             },
             speed: 2 + Math.floor(2 * Math.random()),
             color: index % 256,
-            old_z: z
-        }
+            old_z: z,
+        };
     }
 
     // palette creation
@@ -99,21 +96,20 @@ export class Starfield extends IAnimation {
             // retrieve the data for this star
             let star: Star = this.stars_[i];
 
-
             let px: number = cx + Math.floor((star.position.x * 256) / (star.position.z + 384));
             let py: number = cy + Math.floor((star.position.y * 256) / (star.position.z + 384));
 
             let ox: number = cx + Math.floor((star.position.x * 256) / (star.old_z + 384));
             let oy: number = cy + Math.floor((star.position.y * 256) / (star.old_z + 384));
 
-            if ((px < 0) || (px > w - 1) || (py < 0) || (py > h - 1)) {
+            if (px < 0 || px > w - 1 || py < 0 || py > h - 1) {
                 this.initStar(i);
                 continue;
             }
 
             // retrieve the correct color
-            let c = <RGBA> this.palette_.getColor(star.color)!.color;
-            this.display_.surface.line({x:ox, y:oy}, {x:px, y:py}, c);
+            let c = <RGBA>this.palette_.getColor(star.color)!.color;
+            this.display_.surface.line({ x: ox, y: oy }, { x: px, y: py }, c);
         }
 
         // flip the back-buffer onto the screen

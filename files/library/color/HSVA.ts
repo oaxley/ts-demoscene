@@ -8,24 +8,20 @@
 //----- imports
 import { BaseColor, Components, COLOR_MODEL } from "./basecolor";
 
-
 //----- class
 export class HSVA extends BaseColor {
-
     //----- methods
 
     constructor(h: number = 0, s: number = 0, l: number = 0, alpha: number = 1.0) {
         super(COLOR_MODEL.HSVA, h, s, l, alpha);
     }
 
-    public static from(color: BaseColor): HSVA|undefined {
-        if ( color.model == COLOR_MODEL.HSVA ) {
+    public static from(color: BaseColor): HSVA | undefined {
+        if (color.model == COLOR_MODEL.HSVA) {
             return this.fromHSVA(color.values);
-        }
-        else if ( color.model == COLOR_MODEL.HSLA ) {
+        } else if (color.model == COLOR_MODEL.HSLA) {
             return this.fromHSLA(color.values);
-        }
-        else if ( color.model == COLOR_MODEL.RGBA ) {
+        } else if (color.model == COLOR_MODEL.RGBA) {
             return this.fromRGBA(color.values);
         }
     }
@@ -51,12 +47,12 @@ export class HSVA extends BaseColor {
     }
 
     private static fromHSLA(hsla: Components): HSVA {
-        let h:number, s:number, l:number
-        let v:number, x:number
+        let h: number, s: number, l: number;
+        let v: number, x: number;
 
-        [ h, s, l ] = [ hsla.x, hsla.y, hsla.z ];
+        [h, s, l] = [hsla.x, hsla.y, hsla.z];
 
-        if( l < 0.5 ) {
+        if (l < 0.5) {
             x = s * l;
         } else {
             x = s * (1 - l);
@@ -70,24 +66,24 @@ export class HSVA extends BaseColor {
     }
 
     private static fromRGBA(rgba: Components): HSVA {
-        let r:number, g:number, b:number
-        let h:number, s:number, v:number
-        let min:number, max:number, delta:number
+        let r: number, g: number, b: number;
+        let h: number, s: number, v: number;
+        let min: number, max: number, delta: number;
 
-        [ r, g, b ] = [ (rgba.x / 255.0), (rgba.y / 255.0), (rgba.z / 255.0) ];
+        [r, g, b] = [rgba.x / 255.0, rgba.y / 255.0, rgba.z / 255.0];
 
         min = Math.min(r, g, b);
         max = Math.max(r, g, b);
         delta = max - min;
 
         // hue
-        if( (delta - this.EPSILON) < 0 ) {
-            h = 0;      // no hue if no saturation
+        if (delta - this.EPSILON < 0) {
+            h = 0; // no hue if no saturation
         } else {
-            if( (max - r) < this.EPSILON ) {
+            if (max - r < this.EPSILON) {
                 h = (g - b) / delta;
             } else {
-                if( (max - g) < this.EPSILON ) {
+                if (max - g < this.EPSILON) {
                     h = 2.0 + (b - r) / delta;
                 } else {
                     h = 4.0 + (r - g) / delta;
@@ -101,7 +97,7 @@ export class HSVA extends BaseColor {
         }
 
         // saturation
-        if( (max - this.EPSILON) < 0) {
+        if (max - this.EPSILON < 0) {
             s = 0;
         } else {
             s = delta / max;
@@ -113,5 +109,4 @@ export class HSVA extends BaseColor {
         // encode the object - keep 3 decimals for precision
         return new HSVA(Math.floor(h), this.clamp(s), this.clamp(v), this.clamp(rgba.a / 255.0));
     }
-
 }

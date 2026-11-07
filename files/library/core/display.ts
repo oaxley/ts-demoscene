@@ -8,38 +8,35 @@
 //----- imports
 import { Surface } from "library/gfx/surface";
 
-
 //----- globals
 
 // enum for snapshot function
 export enum EDisplaySource {
     E_DISPLAY = 0,
-    E_BUFFER
+    E_BUFFER,
 }
-
 
 //----- class
 export class Display {
     //----- members
-    private screen_  : HTMLCanvasElement;               // display screen canvas
-    private context_ : CanvasRenderingContext2D;        // display screen context
-    private width_   : number;                          // display width
-    private height_  : number;                          // display height
+    private screen_: HTMLCanvasElement; // display screen canvas
+    private context_: CanvasRenderingContext2D; // display screen context
+    private width_: number; // display width
+    private height_: number; // display height
 
-    private surface_ : Surface;                         // back-buffer surface
-    private snapshot_: Surface;                         // snapshot surface
-
+    private surface_: Surface; // back-buffer surface
+    private snapshot_: Surface; // snapshot surface
 
     //----- methods
     constructor(canvas: HTMLCanvasElement) {
         // set the vars
-        this.screen_  = canvas;
+        this.screen_ = canvas;
         this.context_ = canvas.getContext("2d")!;
-        this.width_   = canvas.width;
-        this.height_  = canvas.height;
+        this.width_ = canvas.width;
+        this.height_ = canvas.height;
 
-        this.surface_ = new Surface({width: canvas.width, height: canvas.height});
-        this.snapshot_= new Surface();
+        this.surface_ = new Surface({ width: canvas.width, height: canvas.height });
+        this.snapshot_ = new Surface();
     }
 
     //----- accessors

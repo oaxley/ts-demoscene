@@ -12,10 +12,8 @@ import { Display } from "library/core/display";
 import { Surface } from "library/gfx/surface";
 import { Noise } from "library/maths/noise";
 
-
 //----- class
 export class ImgNoise extends IAnimation {
-
     //----- members
     private image_: Surface;
     private noiseMap_: Array<number>;
@@ -26,7 +24,7 @@ export class ImgNoise extends IAnimation {
     //----- methods
     // constructor
     constructor(display: Display) {
-        super('imgnoise', display);
+        super("imgnoise", display);
 
         this.image_ = new Surface();
         this.threshold_ = 1.0;
@@ -39,7 +37,7 @@ export class ImgNoise extends IAnimation {
 
     // load the assets
     protected init(): Promise<unknown> {
-        return this.image_.loadImage('/images/assets/ts-noise.background.png');
+        return this.image_.loadImage("/images/assets/ts-noise.background.png");
     }
 
     // update the animation
@@ -51,12 +49,12 @@ export class ImgNoise extends IAnimation {
 
         // go through the whole screen to trigger pixels
         for (let i = 0; i < dst.length; i++) {
-            dst[i] = (noise[i] >= threshold) ? src[i] : 0;
+            dst[i] = noise[i] >= threshold ? src[i] : 0;
         }
 
         // update the threshold for next frame
         this.threshold_ += this.increment_;
-        if ((this.threshold_ < 0.0) || (this.threshold_ > 1.0)) {
+        if (this.threshold_ < 0.0 || this.threshold_ > 1.0) {
             this.increment_ *= -1;
         }
     }

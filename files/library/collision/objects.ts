@@ -9,20 +9,17 @@
 import { Vector2D } from "library/maths/vector2d";
 import { Rect } from "library/core/interfaces";
 
-
 //----- class
 export abstract class CollisionObject {
-
     //----- members
-    protected center_  : Vector2D;          // the object center
-    protected velocity_: Vector2D;          // the object velocity
-    private collided_  : boolean;           // =true if the object has a collision
-
+    protected center_: Vector2D; // the object center
+    protected velocity_: Vector2D; // the object velocity
+    private collided_: boolean; // =true if the object has a collision
 
     //----- methods
     constructor(center: Vector2D, velocity: Vector2D) {
         // set the vars
-        this.center_   = center;
+        this.center_ = center;
         this.velocity_ = velocity;
         this.collided_ = false;
     }

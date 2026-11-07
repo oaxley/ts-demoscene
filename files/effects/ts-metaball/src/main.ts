@@ -9,6 +9,5 @@
 import { runEffect } from "library/core/bootstrap";
 import { Metaballs } from "./metaballs";
 
-
 //----- begin
 runEffect(Metaballs);

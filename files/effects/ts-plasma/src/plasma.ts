@@ -13,21 +13,19 @@ import { Color } from "library/color/color";
 import { COLOR_MODEL } from "library/color/basecolor";
 import { map } from "library/maths/utils";
 
-
 //----- class
 export class Plasma extends IAnimation {
-
     //----- members
-    private palette_ : Palette;
-    private cols_    : Float64Array;    // per-column values (scratch)
+    private palette_: Palette;
+    private cols_: Float64Array; // per-column values (scratch)
 
     //----- methods
     constructor(display: Display) {
-        super('plasma', display);
+        super("plasma", display);
 
         // set the vars
         this.palette_ = new Palette();
-        this.cols_    = new Float64Array(display.width);
+        this.cols_ = new Float64Array(display.width);
 
         // create the 256 colors palette
         this.createPalette();
@@ -37,8 +35,8 @@ export class Plasma extends IAnimation {
     private createPalette(): void {
         this.palette_ = new Palette();
         for (let i = 0; i < 256; i++) {
-            let r = map(Math.sin(Math.PI * i / 16.0), -1, 1, 0, 255);
-            let g = map(Math.sin(Math.PI * i / 128.0), -1, 1, 0, 255);
+            let r = map(Math.sin((Math.PI * i) / 16.0), -1, 1, 0, 255);
+            let g = map(Math.sin((Math.PI * i) / 128.0), -1, 1, 0, 255);
             let b = 0;
 
             this.palette_.setColor(i, new Color(COLOR_MODEL.RGBA, r, g, b));
@@ -59,19 +57,19 @@ export class Plasma extends IAnimation {
         const sy = 0.5 * Math.cos(time / 5);
         const cols = this.cols_;
         for (let x = 0; x < w; x++) {
-            const dx = -0.5 + (x / w);
+            const dx = -0.5 + x / w;
             cols[x] = Math.sin(dx * 10 + time);
         }
 
         let addr = 0;
         for (let y = 0; y < h; y++) {
-            const dy = -0.5 + (y / h);
+            const dy = -0.5 + y / h;
             const cy = dy + sy;
             const cy2 = cy * cy;
             const dy2 = dy * dy;
 
             for (let x = 0; x < w; x++) {
-                const dx = -0.5 + (x / w);
+                const dx = -0.5 + x / w;
                 const cx = dx + sx;
 
                 let v = cols[x];
@@ -80,8 +78,7 @@ export class Plasma extends IAnimation {
                 v /= 3;
 
                 let index = Math.floor(128 + 128 * v);
-                if (index > 255)
-                    index = 255;
+                if (index > 255) index = 255;
 
                 data32[addr++] = lut[index];
             }

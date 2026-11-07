@@ -9,6 +9,5 @@
 import { runEffect } from "library/core/bootstrap";
 import { ImgNoise } from "./noise";
 
-
 //----- begin
 runEffect(ImgNoise);

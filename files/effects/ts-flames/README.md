@@ -1,4 +1,4 @@
-# *FireCube & Flames*
+# _FireCube & Flames_
 
 ![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg?style=flat-square)
 
@@ -9,6 +9,7 @@
 ## **Palette**
 
 The palette is composed of 256 colors organized as follows:
+
 - 32 colors from black to blue
 - 32 colors from blue to red
 - 32 colors from red to yellow
@@ -30,11 +31,10 @@ To keep it simple, the averge is done on a number of pixels that is a power of t
 ## **FireCube**
 
 To make the 3D cube in fire, you just do the rendering inside the flame buffer.  
-However to make a flame trail, we redraw the cube only one every 3 frames.  
+However to make a flame trail, we redraw the cube only one every 3 frames.
 
-The cube is drawn using the [Bresenham](https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm) 
+The cube is drawn using the [Bresenham](https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm)
 algorithm which is very efficient for this purpose.
-
 
 ## **License**
 

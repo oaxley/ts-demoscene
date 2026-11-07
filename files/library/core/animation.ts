@@ -18,21 +18,18 @@
 import { IStateTask, States } from "./manager";
 import { Display } from "./display";
 
-
 //----- class
 export abstract class IAnimation extends IStateTask {
-
     //----- members
-    private animated_ : boolean;        // =true when the animation is running
-    private ticks_    : number;         // minimum time between two frames (ms), 0 = no limit
-    private lastTs_   : number;         // timestamp of the last rendered frame
+    private animated_: boolean; // =true when the animation is running
+    private ticks_: number; // minimum time between two frames (ms), 0 = no limit
+    private lastTs_: number; // timestamp of the last rendered frame
 
-    protected display_: Display;        // the display screen where the animation is shown
-    protected width_  : number;         // the screen width
-    protected height_ : number;         // the screen height
+    protected display_: Display; // the display screen where the animation is shown
+    protected width_: number; // the screen width
+    protected height_: number; // the screen height
 
-    protected frames_ : number;         // number of frames rendered
-
+    protected frames_: number; // number of frames rendered
 
     //----- methods
     /* constructor
@@ -47,22 +44,21 @@ export abstract class IAnimation extends IStateTask {
 
         // set the vars
         this.animated_ = false;
-        this.ticks_    = (fps === undefined) ? 0 : 1000 / fps;
-        this.lastTs_   = -1;
-        this.frames_   = 0;
-        this.display_  = display;
-        this.width_    = display.width;
-        this.height_   = display.height;
+        this.ticks_ = fps === undefined ? 0 : 1000 / fps;
+        this.lastTs_ = -1;
+        this.frames_ = 0;
+        this.display_ = display;
+        this.width_ = display.width;
+        this.height_ = display.height;
     }
 
     // toggle the animation
     public toggle(): void {
         this.animated_ = !this.animated_;
-        if ( !this.animated_ ) {
-            console.log('Animation stopped.');
-        }
-        else {
-            console.log('Animation started.');
+        if (!this.animated_) {
+            console.log("Animation stopped.");
+        } else {
+            console.log("Animation started.");
         }
     }
 
@@ -72,8 +68,7 @@ export abstract class IAnimation extends IStateTask {
     }
 
     // initialize the animation (load the assets, ...) before it starts
-    protected init(): Promise<unknown> | void {
-    }
+    protected init(): Promise<unknown> | void {}
 
     // start the animation
     private start(): void {
@@ -99,8 +94,7 @@ export abstract class IAnimation extends IStateTask {
     }
 
     // cleanup function
-    public cleanup(): void {
-    }
+    public cleanup(): void {}
 
     // main loop
     public run(time: number | undefined): States {
@@ -113,7 +107,7 @@ export abstract class IAnimation extends IStateTask {
                 this.lastTs_ = ts;
             }
 
-            if ((ts - this.lastTs_) <= this.ticks_) {
+            if (ts - this.lastTs_ <= this.ticks_) {
                 return States.S_RUNNING;
             }
             this.lastTs_ = ts;

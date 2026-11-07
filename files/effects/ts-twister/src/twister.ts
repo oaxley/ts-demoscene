@@ -13,32 +13,29 @@ import { radians } from "library/maths/utils";
 import { Surface } from "library/gfx/surface";
 import { Size } from "library/core/interfaces";
 
-
 //----- globals
 const BAR_WIDTH = 240;
 
-
 //----- class
 export class Twister extends IAnimation {
-
     //----- members
-    private angle_    : number;             // rotation angle
-    private amplitude_: number;             // movement amplitude
-    private ampway_   : number;             // movement way
+    private angle_: number; // rotation angle
+    private amplitude_: number; // movement amplitude
+    private ampway_: number; // movement way
 
-    private texture_ : Surface;             // texture surface
-    private slice_   : Size;                // texture slice size
+    private texture_: Surface; // texture surface
+    private slice_: Size; // texture slice size
 
     //----- methods
     constructor(display: Display) {
-        super('twister', display);
+        super("twister", display);
 
         // set the vars
         this.angle_ = 0;
         this.amplitude_ = 0;
         this.ampway_ = 0.05;
         this.texture_ = new Surface();
-        this.slice_ = { width: 0, height: 0}
+        this.slice_ = { width: 0, height: 0 };
     }
 
     /* draw a texture slice on a screen line (only if xb < xe: visible face)
@@ -75,35 +72,33 @@ export class Twister extends IAnimation {
 
     // load the assets
     protected init(): Promise<unknown> {
-        return this.texture_
-            .loadImage('/images/assets/ts-twister.texture.jpg')
-            .then(() => {
-                // set the slice size
-                this.slice_ = {
-                    width: this.texture_.width >> 2,
-                    height: this.texture_.height
-                }
-            });
+        return this.texture_.loadImage("/images/assets/ts-twister.texture.jpg").then(() => {
+            // set the slice size
+            this.slice_ = {
+                width: this.texture_.width >> 2,
+                height: this.texture_.height,
+            };
+        });
     }
 
     // update the animation
     protected update(time?: number): void {
         // setup vars
         let x0 = this.display_.width >> 1;
-        let w  = BAR_WIDTH >> 1;
+        let w = BAR_WIDTH >> 1;
 
         // erase the surface
         this.display_.surface.clear();
 
         for (let y = 0; y < this.display_.height; y++) {
-            let fv = 1.0 * y / this.display_.height;
+            let fv = (1.0 * y) / this.display_.height;
 
             // compute the position of each point
             let a = radians(90);
-            let x1 = x0 + (w * Math.sin(this.amplitude_ * fv + this.angle_ + a * 0));
-            let x2 = x0 + (w * Math.sin(this.amplitude_ * fv + this.angle_ + a * 1));
-            let x3 = x0 + (w * Math.sin(this.amplitude_ * fv + this.angle_ + a * 2));
-            let x4 = x0 + (w * Math.sin(this.amplitude_ * fv + this.angle_ + a * 3));
+            let x1 = x0 + w * Math.sin(this.amplitude_ * fv + this.angle_ + a * 0);
+            let x2 = x0 + w * Math.sin(this.amplitude_ * fv + this.angle_ + a * 1);
+            let x3 = x0 + w * Math.sin(this.amplitude_ * fv + this.angle_ + a * 2);
+            let x4 = x0 + w * Math.sin(this.amplitude_ * fv + this.angle_ + a * 3);
 
             // compute the texture coordinate / offset
             let yt = Math.floor(fv * this.texture_!.height);
@@ -125,8 +120,7 @@ export class Twister extends IAnimation {
         // update the amplitude every 50 frames
         if (this.frames_ % 50 == 0) {
             this.amplitude_ += this.ampway_;
-            if ((this.amplitude_ <= 0) || (this.amplitude_ > 1.8))
-                this.ampway_ *= -1;
+            if (this.amplitude_ <= 0 || this.amplitude_ > 1.8) this.ampway_ *= -1;
         }
 
         // flip the back-buffer onto the screen

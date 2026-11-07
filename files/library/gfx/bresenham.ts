@@ -8,7 +8,6 @@
 //----- imports
 import { Point2D } from "library/core/interfaces";
 
-
 //----- functions
 
 /* walk through all the points of a line (Bresenham algorithm)
@@ -26,10 +25,8 @@ export function bresenham(p1: Point2D, p2: Point2D, plot: (x: number, y: number)
 
     plot(x, y);
 
-    if (p1.x > p2.x)
-        incrx = -1;
-    if (p1.y > p2.y)
-        incry = -1;
+    if (p1.x > p2.x) incrx = -1;
+    if (p1.y > p2.y) incry = -1;
 
     const dx = Math.abs(p1.x - p2.x);
     const dy = Math.abs(p1.y - p2.y);
@@ -46,8 +43,7 @@ export function bresenham(p1: Point2D, p2: Point2D, plot: (x: number, y: number)
             }
             plot(x, y);
         }
-    }
-    else {
+    } else {
         delta = dy / 2;
         for (let i = 1; i <= dy; i++) {
             y += incry;

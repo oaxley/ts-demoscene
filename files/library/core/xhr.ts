@@ -7,13 +7,11 @@
 
 //----- imports
 
-
 //----- interfaces
 export interface JSONResult {
     ok: boolean;
     json: <T>() => T;
 }
-
 
 //----- functions
 /* send a GET AJAX query
@@ -36,6 +34,6 @@ export async function JSONQuery(url: string): Promise<JSONResult> {
 
     return {
         ok: response.ok,
-        json: <T>() => JSON.parse(text) as T
+        json: <T>() => JSON.parse(text) as T,
     };
 }

@@ -21,7 +21,7 @@ const config: Config = JSON.parse(fs.readFileSync("public/json/config.json", "ut
 
 // retrieve the parameters from the environment
 const host = process.env.HOST ?? HOST;
-const port = (process.env.PORT === undefined) ? PORT : parseInt(process.env.PORT);
+const port = process.env.PORT === undefined ? PORT : parseInt(process.env.PORT);
 
 // start the ExpressJS server
 createApp(config).listen(port, host, () => {
