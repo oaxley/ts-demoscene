@@ -88,6 +88,29 @@ describe("drawTexturedPolygon", () => {
         expect(count(dst)).toBe(64 * 64);
     });
 
+    // writes outside a typed array are silently dropped, and a row overflow lands on the neighbour row:
+    // these cases leave the neighbour rows / the tail of the array empty so that a missing clip shows up
+    test("a polygon crossing the right edge does not wrap around to the next row", () => {
+        const dst = new Uint32Array(64 * 64);
+        drawTexturedPolygon(dst, 64, 64, rect(40, 10, 90, 20), reference);
+        expect(count(dst)).toBe(10 * 24);
+        for (let x = 0; x < 26; x++) expect(dst[20 * 64 + x]).toBe(0);
+    });
+
+    test("a polygon crossing the left edge does not wrap around to the previous row", () => {
+        const dst = new Uint32Array(64 * 64);
+        drawTexturedPolygon(dst, 64, 64, rect(-50, 10, 10, 20), reference);
+        expect(count(dst)).toBe(10 * 10);
+        for (let x = 14; x < 64; x++) expect(dst[9 * 64 + x]).toBe(0);
+    });
+
+    test("a polygon crossing the bottom edge does not write below the last row", () => {
+        const dst = new Uint32Array(64 * 64 + 64);
+        drawTexturedPolygon(dst, 64, 64, rect(0, 40, 64, 90), reference);
+        expect(count(dst)).toBe(24 * 64);
+        for (let i = 64 * 64; i < dst.length; i++) expect(dst[i]).toBe(0);
+    });
+
     test("spans not multiple of SUBDIV and 1-pixel spans are fully drawn", () => {
         const wide = new Uint32Array(64 * 4);
         drawTexturedPolygon(wide, 64, 4, rect(3, 0, 3 + 37, 2), reference);
