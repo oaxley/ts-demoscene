@@ -21,9 +21,9 @@ export const CUBE_SIZE = 100; // half edge length
 
 const ZOOM = 600; // projection: x * ZOOM / (z + DEPTH)
 const DEPTH = 500; // cube centre distance to the camera (> CUBE_SIZE * sqrt(3))
-const STEP_X = 1; // rotation steps per frame (degrees)
+const STEP_X = 1; // rotation steps per frame (degrees, distinct per axis)
 const STEP_Y = 2;
-const STEP_Z = 1;
+const STEP_Z = 3;
 const SKY_TOP: [number, number, number] = [0, 16, 96]; // background gradient: dark blue at the top ...
 const SKY_BOTTOM: [number, number, number] = [0, 0, 0]; // ... black at the bottom
 
