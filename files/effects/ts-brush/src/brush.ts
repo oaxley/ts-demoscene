@@ -36,8 +36,8 @@ const PEN_SPEED = 8; // average pen speed (points per frame)
 const MIN_FRAMES = 6; // shortest stroke duration (frames)
 const SETTLE = 3; // frames with the pen parked at the end of a stroke
 const LINK_SPEED = 5; // the pen goes this much faster between two strokes (brush down)
-const LINK_SIZE = 0.35; // brush width during a link (the brush barely touches the paper)
-const LINK_ALPHA = 0.12; // ink opacity during a link (almost dry brush)
+const LINK_SIZE = 0.7; // brush width during a link (the brush barely touches the paper)
+const LINK_ALPHA = 0.22; // ink opacity during a link (almost dry brush)
 
 // timeline (frames)
 const LIFT_CHAR = 10; // pause after the last stroke, before the seal
