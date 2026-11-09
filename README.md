@@ -13,26 +13,38 @@ An attempt to recreate all the old demoscene effects from the 90s in Typescript 
 
 ## **Effects**
 
-- [Brush Ink](./files/effects/ts-brush/README.md)
-- [Bump Mapping](./files/effects/ts-bump/README.md)
-- [Texture Cube](./files/effects/ts-cube/README.md)
-- [FireCube](./files/effects/ts-flames/README.md)
-- [Glenz](./files/effects/ts-glenz/README.md)
-- [Lens](./files/effects/ts-lens/README.md)
-- [Light Rays](./files/effects/ts-lightrays/README.md)
-- [Metaballs](./files/effects/ts-metaball/README.md)
-- [Moire](./files/effects/ts-moire/README.md)
-- [Noise](./files/effects/ts-noise/README.md)
-- [Plasma](./files/effects/ts-plasma/README.md)
-- [Raster](./files/effects/ts-raster/README.md)
-- [Rotozoom](./files/effects/ts-rotozoom/README.md)
-- [Scroller](./files/effects/ts-scroller/README.md)
-- [Smoke](./files/effects/ts-smoke/README.md)
-- [Sprites](./files/effects/ts-sprites/README.md)
-- [Starfield](./files/effects/ts-starfield/README.md)
-- [Tunnel](./files/effects/ts-tunnel/README.md)
-- [Twister](./files/effects/ts-twister/README.md)
-- [Water](./files/effects/ts-water/README.md)
+<table>
+    <tr>
+        <td valign="top">
+            <ul>
+                <li><a href="./files/effects/ts-brush/README.md">Brush Ink</a></li>
+                <li><a href="./files/effects/ts-bump/README.md">Bump Mapping</a></li>
+                <li><a href="./files/effects/ts-cube/README.md">Texture Cube</a></li>
+                <li><a href="./files/effects/ts-flames/README.md">FireCube</a></li>
+                <li><a href="./files/effects/ts-glenz/README.md">Glenz</a></li>
+                <li><a href="./files/effects/ts-lens/README.md">Lens</a></li>
+                <li><a href="./files/effects/ts-lightrays/README.md">Light Rays</a></li>
+                <li><a href="./files/effects/ts-metaball/README.md">Metaballs</a></li>
+                <li><a href="./files/effects/ts-moire/README.md">Moire</a></li>
+                <li><a href="./files/effects/ts-noise/README.md">Noise</a></li>
+            </ul>
+        </td>
+        <td valign="top">
+            <ul>
+                <li><a href="./files/effects/ts-plasma/README.md">Plasma</a></li>
+                <li><a href="./files/effects/ts-raster/README.md">Raster</a></li>
+                <li><a href="./files/effects/ts-rotozoom/README.md">Rotozoom</a></li>
+                <li><a href="./files/effects/ts-scroller/README.md">Scroller</a></li>
+                <li><a href="./files/effects/ts-smoke/README.md">Smoke</a></li>
+                <li><a href="./files/effects/ts-sprites/README.md">Sprites</a></li>
+                <li><a href="./files/effects/ts-starfield/README.md">Starfield</a></li>
+                <li><a href="./files/effects/ts-tunnel/README.md">Tunnel</a></li>
+                <li><a href="./files/effects/ts-twister/README.md">Twister</a></li>
+                <li><a href="./files/effects/ts-water/README.md">Water</a></li>
+            </ul>
+        </td>
+    </tr>
+</table>
 
 ---
 
