@@ -35,11 +35,12 @@ const STEP = 1; // distance between two stroke points (pixels)
 const PEN_SPEED = 8; // average pen speed (points per frame)
 const MIN_FRAMES = 6; // shortest stroke duration (frames)
 const SETTLE = 3; // frames with the pen parked at the end of a stroke
-const LINK_SPEED = 5; // the pen goes this much faster from a character to the next (brush down)
+const LINK_SPEED = 5; // the pen goes this much faster between two strokes (brush down)
+const LINK_SIZE = 0.35; // brush width during a link (the brush barely touches the paper)
+const LINK_ALPHA = 0.12; // ink opacity during a link (almost dry brush)
 
 // timeline (frames)
-const LIFT_STROKE = 4; // pause between two strokes
-const LIFT_CHAR = 10; // pause between two characters
+const LIFT_CHAR = 10; // pause after the last stroke, before the seal
 const HOLD = 75; // the word stays on screen (3 s)
 const FADE = 25; // fade back to paper (1 s)
 
@@ -129,10 +130,8 @@ function timeline(strokes: Stroke[]): Timeline {
         const next = strokes[i + 1];
         if (next === undefined) {
             f += SETTLE + LIFT_CHAR;
-        } else if (next.char === stroke.char) {
-            f += SETTLE + LIFT_STROKE;
         } else {
-            // new character: the brush stays down and goes fast to its first point
+            // the brush stays down and goes fast to the first point of the next stroke
             const from = stroke.points[stroke.points.length - 1];
             const to = next.points[0];
             const n = Math.max(2, Math.ceil(Math.hypot(to.x - from.x, to.y - from.y) / STEP) + 1);
@@ -148,7 +147,7 @@ function timeline(strokes: Stroke[]): Timeline {
                 down: false,
                 link: true,
             });
-            f += linkDuration;
+            f += linkDuration + SETTLE; // the brush catches up with the pen before the stroke
             down = false;
         }
     });
@@ -209,14 +208,14 @@ export class Brush extends IAnimation {
     }
 
     // one frame of the brush following the pen, stamping ink on the way
-    private paint(pen: Point2D): void {
+    private paint(pen: Point2D, size: number, alpha: number): void {
         const s = this.display_.surface;
         const b = this.brush_;
         const x0 = b.x;
         const y0 = b.y;
         let rr = b.r; // drawn width, eases toward the new width (BUN's oldR)
 
-        brushStep(b, pen.x, pen.y, BRUSH_SIZE);
+        brushStep(b, pen.x, pen.y, size);
 
         for (let k = 1; k <= SPLIT; k++) {
             const x = x0 + ((b.x - x0) * k) / SPLIT;
@@ -224,9 +223,9 @@ export class Brush extends IAnimation {
             rr = Math.max(1, rr + (b.r - rr) / SPLIT);
 
             // main stroke and two bristle lines (BUN's offsets)
-            s.disc(x, y, (rr + DIFF) / 2, INK, INK_ALPHA);
-            s.disc(x + DIFF * 1.5, y + DIFF * 2, rr / 2, INK, INK_ALPHA);
-            s.disc(x - DIFF, y - DIFF, rr / 2, INK, INK_ALPHA);
+            s.disc(x, y, (rr + DIFF) / 2, INK, alpha);
+            s.disc(x + DIFF * 1.5, y + DIFF * 2, rr / 2, INK, alpha);
+            s.disc(x - DIFF, y - DIFF, rr / 2, INK, alpha);
         }
     }
 
@@ -320,7 +319,11 @@ export class Brush extends IAnimation {
         if (local === 0 && slot.down) {
             this.penDown(pen);
         }
-        this.paint(pen);
+        if (slot.link) {
+            this.paint(pen, BRUSH_SIZE * LINK_SIZE, LINK_ALPHA);
+        } else {
+            this.paint(pen, BRUSH_SIZE, INK_ALPHA);
+        }
     }
 
     // render the animation on the screen
