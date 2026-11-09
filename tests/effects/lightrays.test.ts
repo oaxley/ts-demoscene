@@ -183,8 +183,8 @@ describe("ts-lightrays effect", () => {
         }
         expect(inner.length).toBeGreaterThan(1000);
 
-        // the light sweeps across the screen in 100 frames: check every 10th
-        for (let f = 0; f <= 100; f++) {
+        // the light crosses the screen in 150 frames (half a sweep): check every 10th
+        for (let f = 0; f <= 150; f++) {
             effect.run(1000 + f * 50);
             if (f % 10 !== 5) continue;
             for (const i of inner) {

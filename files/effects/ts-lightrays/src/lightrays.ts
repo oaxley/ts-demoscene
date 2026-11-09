@@ -19,7 +19,7 @@ import { Surface } from "library/gfx/surface";
 export const FPS = 25;
 
 // light path
-const SWEEP = (2 * Math.PI) / (8 * FPS); // one full sweep (left -> right -> left) in 8 s
+const SWEEP = (2 * Math.PI) / (12 * FPS); // one full sweep (left -> right -> left) in 12 s
 const DRIFT = 40; // vertical drift around the screen centre (pixels)
 
 // rays (half-size buffer)
