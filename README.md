@@ -13,6 +13,7 @@ An attempt to recreate all the old demoscene effects from the 90s in Typescript 
 
 ## **Effects**
 
+- [Brush Ink](./files/effects/ts-brush/README.md)
 - [Bump Mapping](./files/effects/ts-bump/README.md)
 - [Texture Cube](./files/effects/ts-cube/README.md)
 - [FireCube](./files/effects/ts-flames/README.md)
