@@ -41,6 +41,13 @@ The move of a frame is split into 20 sub-steps. For each of them, three soft dis
 the main one and two smaller ones moved aside, which leave the thin lines of the bristles where the brush goes fast.
 The screen is never cleared while writing, so the ink accumulates.
 
+The brush never leaves the paper: the whole word is written as one long stroke, like cursive.
+Between two strokes, the pen swings to the start of the next one along a cubic Bézier curve.
+The curve leaves in the direction the stroke ends and arrives in the direction the next one starts,
+and long moves (between two characters) are arched upward, like a hand lifting over the paper.
+During these moves the pen goes twice as fast, the brush is narrower (70%) and the ink lighter,
+so the joins look like the dry streaks of a brush barely touching the paper.
+
 Once the word is written, a red seal is stamped, the page stays on screen for 3 seconds, fades back to blank paper, and the brush starts again.
 
 ## **License**
