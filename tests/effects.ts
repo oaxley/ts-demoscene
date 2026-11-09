@@ -12,6 +12,7 @@ import { Cube } from "../files/effects/ts-cube/src/cube";
 import { Flames } from "../files/effects/ts-flames/src/flames";
 import { Glenz } from "../files/effects/ts-glenz/src/glenz";
 import { Lens } from "../files/effects/ts-lens/src/lens";
+import { LightRays } from "../files/effects/ts-lightrays/src/lightrays";
 import { Metaballs } from "../files/effects/ts-metaball/src/metaballs";
 import { Moire } from "../files/effects/ts-moire/src/moire";
 import { ImgNoise } from "../files/effects/ts-noise/src/noise";
@@ -34,6 +35,7 @@ export const EFFECTS = {
     "ts-flames": Flames,
     "ts-glenz": Glenz,
     "ts-lens": Lens,
+    "ts-lightrays": LightRays,
     "ts-metaball": Metaballs,
     "ts-moire": Moire,
     "ts-noise": ImgNoise,

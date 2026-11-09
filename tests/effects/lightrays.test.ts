@@ -11,7 +11,19 @@ import fs from "fs";
 import path from "path";
 import { PNG } from "pngjs";
 
-import { lightPath, occlusion, radialBlur, downsample, FPS } from "../../files/effects/ts-lightrays/src/lightrays";
+import { Surface } from "library/gfx/surface";
+import {
+    lightPath,
+    occlusion,
+    radialBlur,
+    downsample,
+    maskFrom,
+    LightRays,
+    FPS,
+} from "../../files/effects/ts-lightrays/src/lightrays";
+import { runEffect } from "../harness/runner";
+import { FakeCanvas } from "../harness/dom";
+import { Display } from "library/core/display";
 
 //----- globals
 const MASK = path.resolve(__dirname, "../../files/effects/ts-lightrays/assets/mask.png");
@@ -113,6 +125,9 @@ describe("ts-lightrays rays", () => {
             [-200, 16],
             [16, 16],
             [1000, 1000],
+            [31, 31],
+            [31, 0],
+            [0, 31],
         ]) {
             const out = new Uint8Array(w * h);
             expect(() => radialBlur(src, w, h, lx, ly, out)).not.toThrow();
@@ -125,4 +140,56 @@ describe("ts-lightrays rays", () => {
         mask[1 * 4 + 3] = 1; // (3,1) -> cell (1,0)
         expect(Array.from(downsample(mask, 4, 4))).toEqual([0, 1, 0, 0]);
     });
+});
+
+describe("ts-lightrays effect", () => {
+    test("maskFrom: red channel to 0/1, size must match the screen", () => {
+        const image = new Surface({ width: 4, height: 2 });
+        image.data32[1] = 0xff0000ff; // red 255
+        image.data32[2] = 0xff000040; // red 64
+        expect(Array.from(maskFrom(image, 4, 2))).toEqual([0, 1, 0, 0, 0, 0, 0, 0]);
+        expect(() => maskFrom(image, 640, 480)).toThrow("Mask is 4x2, expected 640x480.");
+    });
+
+    test("runs: frames change as the light moves", async () => {
+        const res = await runEffect(LightRays, 60, 1);
+        expect(res.checkpoints["10"]).not.toBe(res.checkpoints["50"]);
+    }, 60000);
+
+    test("letter pixels stay dark wherever the light is", async () => {
+        const canvas = new FakeCanvas(640, 480);
+        const effect = new LightRays(new Display(canvas as unknown as HTMLCanvasElement));
+        effect.setup();
+        for (let i = 0; i < 200 && !effect.isAnimated; i++) {
+            await new Promise((r) => setTimeout(r, 0));
+        }
+        const frame = canvas.getContext("2d").buffer;
+
+        // letter pixels at least 3 px away from the background
+        const png = PNG.sync.read(fs.readFileSync(MASK));
+        const w = png.width;
+        const isLetter = (x: number, y: number): boolean => png.data[(y * w + x) * 4] > 127;
+        const inner: number[] = [];
+        for (let y = 3; y < png.height - 3; y++) {
+            for (let x = 3; x < w - 3; x++) {
+                let inside = true;
+                for (let dy = -3; dy <= 3 && inside; dy++) {
+                    for (let dx = -3; dx <= 3 && inside; dx++) {
+                        inside = isLetter(x + dx, y + dy);
+                    }
+                }
+                if (inside) inner.push(y * w + x);
+            }
+        }
+        expect(inner.length).toBeGreaterThan(1000);
+
+        // the light sweeps across the screen in 100 frames: check every 10th
+        for (let f = 0; f <= 100; f++) {
+            effect.run(1000 + f * 50);
+            if (f % 10 !== 5) continue;
+            for (const i of inner) {
+                expect(Math.max(frame[i * 4], frame[i * 4 + 1], frame[i * 4 + 2])).toBeLessThanOrEqual(40);
+            }
+        }
+    }, 60000);
 });
