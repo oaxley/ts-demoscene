@@ -6,6 +6,7 @@
  */
 
 //----- imports
+import { Brush } from "../files/effects/ts-brush/src/brush";
 import { Bump } from "../files/effects/ts-bump/src/bump";
 import { Cube } from "../files/effects/ts-cube/src/cube";
 import { Flames } from "../files/effects/ts-flames/src/flames";
@@ -27,6 +28,7 @@ import { Water } from "../files/effects/ts-water/src/water";
 
 //----- globals
 export const EFFECTS = {
+    "ts-brush": Brush,
     "ts-bump": Bump,
     "ts-cube": Cube,
     "ts-flames": Flames,
