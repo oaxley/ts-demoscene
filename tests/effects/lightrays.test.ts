@@ -2,7 +2,7 @@
  * @file    lightrays.test.ts
  * @author  Sebastien LEGRAND
  *
- * @brief   ts-lightrays building blocks (text mask)
+ * @brief   ts-lightrays building blocks (text mask, light path, rays)
  */
 
 //----- imports
@@ -10,6 +10,8 @@ import { describe, test, expect } from "vitest";
 import fs from "fs";
 import path from "path";
 import { PNG } from "pngjs";
+
+import { lightPath, occlusion, radialBlur, downsample, FPS } from "../../files/effects/ts-lightrays/src/lightrays";
 
 //----- globals
 const MASK = path.resolve(__dirname, "../../files/effects/ts-lightrays/assets/mask.png");
@@ -60,5 +62,67 @@ describe("ts-lightrays mask", () => {
         }
         const holes = sizes.filter((s, id) => !borderLabels.has(id) && s >= 30);
         expect(holes.length).toBeGreaterThanOrEqual(3);
+    });
+});
+
+describe("ts-lightrays rays", () => {
+    test("lightPath sweeps across the whole screen and back, deterministically", () => {
+        let minX = Infinity;
+        let maxX = -Infinity;
+        for (let f = 0; f < 20 * FPS; f++) {
+            const p = lightPath(f, 640, 480);
+            minX = Math.min(minX, p.x);
+            maxX = Math.max(maxX, p.x);
+            expect(Math.abs(p.y - 240)).toBeLessThanOrEqual(120);
+        }
+        expect(minX).toBeLessThan(0);
+        expect(maxX).toBeGreaterThan(640);
+        expect(lightPath(123, 640, 480)).toEqual(lightPath(123, 640, 480));
+    });
+
+    test("occlusion: zero on the letters, brightest at the light", () => {
+        const w = 32;
+        const h = 32;
+        const mask = new Uint8Array(w * h);
+        mask[16 * w + 20] = 1;
+        const out = new Uint8Array(w * h);
+        occlusion(mask, w, h, 10, 16, out);
+        expect(out[16 * w + 20]).toBe(0);
+        expect(out[16 * w + 10]).toBe(Math.max(...out));
+        expect(out[16 * w + 10]).toBeGreaterThan(out[0]);
+    });
+
+    test("radialBlur: a single blocked pixel casts a shadow line away from the light", () => {
+        const w = 32;
+        const h = 32;
+        const src = new Uint8Array(w * h).fill(255);
+        src[16 * w + 16] = 0;
+        const out = new Uint8Array(w * h);
+        radialBlur(src, w, h, 4, 16, out);
+        for (let x = 20; x <= 28; x++) {
+            expect(out[16 * w + x]).toBeLessThan(out[10 * w + x]);
+        }
+        expect(out[16 * w + 10]).toBe(255);
+    });
+
+    test("radialBlur: light outside the buffer, on a pixel, saturated input — finite, clamped, no throw", () => {
+        const w = 32;
+        const h = 32;
+        const src = new Uint8Array(w * h).fill(255);
+        for (const [lx, ly] of [
+            [-200, 16],
+            [16, 16],
+            [1000, 1000],
+        ]) {
+            const out = new Uint8Array(w * h);
+            expect(() => radialBlur(src, w, h, lx, ly, out)).not.toThrow();
+            expect(out.every((v) => v === 255)).toBe(true);
+        }
+    });
+
+    test("downsample: a letter pixel marks its half-size cell", () => {
+        const mask = new Uint8Array(4 * 4);
+        mask[1 * 4 + 3] = 1; // (3,1) -> cell (1,0)
+        expect(Array.from(downsample(mask, 4, 4))).toEqual([0, 1, 0, 0]);
     });
 });
