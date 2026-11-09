@@ -344,6 +344,74 @@ export class Surface {
         }
     }
 
+    /* draw a filled, anti-aliased disc
+     *
+     * The coverage of a pixel goes from 1 (pixel centre at a distance <= r-1)
+     * to 0 (distance >= r): the soft band lies inside the radius. The colour is
+     * blended over the existing pixel with alpha * coverage (the blend always
+     * moves at least one step toward the colour, so repeated stamps converge),
+     * the resulting pixel is opaque. Pixels outside of the surface are ignored.
+     *
+     * Args:
+     *      x, y : centre of the disc (float pixels)
+     *      r    : radius (float pixels)
+     *      c    : colour (RGBA or 32-bit value)
+     *      alpha: opacity in [0, 1] (default: 1)
+     */
+    public disc(x: number, y: number, r: number, c: RGBA | number, alpha: number = 1): void {
+        if (!(r > 0) || !(alpha > 0)) {
+            return;
+        }
+
+        const value = c instanceof RGBA ? c.uint32 : c >>> 0;
+        const sr = value & 0xff;
+        const sg = (value >>> 8) & 0xff;
+        const sb = (value >>> 16) & 0xff;
+
+        // bounding box clipped to the surface
+        const x0 = Math.max(0, Math.floor(x - r));
+        const x1 = Math.min(this.width_ - 1, Math.ceil(x + r));
+        const y0 = Math.max(0, Math.floor(y - r));
+        const y1 = Math.min(this.height_ - 1, Math.ceil(y + r));
+
+        const data32 = this.framebuffer_!.data32;
+        const w = this.width_;
+        const a = Math.min(alpha, 1);
+
+        for (let py = y0; py <= y1; py++) {
+            const dy = py + 0.5 - y;
+            for (let px = x0; px <= x1; px++) {
+                const dx = px + 0.5 - x;
+                const cov = r - Math.sqrt(dx * dx + dy * dy);
+                if (cov <= 0) {
+                    continue;
+                }
+
+                // 8-bit blending factor (256 = opaque)
+                const a8 = Math.round((cov >= 1 ? a : a * cov) * 256);
+                if (a8 <= 0) {
+                    continue;
+                }
+
+                const idx = py * w + px;
+                const d = data32[idx];
+                const dr = d & 0xff;
+                const dg = (d >>> 8) & 0xff;
+                const db = (d >>> 16) & 0xff;
+
+                // move toward the colour, rounding away from the current value
+                const tr = (sr - dr) * a8;
+                const tg = (sg - dg) * a8;
+                const tb = (sb - db) * a8;
+                const nr = dr + (tr >= 0 ? (tr + 255) >> 8 : tr >> 8);
+                const ng = dg + (tg >= 0 ? (tg + 255) >> 8 : tg >> 8);
+                const nb = db + (tb >= 0 ? (tb + 255) >> 8 : tb >> 8);
+
+                data32[idx] = (0xff000000 | (nb << 16) | (ng << 8) | nr) >>> 0;
+            }
+        }
+    }
+
     // compute the outcode clipping region
     private outCode(x: number, y: number): Region {
         let code: Region = Region.inside;

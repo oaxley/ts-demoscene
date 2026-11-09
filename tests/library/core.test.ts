@@ -154,6 +154,24 @@ describe("Surface clipping", () => {
         expect(Array.from(s.data32).map((v) => (v ? 1 : 0))).toEqual([0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0]);
     });
 
+    test("disc ignores pixels outside of the surface (no wrap)", () => {
+        const s = new Surface({ width: 4, height: 3 });
+        s.disc(-1, 1.5, 3, 0xffffffff);
+        expect(s.data32[4]).toBe(0xffffffff); // (0,1) is fully inside the disc
+        expect([s.data32[3], s.data32[7], s.data32[11]]).toEqual([0, 0, 0]); // right column untouched
+        expect(s.data32.length).toBe(12);
+
+        const r = new Surface({ width: 4, height: 3 });
+        r.disc(4, 1.5, 3, 0xffffffff);
+        expect(r.data32[7]).toBe(0xffffffff); // (3,1)
+        expect([r.data32[0], r.data32[4], r.data32[8]]).toEqual([0, 0, 0]); // left column untouched
+
+        const f = new Surface({ width: 4, height: 3 });
+        f.disc(100, 100, 5, 0xffffffff);
+        f.disc(-50, -50, 5, 0xffffffff);
+        expect(Array.from(f.data32).every((v) => v === 0)).toBe(true);
+    });
+
     test("readBlock / writeBlock clip the block", () => {
         const s = new Surface({ width: 3, height: 2 });
         s.data32.set([1, 2, 3, 4, 5, 6]);
@@ -164,5 +182,69 @@ describe("Surface clipping", () => {
 
         s.writeBlock(new Uint32Array([7, 8, 9, 10]), -1, 1, 2, 2);
         expect(Array.from(s.data32)).toEqual([1, 2, 3, 8, 5, 6]);
+    });
+});
+
+describe("Surface.disc", () => {
+    const WHITE = 0xffffffff;
+    const BLACK = 0xff000000;
+    const red = (v: number): number => v & 0xff;
+
+    // 21x21 black surface
+    const black = (): Surface => {
+        const s = new Surface({ width: 21, height: 21 });
+        s.data32.fill(BLACK);
+        return s;
+    };
+
+    test("filled centre, soft edge inside the radius, nothing beyond", () => {
+        const s = black();
+        s.disc(10, 10, 6, WHITE);
+        expect(s.data32[10 * 21 + 10] >>> 0).toBe(WHITE);
+        // pixel (15,10): centre (15.5,10.5), d ~ 5.52, coverage ~ 0.48
+        const edge = red(s.data32[10 * 21 + 15]);
+        expect(edge).toBeGreaterThan(0);
+        expect(edge).toBeLessThan(255);
+        // beyond the radius
+        expect(s.data32[17 * 21 + 10] >>> 0).toBe(BLACK);
+        expect(s.data32[0] >>> 0).toBe(BLACK);
+        // every pixel whose centre is farther than r stays black
+        for (let y = 0; y < 21; y++) {
+            for (let x = 0; x < 21; x++) {
+                if (Math.hypot(x + 0.5 - 10, y + 0.5 - 10) >= 6) {
+                    expect(s.data32[y * 21 + x] >>> 0).toBe(BLACK);
+                }
+            }
+        }
+    });
+
+    test("alpha blends over the existing pixel", () => {
+        const s = black();
+        s.disc(10, 10, 6, new RGBA(255, 255, 255), 0.5);
+        const c = red(s.data32[10 * 21 + 10]);
+        expect(c).toBeGreaterThanOrEqual(127);
+        expect(c).toBeLessThanOrEqual(128);
+        expect(s.data32[10 * 21 + 10] >>> 24).toBe(255);
+    });
+
+    test("repeated stamps converge to the colour without overflow", () => {
+        const s = black();
+        for (let i = 0; i < 50; i++) {
+            s.disc(10, 10, 6, WHITE, 0.3);
+        }
+        expect(s.data32[10 * 21 + 10] >>> 0).toBe(WHITE);
+    });
+
+    test("tiny radius still inks its pixel, nothing else, no NaN", () => {
+        const s = black();
+        s.disc(10.5, 10.5, 0.6, WHITE);
+        const changed: number[] = [];
+        s.data32.forEach((v, i) => {
+            if (v >>> 0 !== BLACK) changed.push(i);
+        });
+        expect(changed).toEqual([10 * 21 + 10]);
+        const c = red(s.data32[10 * 21 + 10]);
+        expect(c).toBeGreaterThan(0);
+        expect(Number.isNaN(c)).toBe(false);
     });
 });
