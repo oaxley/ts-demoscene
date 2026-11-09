@@ -19,6 +19,7 @@ An attempt to recreate all the old demoscene effects from the 90s in Typescript 
 - [FireCube](./files/effects/ts-flames/README.md)
 - [Glenz](./files/effects/ts-glenz/README.md)
 - [Lens](./files/effects/ts-lens/README.md)
+- [Light Rays](./files/effects/ts-lightrays/README.md)
 - [Metaballs](./files/effects/ts-metaball/README.md)
 - [Moire](./files/effects/ts-moire/README.md)
 - [Noise](./files/effects/ts-noise/README.md)
