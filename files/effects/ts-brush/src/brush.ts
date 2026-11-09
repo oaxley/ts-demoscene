@@ -35,6 +35,7 @@ const STEP = 1; // distance between two stroke points (pixels)
 const PEN_SPEED = 8; // average pen speed (points per frame)
 const MIN_FRAMES = 6; // shortest stroke duration (frames)
 const SETTLE = 3; // frames with the pen parked at the end of a stroke
+const LINK_SPEED = 5; // the pen goes this much faster from a character to the next (brush down)
 
 // timeline (frames)
 const LIFT_STROKE = 4; // pause between two strokes
@@ -64,6 +65,8 @@ interface Slot {
     stroke: Stroke;
     start: number; // first frame
     duration: number; // frames for the pen to walk the stroke
+    down: boolean; // true = the brush is put down at the start (false = it comes from the previous slot)
+    link: boolean; // true = fast move from a character to the next (constant speed)
 }
 
 // the whole cycle
@@ -116,12 +119,38 @@ export function penIndex(t: number, n: number): number {
 function timeline(strokes: Stroke[]): Timeline {
     const slots: Slot[] = [];
     let f = 0;
+    let down = true;
     strokes.forEach((stroke, i) => {
         const duration = Math.max(MIN_FRAMES, Math.ceil(stroke.points.length / PEN_SPEED));
-        slots.push({ stroke, start: f, duration });
-        f += duration + SETTLE;
+        slots.push({ stroke, start: f, duration, down, link: false });
+        f += duration;
+        down = true;
+
         const next = strokes[i + 1];
-        f += next === undefined || next.char !== stroke.char ? LIFT_CHAR : LIFT_STROKE;
+        if (next === undefined) {
+            f += SETTLE + LIFT_CHAR;
+        } else if (next.char === stroke.char) {
+            f += SETTLE + LIFT_STROKE;
+        } else {
+            // new character: the brush stays down and goes fast to its first point
+            const from = stroke.points[stroke.points.length - 1];
+            const to = next.points[0];
+            const n = Math.max(2, Math.ceil(Math.hypot(to.x - from.x, to.y - from.y) / STEP) + 1);
+            const points = Array.from({ length: n }, (_, k) => ({
+                x: from.x + ((to.x - from.x) * k) / (n - 1),
+                y: from.y + ((to.y - from.y) * k) / (n - 1),
+            }));
+            const linkDuration = Math.max(2, Math.ceil(n / (PEN_SPEED * LINK_SPEED)));
+            slots.push({
+                stroke: { char: stroke.char, points },
+                start: f,
+                duration: linkDuration,
+                down: false,
+                link: true,
+            });
+            f += linkDuration;
+            down = false;
+        }
     });
     return { slots, seal: f, fade: f + 1 + HOLD, length: f + 1 + HOLD + FADE };
 }
@@ -204,10 +233,11 @@ export class Brush extends IAnimation {
     // pen position on a stroke at a frame of its slot
     private penAt(slot: Slot, frame: number): Point2D {
         const pts = slot.stroke.points;
-        const f = penIndex(frame / (slot.duration - 1), pts.length);
+        const t = frame / (slot.duration - 1);
+        const f = slot.link ? (pts.length - 1) * t : penIndex(t, pts.length);
         const i = Math.min(Math.floor(f), pts.length - 2);
-        const t = f - i;
-        return { x: pts[i].x + (pts[i + 1].x - pts[i].x) * t, y: pts[i].y + (pts[i + 1].y - pts[i].y) * t };
+        const u = f - i;
+        return { x: pts[i].x + (pts[i + 1].x - pts[i].x) * u, y: pts[i].y + (pts[i + 1].y - pts[i].y) * u };
     }
 
     // stamp the red seal with its small paper-coloured mark
@@ -287,7 +317,7 @@ export class Brush extends IAnimation {
         }
 
         const pen = this.penAt(slot, Math.min(local, slot.duration - 1));
-        if (local === 0) {
+        if (local === 0 && slot.down) {
             this.penDown(pen);
         }
         this.paint(pen);
