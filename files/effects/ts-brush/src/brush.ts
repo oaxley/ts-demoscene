@@ -35,8 +35,11 @@ const STEP = 1; // distance between two stroke points (pixels)
 const PEN_SPEED = 8; // average pen speed (points per frame)
 const MIN_FRAMES = 6; // shortest stroke duration (frames)
 const SETTLE = 3; // frames with the pen parked at the end of a stroke
-const LINK_SPEED = 5; // the pen goes this much faster between two strokes (brush down)
+const LINK_SPEED = 2; // the pen goes this much faster between two strokes (brush down)
 const LINK_SIZE = 0.7; // brush width during a link (the brush barely touches the paper)
+const LINK_CURVE = 0.4; // how far a link follows the stroke directions before bending (x its length)
+const LINK_BOW = 0.35; // upward arch of a long link (x its length beyond LINK_BOW_MIN)
+const LINK_BOW_MIN = 60; // links shorter than this (pixels) are not arched
 const LINK_ALPHA = 0.22; // ink opacity during a link (almost dry brush)
 
 // timeline (frames)
@@ -116,6 +119,42 @@ export function penIndex(t: number, n: number): number {
     return (n - 1) * c * c * (3 - 2 * c);
 }
 
+// unit direction between two points of a stroke (5 points apart, clamped)
+function direction(pts: Point2D[], a: number, b: number): Point2D {
+    const i = Math.min(Math.max(a, 0), pts.length - 1);
+    const j = Math.min(Math.max(b, 0), pts.length - 1);
+    const dx = pts[j].x - pts[i].x;
+    const dy = pts[j].y - pts[i].y;
+    const len = Math.hypot(dx, dy) || 1;
+    return { x: dx / len, y: dy / len };
+}
+
+/* curved link from the end of a stroke to the start of the next one
+ *
+ * A cubic Bézier that leaves in the direction the stroke ends and arrives in
+ * the direction the next stroke starts, like a hand moving to the next stroke.
+ */
+export function linkPath(from: Point2D[], to: Point2D[]): Point2D[] {
+    const a = from[from.length - 1];
+    const b = to[0];
+    const len = Math.hypot(b.x - a.x, b.y - a.y);
+    const k = len * LINK_CURVE;
+    const out = direction(from, from.length - 6, from.length - 1);
+    const into = direction(to, 0, 5);
+
+    // bow: perpendicular to the chord, on the upper side, only for long links
+    const bow = LINK_BOW * Math.max(0, len - LINK_BOW_MIN);
+    let nx = len > 0 ? -(b.y - a.y) / len : 0;
+    let ny = len > 0 ? (b.x - a.x) / len : 0;
+    if (ny > 0) {
+        nx = -nx;
+        ny = -ny;
+    }
+    const c1 = { x: a.x + out.x * k + nx * bow, y: a.y + out.y * k + ny * bow };
+    const c2 = { x: b.x - into.x * k + nx * bow, y: b.y - into.y * k + ny * bow };
+    return samplePath(`M${a.x},${a.y}C${c1.x},${c1.y},${c2.x},${c2.y},${b.x},${b.y}`, STEP);
+}
+
 // place every stroke on the timeline
 function timeline(strokes: Stroke[]): Timeline {
     const slots: Slot[] = [];
@@ -131,14 +170,9 @@ function timeline(strokes: Stroke[]): Timeline {
         if (next === undefined) {
             f += SETTLE + LIFT_CHAR;
         } else {
-            // the brush stays down and goes fast to the first point of the next stroke
-            const from = stroke.points[stroke.points.length - 1];
-            const to = next.points[0];
-            const n = Math.max(2, Math.ceil(Math.hypot(to.x - from.x, to.y - from.y) / STEP) + 1);
-            const points = Array.from({ length: n }, (_, k) => ({
-                x: from.x + ((to.x - from.x) * k) / (n - 1),
-                y: from.y + ((to.y - from.y) * k) / (n - 1),
-            }));
+            // the brush stays down and swings fast to the first point of the next stroke
+            const points = linkPath(stroke.points, next.points);
+            const n = points.length;
             const linkDuration = Math.max(2, Math.ceil(n / (PEN_SPEED * LINK_SPEED)));
             slots.push({
                 stroke: { char: stroke.char, points },
