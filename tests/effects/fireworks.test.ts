@@ -78,3 +78,68 @@ describe("ts-fireworks particles", () => {
         }
     });
 });
+
+describe("ts-fireworks effect", () => {
+    test("registered in the effect list", async () => {
+        const { EFFECTS } = await import("../effects");
+        const { Fireworks } = await import("../../files/effects/ts-fireworks/src/fireworks");
+        expect(EFFECTS["ts-fireworks"]).toBe(Fireworks);
+    });
+
+    test("band: white from x=0 to bandWidth-1, not white right after", async () => {
+        const { FakeCanvas } = await import("../harness/dom");
+        const { Display } = await import("library/core/display");
+        const { Fireworks } = await import("../../files/effects/ts-fireworks/src/fireworks");
+
+        const canvas = new FakeCanvas(640, 480);
+        const display = new Display(canvas as unknown as HTMLCanvasElement);
+        // no sprite file in the test: the band is laid out from a 0x0 sprite
+        const fx = new Fireworks(display) as unknown as {
+            run: (t: number) => void;
+            toggle: () => void;
+            layout_: { bandWidth: number };
+        };
+        fx.toggle();
+        fx.run(0);
+        fx.run(50);
+
+        const band = fx.layout_.bandWidth;
+        const px = (x: number, y: number) => display.surface.getPixel(x, y).uint32 & 0xffffff;
+        expect(px(0, 0)).toBe(0xffffff);
+        expect(px(band - 1, 239)).toBe(0xffffff);
+        expect(px(band, 239)).not.toBe(0xffffff);
+    });
+
+    test("no particle over the band after 200 frames", async () => {
+        const { FakeCanvas } = await import("../harness/dom");
+        const { Display } = await import("library/core/display");
+        const { Fireworks } = await import("../../files/effects/ts-fireworks/src/fireworks");
+
+        const canvas = new FakeCanvas(640, 480);
+        const display = new Display(canvas as unknown as HTMLCanvasElement);
+        const fx = new Fireworks(display) as unknown as {
+            run: (t: number) => void;
+            toggle: () => void;
+            layout_: { bandWidth: number };
+            particles_: { count: number };
+        };
+        fx.toggle();
+        let peak = 0;
+        for (let i = 0; i < 200; i++) {
+            fx.run(i * 50);
+            peak = Math.max(peak, fx.particles_.count);
+        }
+        expect(peak).toBeGreaterThan(0);
+        // the whole left half is either the band or the (empty) sprite area
+        const band = fx.layout_.bandWidth;
+        let stray = 0;
+        for (let x = band; x < 320; x++) {
+            for (let y = 0; y < 480; y++) {
+                if ((display.surface.getPixel(x, y).uint32 & 0xffffff) !== 0) {
+                    stray++;
+                }
+            }
+        }
+        expect(stray).toBe(0);
+    });
+});
