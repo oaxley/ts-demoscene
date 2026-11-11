@@ -28,9 +28,9 @@ this keeps the fabric from stretching, and the simulation can never explode:
 
 ```javascript
 d = pb - pa;
-corr = (length(d) - rest) / length(d) * stiffness;
-pa += d * corr / 2;
-pb -= d * corr / 2;
+corr = ((length(d) - rest) / length(d)) * stiffness;
+pa += (d * corr) / 2;
+pb -= (d * corr) / 2;
 ```
 
 There are three kinds of links:
