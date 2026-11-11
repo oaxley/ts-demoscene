@@ -2,123 +2,159 @@
  * @file    glenz.ts
  * @author  Sebastien LEGRAND
  *
- * @brief   Glenz effect in Typescript
+ * @brief   Glenz vector in Typescript: a spinning cube made of checkered glass
+ *
+ *          Each face is a 4x4 checker of blue and white glass cells, blended over the picture.
+ *          The back faces (seen from inside, through the cube) are drawn first, then the front
+ *          faces on top: where they overlap, the picture is seen through two layers of glass.
  */
 
 //----- imports
 import { IAnimation } from "library/core/animation";
 import { Display } from "library/core/display";
-import { lerp } from "library/maths/utils";
-import { bresenham } from "library/gfx/bresenham";
-import { TrigTables, projectSameAngle } from "library/maths/projection";
 import { Point2D, Point3D } from "library/core/interfaces";
+
 import { RGBA } from "library/color/RGBA";
+
 import { Surface } from "library/gfx/surface";
+import { fillGlassPolygon } from "library/gfx/polygon";
+import { TrigTables, rotate } from "library/maths/projection";
 
 //----- globals
-const ZOOM = 256;
-const TRANPARENCY = 0.5;
+export const CUBE_SIZE = 90; // half edge length
+
+export const ZOOM = 600; // projection: x * ZOOM / (z + DEPTH)
+export const DEPTH = 500; // cube centre distance to the camera (> CUBE_SIZE * sqrt(3))
+export const GRID = 4; // cells per face edge
+
+export const BLUE = RGBA.toUInt32(0x00, 0x80, 0xc0); // checker colours
+export const WHITE = RGBA.toUInt32(255, 255, 255);
+export const FRONT_ALPHA = 0.45; // opacity of the front faces glass
+export const BACK_ALPHA = 0.3; // opacity of the back faces glass
+
+const STEP_X = 1; // rotation steps per frame (degrees, distinct per axis)
+const STEP_Y = 2;
+const STEP_Z = 3;
+const DRIFT_X = 60; // cube centre drift (camera space, x / y only)
+const DRIFT_Y = 30;
+const DRIFT_SPEED = 0.01; // drift speed (radians per frame)
+
+/* 8 corners (camera space: x right, y down, z away from the camera)
+ *
+ *      front (z = -S)      back (z = +S)
+ *       0 ---- 1            4 ---- 5
+ *       |      |            |      |
+ *       3 ---- 2            7 ---- 6
+ */
+export const VERTICES: Point3D[] = [
+    { x: -CUBE_SIZE, y: -CUBE_SIZE, z: -CUBE_SIZE },
+    { x: CUBE_SIZE, y: -CUBE_SIZE, z: -CUBE_SIZE },
+    { x: CUBE_SIZE, y: CUBE_SIZE, z: -CUBE_SIZE },
+    { x: -CUBE_SIZE, y: CUBE_SIZE, z: -CUBE_SIZE },
+    { x: -CUBE_SIZE, y: -CUBE_SIZE, z: CUBE_SIZE },
+    { x: CUBE_SIZE, y: -CUBE_SIZE, z: CUBE_SIZE },
+    { x: CUBE_SIZE, y: CUBE_SIZE, z: CUBE_SIZE },
+    { x: -CUBE_SIZE, y: CUBE_SIZE, z: CUBE_SIZE },
+];
+
+/* 6 faces, opposite pairs are (0,1), (2,3), (4,5)
+ *
+ * Seen from outside, the vertices are: top-left, top-right, bottom-right, bottom-left
+ * (clockwise on screen with y down when the face looks at the camera).
+ */
+export const FACES: number[][] = [
+    [0, 1, 2, 3], // front  (z = -S)
+    [5, 4, 7, 6], // back   (z = +S)
+    [4, 0, 3, 7], // left   (x = -S)
+    [1, 5, 6, 2], // right  (x = +S)
+    [4, 5, 1, 0], // top    (y = -S)
+    [3, 2, 6, 7], // bottom (y = +S)
+];
+
+const N = GRID + 1; // grid points per face edge
+
+//----- functions
+// a face looks at the camera when its first 3 projected vertices turn clockwise (y down);
+// edge-on (cross = 0) counts as back, so each face is in exactly one group
+export function isFront(a: Point2D, b: Point2D, c: Point2D): boolean {
+    return (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x) > 0;
+}
+
+// checker colour of the cell (i, j) of a face
+export function cellColor(i: number, j: number): number {
+    return (i + j) & 1 ? WHITE : BLUE;
+}
+
+// P + (Q - P) * i / GRID, written so that it is exact at both ends and symmetric:
+// lerpG(P, Q, i) === lerpG(Q, P, GRID - i) bitwise (no seam between faces sharing an edge)
+function lerpG(p: number, q: number, i: number): number {
+    return (p * (GRID - i) + q * i) / GRID;
+}
+
+/* grid of (GRID + 1)^2 points of a face, index j * (GRID + 1) + i
+ *
+ * Args:
+ *      p    : cube corners
+ *      face : face corner indices (top-left, top-right, bottom-right, bottom-left)
+ *      out  : grid points (written in place)
+ */
+export function faceGrid(p: Point3D[], face: number[], out: Point3D[]): void {
+    const a = p[face[0]];
+    const b = p[face[1]];
+    const c = p[face[2]];
+    const d = p[face[3]];
+
+    for (let i = 0; i < N; i++) {
+        // top (A -> B) and bottom (D -> C) points of the column
+        const tx = lerpG(a.x, b.x, i);
+        const ty = lerpG(a.y, b.y, i);
+        const tz = lerpG(a.z, b.z, i);
+        const bx = lerpG(d.x, c.x, i);
+        const by = lerpG(d.y, c.y, i);
+        const bz = lerpG(d.z, c.z, i);
+
+        for (let j = 0; j < N; j++) {
+            const o = out[j * N + i];
+            o.x = lerpG(tx, bx, j);
+            o.y = lerpG(ty, by, j);
+            o.z = lerpG(tz, bz, j);
+        }
+    }
+}
 
 //----- class
 export class Glenz extends IAnimation {
     //----- members
     private tables_: TrigTables; // pre-computed cosine/sine tables
-
-    private plane3D_: Point3D[]; // the 3D plane
-    private plane2D_: Point2D[]; // the 3D plane projection on the 2D space
-
-    private angle_: number; // rotation angle
-    private depth_: number; // screen Z coordinate
-    private center_: Point2D; // screen center
-
     private background_: Surface; // background image
 
-    private xmin_: Uint16Array; // xmin values
-    private xmax_: Uint16Array; // xmax values
-    private ymin_: number; // ymin value
-    private ymax_: number; // ymax value
+    private rotated_: Point3D[]; // rotated and drifted corners (camera space)
+    private projected_: Point2D[]; // projected corners (screen)
+    private grid3_: Point3D[]; // grid of the face being drawn (camera space)
+    private grid2_: Point2D[]; // ... projected (screen)
+    private cell_: Point2D[]; // cell polygon given to the filler
+
+    private ax_: number; // rotation angles (degrees)
+    private ay_: number;
+    private az_: number;
 
     //----- methods
-    // constructor
     constructor(display: Display) {
         super("glenz", display);
 
         // set the vars
-        this.background_ = new Surface();
-        this.angle_ = 0;
-        this.depth_ = 192;
-        this.center_ = { x: display.width >> 1, y: display.height >> 1 };
-
-        this.xmin_ = new Uint16Array(this.display_.height);
-        this.xmax_ = new Uint16Array(this.display_.height);
-        this.ymin_ = 0;
-        this.ymax_ = 0;
-
-        // initialize the plane
-        this.plane3D_ = [
-            { x: 100, y: -100, z: 100 },
-            { x: -100, y: -100, z: 100 },
-            { x: -100, y: 100, z: 100 },
-            { x: 100, y: 100, z: 100 },
-        ];
-        this.plane2D_ = [
-            { x: 0, y: 0 },
-            { x: 0, y: 0 },
-            { x: 0, y: 0 },
-            { x: 0, y: 0 },
-        ];
-
-        // initialize the cos/sin tables
         this.tables_ = new TrigTables();
-    }
+        this.background_ = new Surface();
 
-    // compute the 2D projection
-    private projection(angle: number, center: Point2D): void {
-        projectSameAngle(
-            this.plane3D_,
-            this.plane2D_,
-            this.tables_.cos[angle],
-            this.tables_.sin[angle],
-            center,
-            this.depth_,
-            ZOOM,
-        );
-    }
+        this.rotated_ = VERTICES.map(() => ({ x: 0, y: 0, z: 0 }));
+        this.projected_ = VERTICES.map(() => ({ x: 0, y: 0 }));
+        this.grid3_ = Array.from({ length: N * N }, () => ({ x: 0, y: 0, z: 0 }));
+        this.grid2_ = Array.from({ length: N * N }, () => ({ x: 0, y: 0 }));
+        this.cell_ = Array.from({ length: 4 }, () => ({ x: 0, y: 0 }));
 
-    // dummy function to set xmin/xmax/ymin/ymax
-    private xset(x: number, y: number): void {
-        if (y < 0 || y > this.height_) {
-            return;
-        }
-
-        if (y < this.ymin_) {
-            this.ymin_ = y;
-        }
-
-        if (y > this.ymax_) {
-            this.ymax_ = y;
-        }
-
-        if (x < 0) {
-            x = 0;
-        }
-
-        if (x > this.width_) {
-            x = this.width_;
-        }
-
-        if (x < this.xmin_[y]) {
-            this.xmin_[y] = x;
-        }
-
-        if (x > this.xmax_[y]) {
-            this.xmax_[y] = x;
-        }
-    }
-
-    // function to compute xmin/xmax values
-    private xline(p1: Point2D, p2: Point2D): void {
-        bresenham(p1, p2, (x, y) => this.xset(x, y));
+        this.ax_ = 0;
+        this.ay_ = 0;
+        this.az_ = 0;
     }
 
     // load the assets
@@ -126,59 +162,88 @@ export class Glenz extends IAnimation {
         return this.background_.loadImage("/images/assets/ts-glenz.background.jpg");
     }
 
-    // update the animation
+    // update the animation: rotate, drift and project the cube
     protected update(): void {
-        // compute the projection
-        this.projection(this.angle_, this.center_);
+        const { cos, sin } = this.tables_;
+        const ax = this.ax_;
+        const ay = this.ay_;
+        const az = this.az_;
+        rotate(VERTICES, cos[ax], sin[ax], cos[ay], sin[ay], cos[az], sin[az], this.rotated_);
 
-        // compute the xmin/xmax values to "fill" the plane
-        this.xmin_.fill(this.width_);
-        this.xmax_.fill(0);
-        this.ymin_ = this.height_;
-        this.ymax_ = 0;
+        // drift the cube centre in x / y (never z: the cube stays in front of the camera)
+        const t = this.frames_ * DRIFT_SPEED;
+        const ox = DRIFT_X * Math.sin(t);
+        const oy = DRIFT_Y * Math.sin(t * 1.37 + 0.5);
+        const cx = this.width_ >> 1;
+        const cy = this.height_ >> 1;
+        for (let i = 0; i < this.rotated_.length; i++) {
+            const p = this.rotated_[i];
+            p.x += ox;
+            p.y += oy;
 
-        for (let i = 0; i < this.plane2D_.length; i++) {
-            this.xline(this.plane2D_[i], this.plane2D_[(i + 1) % 4]);
+            const k = ZOOM / (p.z + DEPTH);
+            this.projected_[i].x = cx + p.x * k;
+            this.projected_[i].y = cy + p.y * k;
         }
 
-        // increment angle value
-        this.angle_ = (this.angle_ + 1) % 360;
+        // next angles
+        this.ax_ = (ax + STEP_X) % 360;
+        this.ay_ = (ay + STEP_Y) % 360;
+        this.az_ = (az + STEP_Z) % 360;
     }
 
-    // render the animation on the screen
+    // draw the cells of a face as glass
+    private drawFace(dst: Uint32Array, face: number[], alpha: number): void {
+        const g3 = this.grid3_;
+        const g2 = this.grid2_;
+        const cell = this.cell_;
+        const cx = this.width_ >> 1;
+        const cy = this.height_ >> 1;
+
+        // grid of the face, projected once
+        faceGrid(this.rotated_, face, g3);
+        for (let i = 0; i < g3.length; i++) {
+            const p = g3[i];
+            const k = ZOOM / (p.z + DEPTH);
+            g2[i].x = cx + p.x * k;
+            g2[i].y = cy + p.y * k;
+        }
+
+        // cells (projected cells of a planar face stay convex)
+        for (let j = 0; j < GRID; j++) {
+            for (let i = 0; i < GRID; i++) {
+                const p = j * N + i;
+                cell[0] = g2[p];
+                cell[1] = g2[p + 1];
+                cell[2] = g2[p + N + 1];
+                cell[3] = g2[p + N];
+                fillGlassPolygon(dst, this.width_, this.height_, cell, cellColor(i, j), alpha);
+            }
+        }
+    }
+
+    // render the animation on screen
     protected render(): void {
-        // copy the background on the surface
-        const s = this.display_.surface;
-        s.copy(this.background_);
+        // background not loaded yet: nothing to draw
+        const bg = this.background_;
+        if (bg.width !== this.width_ || bg.height !== this.height_) {
+            this.display_.draw();
+            return;
+        }
 
-        // draw the transparent plane
-        const c = new RGBA(0, 128, 192);
-        const [cr, cg, cb] = [c.red, c.green, c.blue];
-        const data32 = s.data32;
-        for (let y = this.ymin_; y < this.ymax_; y++) {
-            // nothing to do there
-            if (this.xmax_[y] == 0 || this.xmin_[y] == this.width_) {
-                continue;
+        const dst = this.display_.surface.data32;
+        dst.set(bg.data32);
+
+        // back faces first (seen through the cube), then the front faces over them
+        const p2 = this.projected_;
+        for (const face of FACES) {
+            if (!isFront(p2[face[0]], p2[face[1]], p2[face[2]])) {
+                this.drawFace(dst, face, BACK_ALPHA);
             }
-
-            if (this.xmax_[y] == 0) {
-                this.xmax_[y] = this.width_ - 1;
-            }
-            if (this.xmin_[y] == this.width_) {
-                this.xmin_[y] = 0;
-            }
-
-            // blend the plane and the background color
-            // (components are truncated like RGBA.uint32 does)
-            const addr = y * this.width_;
-            for (let x = this.xmin_[y]; x < this.xmax_[y]; x++) {
-                const v = data32[addr + x];
-
-                const r = lerp(cr, v & 0xff, TRANPARENCY) & 0xff;
-                const g = lerp(cg, (v >> 8) & 0xff, TRANPARENCY) & 0xff;
-                const b = lerp(cb, (v >> 16) & 0xff, TRANPARENCY) & 0xff;
-
-                data32[addr + x] = 0xff000000 | (b << 16) | (g << 8) | r;
+        }
+        for (const face of FACES) {
+            if (isFront(p2[face[0]], p2[face[1]], p2[face[2]])) {
+                this.drawFace(dst, face, FRONT_ALPHA);
             }
         }
 
