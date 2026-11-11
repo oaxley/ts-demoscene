@@ -26,6 +26,10 @@ const DAMPING = 0.99; // fraction of the speed kept from one step to the next
 const SUB_DAMPING = Math.pow(DAMPING, 1 / SUBSTEPS); // same, per sub-step
 const SHEAR = 0.5; // stiffness of the diagonal links (fraction of the correction applied)
 const BEND = 0.1; // stiffness of the links 2 apart: soft, so the cloth can fold
+const POLE_COLUMNS = 4; // columns next to the pole ...
+const POLE_ITERATIONS = 4; // ... relaxed this many more times per sub-step
+const MAX_STRETCH = 1.02; // strain limiting: longest (and 1 / shortest) allowed link between direct neighbours
+const LIMIT_ITERATIONS = 2; // strain limiting passes per sub-step
 const ANCHORS = 3; // long range attachments per point
 const WAVE = 0.6; // wind turbulence travelling along the cloth (fraction of the wind, in z)
 const WAVE_K = 0.45; // ... its spatial frequency (radians per column)
@@ -59,6 +63,7 @@ export class Cloth {
     private readonly linkA_: Uint16Array; // links: first end, second end, rest length
     private readonly linkB_: Uint16Array;
     private readonly linkLen_: Float64Array;
+    private readonly poleLinks_: number; // number of links starting in the POLE_COLUMNS first columns (listed first)
     private readonly structural_: Uint8Array; // =1 for the links between direct neighbours
     private readonly stiffness_: Float64Array; // fraction of the correction applied per pass
     private readonly anchor_: Uint16Array; // long range attachments: point index of the anchor (3 per point)
@@ -110,7 +115,9 @@ export class Cloth {
                 stiffness.push(k);
             }
         };
+        let poleLinks = 0;
         for (let c = 0; c < cols; c++) {
+            if (c === POLE_COLUMNS) poleLinks = a.length;
             for (let r = 0; r < rows; r++) {
                 add(c, r, c + 1, r, 1);
                 add(c, r, c, r + 1, 1);
@@ -122,6 +129,7 @@ export class Cloth {
         }
         this.linkA_ = Uint16Array.from(a);
         this.linkB_ = Uint16Array.from(b);
+        this.poleLinks_ = poleLinks;
         this.structural_ = Uint8Array.from(structural);
         this.stiffness_ = Float64Array.from(stiffness);
         this.linkLen_ = new Float64Array(a.length);
@@ -185,6 +193,16 @@ export class Cloth {
             for (let it = 0; it < ITERATIONS; it++) {
                 this.relax((it & 1) === 1);
                 this.attach();
+            }
+
+            // the links near the pole carry the weight of the whole flag: extra passes on them
+            for (let it = 0; it < POLE_ITERATIONS; it++) {
+                this.relax((it & 1) === 1, this.poleLinks_);
+            }
+
+            // and no link too long anywhere (a gust hitting the hanging flag whips its tip)
+            for (let it = 0; it < LIMIT_ITERATIONS; it++) {
+                this.relax((it & 1) === 1, this.linkLen_.length, true);
             }
         }
 
@@ -305,15 +323,15 @@ export class Cloth {
         }
     }
 
-    // one relaxation pass over all the links, from the pole outward (or backward: alternating the
-    // order spreads the corrections both ways)
-    private relax(backward: boolean): void {
+    // one relaxation pass over the first `count` links (all by default), from the pole outward
+    // (or backward: alternating the order spreads the corrections both ways)
+    private relax(backward: boolean, count: number = this.linkLen_.length, limit: boolean = false): void {
         const pos = this.pos;
         const pinned = this.pinned_;
-        const count = this.linkLen_.length;
 
         for (let j = 0; j < count; j++) {
             const k = backward ? count - 1 - j : j;
+            if (limit && !this.structural_[k]) continue;
             const a = this.linkA_[k];
             const b = this.linkB_[k];
             const ia = a * 3;
@@ -324,7 +342,22 @@ export class Cloth {
             const len = Math.sqrt(dx * dx + dy * dy + dz * dz);
             if (len < EPSILON) continue;
 
-            const corr = ((len - this.linkLen_[k]) / len) * this.stiffness_[k];
+            // strain limiting: only the links between direct neighbours more than MAX_STRETCH longer
+            // (or shorter) than at rest, brought back to that length
+            let corr: number;
+            if (limit) {
+                const max = this.linkLen_[k] * MAX_STRETCH;
+                const min = this.linkLen_[k] / MAX_STRETCH;
+                if (len > max) {
+                    corr = (len - max) / len;
+                } else if (len < min) {
+                    corr = (len - min) / len;
+                } else {
+                    continue;
+                }
+            } else {
+                corr = ((len - this.linkLen_[k]) / len) * this.stiffness_[k];
+            }
             const pa = pinned[a];
             const pb = pinned[b];
             if (pa && pb) continue;

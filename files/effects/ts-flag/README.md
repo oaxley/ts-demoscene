@@ -41,7 +41,9 @@ There are three kinds of links:
 
 The whole weight of the flag hangs on the top of the pole, which a few passes cannot hold: every point is also tied
 to the top, the bottom and its own point of the pole, and is never allowed to be further from them than at rest
-("long range attachments"). Each frame is split in 16 small steps to keep the fabric tight.
+("long range attachments"), and the links next to the pole get extra passes. Each frame is split in 16 small steps,
+and each step ends with a "strain limiting" pass: a link between neighbours more than 2 % longer or shorter than at
+rest is brought back to that limit. Even a gust hitting the hanging flag stretches it by a few percent at most.
 
 The wind pushes each cell along its normal, proportionally to how much the cell faces the wind. A cell facing the wind is
 pushed, a cell edge-on is not: this is what lifts the flag and makes it ripple. On top of it, a small drag along the wind

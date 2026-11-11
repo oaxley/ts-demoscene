@@ -100,6 +100,17 @@ describe("cloth", () => {
         expect(columnMean(windy, COLS - 1, 0)).toBeGreaterThan(columnMean(still, COLS - 1, 0) + 50);
     });
 
+    test("stays inextensible when a gust hits the hanging flag", () => {
+        const cloth = make();
+        run(cloth, 100, 0.5, null);
+        let max = 0;
+        for (let i = 0; i < 200; i++) {
+            cloth.step(0.5, { x: 6, y: 0, z: 2 });
+            max = Math.max(max, cloth.maxStretch());
+        }
+        expect(max).toBeLessThan(0.08);
+    });
+
     test("stays inextensible in gusts", () => {
         const cloth = make();
         run(cloth, 200, 0.5, { x: 6, y: 0, z: 2 });
@@ -224,9 +235,11 @@ describe("flag effect", () => {
 
     test("restart is identical", async () => {
         // harness frame k = effect frame k-1 (the first run() only starts the throttle)
-        const res = await runEffect(Flag, CYCLE_FRAMES + 20, 1);
-        for (const k of [1, 5, 19]) {
+        const res = await runEffect(Flag, CYCLE_FRAMES + STILL_FRAMES + FALL_FRAMES + RAMP_FRAMES + 10, 1);
+        const windy = STILL_FRAMES + FALL_FRAMES + RAMP_FRAMES + 5; // the cloth has been stepped
+        for (const k of [1, 5, 19, windy]) {
             expect(res.checkpoints[String(CYCLE_FRAMES + k)]).toBe(res.checkpoints[String(k)]);
         }
+        expect(res.checkpoints[String(windy)]).not.toBe(res.checkpoints["5"]);
     }, 120000);
 });
