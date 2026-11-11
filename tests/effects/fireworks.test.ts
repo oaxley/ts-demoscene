@@ -9,8 +9,31 @@
 import { describe, test, expect } from "vitest";
 
 import { Particles, Rng } from "../../files/effects/ts-fireworks/src/particles";
+import { layout } from "../../files/effects/ts-fireworks/src/layout";
 
 //----- tests
+describe("ts-fireworks layout", () => {
+    test("small sprite: drawn at native size, centred in the left half", () => {
+        const l = layout(640, 480, 100, 80);
+        expect(l.spriteW).toBe(100);
+        expect(l.spriteH).toBe(80);
+        expect(l.spriteX).toBe(110);
+        expect(l.spriteY).toBe(200);
+        expect(l.bandWidth).toBe(140);
+    });
+
+    test("sprite wider than the left half: scaled to fit, aspect kept", () => {
+        const l = layout(640, 480, 800, 400);
+        expect(l.spriteW).toBeLessThanOrEqual(320 - 40);
+        expect(l.spriteW / l.spriteH).toBeCloseTo(2, 6);
+    });
+
+    test("sprite taller than the screen: scaled to the height", () => {
+        const l = layout(640, 480, 100, 960);
+        expect(l.spriteH).toBe(480);
+    });
+});
+
 describe("ts-fireworks particles", () => {
     test("pool full: spawnRocket returns false, count stays at maxCount", () => {
         const p = new Particles(2, new Rng(1));
