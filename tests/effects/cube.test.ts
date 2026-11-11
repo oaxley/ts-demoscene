@@ -14,7 +14,6 @@ import {
     VERTICES,
     FACES,
     FACE_UV,
-    rotate,
     isVisible,
     faceShade,
     cubePath,
@@ -23,6 +22,7 @@ import {
     ZOOM,
     DEPTH,
 } from "../../files/effects/ts-cube/src/cube";
+import { rotate } from "library/maths/projection";
 
 //----- helpers
 const DISTANCE = 400; // cube centre distance to the camera
@@ -180,32 +180,6 @@ describe("ts-cube", () => {
     test("zero-area faces are not visible", () => {
         expect(isVisible({ x: 0, y: 0 }, { x: 10, y: 10 }, { x: 20, y: 20 })).toBe(false);
         expect(isVisible({ x: 5, y: 5 }, { x: 5, y: 5 }, { x: 5, y: 5 })).toBe(false);
-    });
-
-    test("rotate keeps distances", () => {
-        for (const [ax, ay, az] of angles(50)) {
-            const { world } = transform(ax, ay, az);
-            for (const p of world) {
-                expect(Math.abs(Math.hypot(p.x, p.y, p.z) - CUBE_SIZE * Math.sqrt(3))).toBeLessThan(1e-9);
-            }
-        }
-    });
-
-    test("rotate applies X, then Y, then Z, in place in out", () => {
-        const out = [{ x: 0, y: 0, z: 0 }];
-        const half = Math.PI / 2;
-        // X by 90°: (0, 1, 0) -> (0, 0, 1); then Y by 90°: (0, 0, 1) -> (1, 0, 0)
-        rotate([{ x: 0, y: 1, z: 0 }], Math.cos(half), Math.sin(half), Math.cos(half), Math.sin(half), 1, 0, out);
-        expect(out[0].x).toBeCloseTo(1, 12);
-        expect(out[0].y).toBeCloseTo(0, 12);
-        expect(out[0].z).toBeCloseTo(0, 12);
-
-        // identity keeps the vertices, and writes into the given objects
-        const target = VERTICES.map(() => ({ x: 0, y: 0, z: 0 }));
-        const first = target[0];
-        rotate(VERTICES, 1, 0, 1, 0, 1, 0, target);
-        expect(target).toEqual(VERTICES);
-        expect(target[0]).toBe(first);
     });
 
     test("faceShade is in [0.4, 1], the front face is lit at identity", () => {

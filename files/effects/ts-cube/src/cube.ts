@@ -14,7 +14,7 @@ import { RGBA } from "library/color/RGBA";
 
 import { Surface } from "library/gfx/surface";
 import { TEXTURE_SIZE, TexVertex, drawTexturedPolygon } from "library/gfx/texture";
-import { TrigTables } from "library/maths/projection";
+import { TrigTables, rotate } from "library/maths/projection";
 
 //----- globals
 export const CUBE_SIZE = 75; // half edge length
@@ -76,42 +76,6 @@ const AMBIENT = 0.4; // minimum face brightness
 const DIFFUSE = 0.6; // brightness added by the light
 
 //----- functions
-/* rotate points around X, then Y, then Z
- *
- * Args:
- *      p      : points to rotate
- *      cx, sx : cosine / sine of the X angle (same for Y and Z)
- *      out    : rotated points (same length as p, written in place)
- */
-export function rotate(
-    p: Point3D[],
-    cx: number,
-    sx: number,
-    cy: number,
-    sy: number,
-    cz: number,
-    sz: number,
-    out: Point3D[],
-): void {
-    for (let i = 0; i < p.length; i++) {
-        const { x, y, z } = p[i];
-
-        // X axis
-        const y1 = y * cx - z * sx;
-        const z1 = y * sx + z * cx;
-
-        // Y axis
-        const x2 = x * cy + z1 * sy;
-        const z2 = z1 * cy - x * sy;
-
-        // Z axis
-        const o = out[i];
-        o.x = x2 * cz - y1 * sz;
-        o.y = x2 * sz + y1 * cz;
-        o.z = z2;
-    }
-}
-
 // back-face culling: a face is visible when its first 3 projected vertices turn clockwise (y down)
 export function isVisible(a: Point2D, b: Point2D, c: Point2D): boolean {
     return (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x) > 0;

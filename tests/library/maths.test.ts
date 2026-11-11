@@ -2,7 +2,7 @@
  * @file    maths.test.ts
  * @author  Sebastien LEGRAND
  *
- * @brief   Unit tests for the maths helpers (utils, vectors, fixed)
+ * @brief   Unit tests for the maths helpers (utils, vectors, fixed, rotation)
  */
 
 //----- imports
@@ -13,6 +13,8 @@ import { Vector2D } from "library/maths/vector2d";
 import { Vector3D } from "library/maths/vector3d";
 import { Fixed } from "library/maths/fixed";
 import { Mersenne } from "library/maths/mersenne";
+import { rotate } from "library/maths/projection";
+import { Point3D } from "library/core/interfaces";
 
 //----- tests
 describe("utils", () => {
@@ -120,5 +122,57 @@ describe("Mersenne (MT19937)", () => {
             expect(r).toBeGreaterThanOrEqual(0);
             expect(r).toBeLessThanOrEqual(1);
         }
+    });
+});
+
+describe("rotate", () => {
+    const S = 75;
+    const cube: Point3D[] = [];
+    for (const z of [-S, S]) {
+        for (const [x, y] of [
+            [-S, -S],
+            [S, -S],
+            [S, S],
+            [-S, S],
+        ]) {
+            cube.push({ x, y, z });
+        }
+    }
+
+    // deterministic angles in [0, 2 PI)
+    const angles = (n: number): number[][] => {
+        let seed = 12345;
+        const rnd = (): number => {
+            seed = (seed * 1103515245 + 12345) % 2147483648;
+            return (seed / 2147483648) * 2 * Math.PI;
+        };
+        return Array.from({ length: n }, () => [rnd(), rnd(), rnd()]);
+    };
+
+    test("keeps distances", () => {
+        const out = cube.map(() => ({ x: 0, y: 0, z: 0 }));
+        for (const [ax, ay, az] of angles(50)) {
+            rotate(cube, Math.cos(ax), Math.sin(ax), Math.cos(ay), Math.sin(ay), Math.cos(az), Math.sin(az), out);
+            for (const p of out) {
+                expect(Math.abs(Math.hypot(p.x, p.y, p.z) - S * Math.sqrt(3))).toBeLessThan(1e-9);
+            }
+        }
+    });
+
+    test("applies X, then Y, then Z, in place in out", () => {
+        const out = [{ x: 0, y: 0, z: 0 }];
+        const half = Math.PI / 2;
+        // X by 90°: (0, 1, 0) -> (0, 0, 1); then Y by 90°: (0, 0, 1) -> (1, 0, 0)
+        rotate([{ x: 0, y: 1, z: 0 }], Math.cos(half), Math.sin(half), Math.cos(half), Math.sin(half), 1, 0, out);
+        expect(out[0].x).toBeCloseTo(1, 12);
+        expect(out[0].y).toBeCloseTo(0, 12);
+        expect(out[0].z).toBeCloseTo(0, 12);
+
+        // identity keeps the points, and writes into the given objects
+        const target = cube.map(() => ({ x: 0, y: 0, z: 0 }));
+        const first = target[0];
+        rotate(cube, 1, 0, 1, 0, 1, 0, target);
+        expect(target).toEqual(cube);
+        expect(target[0]).toBe(first);
     });
 });

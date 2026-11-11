@@ -28,6 +28,42 @@ export class TrigTables {
 
 //----- functions
 
+/* rotate points around X, then Y, then Z
+ *
+ * Args:
+ *      p      : points to rotate
+ *      cx, sx : cosine / sine of the X angle (same for Y and Z)
+ *      out    : rotated points (same length as p, written in place)
+ */
+export function rotate(
+    p: Point3D[],
+    cx: number,
+    sx: number,
+    cy: number,
+    sy: number,
+    cz: number,
+    sz: number,
+    out: Point3D[],
+): void {
+    for (let i = 0; i < p.length; i++) {
+        const { x, y, z } = p[i];
+
+        // X axis
+        const y1 = y * cx - z * sx;
+        const z1 = y * sx + z * cx;
+
+        // Y axis
+        const x2 = x * cy + z1 * sy;
+        const z2 = z1 * cy - x * sy;
+
+        // Z axis
+        const o = out[i];
+        o.x = x2 * cz - y1 * sz;
+        o.y = x2 * sz + y1 * cz;
+        o.z = z2;
+    }
+}
+
 /* project 3D points on the screen, rotated by the same angle on the 3 axis
  *
  * Because the angle is the same for all the axis, the rotation matrix can be
