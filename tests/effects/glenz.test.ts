@@ -9,6 +9,7 @@
 import { describe, test, expect } from "vitest";
 
 import { Point2D, Point3D } from "library/core/interfaces";
+import { Display } from "library/core/display";
 import { rotate } from "library/maths/projection";
 
 import {
@@ -26,6 +27,7 @@ import {
     Glenz,
 } from "../../files/effects/ts-glenz/src/glenz";
 import { runEffect } from "../harness/runner";
+import { FakeCanvas } from "../harness/dom";
 
 //----- helpers
 const N = GRID + 1; // grid points per face edge
@@ -175,6 +177,18 @@ describe("ts-glenz cube", () => {
             expect(row.filter((c) => c === BLUE).length).toBe(GRID / 2);
             expect(col.filter((c) => c === WHITE).length).toBe(GRID / 2);
         }
+    });
+
+    test("background not loaded: render draws nothing and never throws", () => {
+        const canvas = new FakeCanvas(640, 480);
+        const display = new Display(canvas as unknown as HTMLCanvasElement);
+        const effect = new Glenz(display) as unknown as { update(t: number): void; render(t: number): void };
+        const before = Array.from(display.surface.data32);
+        expect(() => {
+            effect.update(0);
+            effect.render(0);
+        }).not.toThrow();
+        expect(Array.from(display.surface.data32)).toEqual(before);
     });
 
     test("renders and moves", async () => {

@@ -44,7 +44,9 @@ front = (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x) > 0;
 The cells are drawn by a reusable flat polygon filler (`files/library/gfx/polygon.ts`). It uses the same top-left
 fill rule as the texture mapper: rows `ceil(ymin) .. ceil(ymax) - 1` and pixels `ceil(xl) .. ceil(xr) - 1`.
 Two cells sharing an edge never both draw the same pixel, nor leave a hole between them, so each layer of glass is
-blended exactly once: there is no seam between the cells, nor along the edges of the cube.
+blended exactly once: there is no seam between the cells. Along a cube edge, the two faces walk the edge in
+opposite directions; their grid points are computed with `(P * (4 - i) + Q * i) / 4`, which gives bitwise the same
+values from both sides, so the cube edges have no seam either.
 
 ## **License**
 

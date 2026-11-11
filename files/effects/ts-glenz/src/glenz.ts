@@ -174,16 +174,11 @@ export class Glenz extends IAnimation {
         const t = this.frames_ * DRIFT_SPEED;
         const ox = DRIFT_X * Math.sin(t);
         const oy = DRIFT_Y * Math.sin(t * 1.37 + 0.5);
-        const cx = this.width_ >> 1;
-        const cy = this.height_ >> 1;
         for (let i = 0; i < this.rotated_.length; i++) {
             const p = this.rotated_[i];
             p.x += ox;
             p.y += oy;
-
-            const k = ZOOM / (p.z + DEPTH);
-            this.projected_[i].x = cx + p.x * k;
-            this.projected_[i].y = cy + p.y * k;
+            this.project(p, this.projected_[i]);
         }
 
         // next angles
@@ -192,21 +187,23 @@ export class Glenz extends IAnimation {
         this.az_ = (az + STEP_Z) % 360;
     }
 
+    // perspective projection of a camera space point on the screen (corners and grid points alike)
+    private project(p: Point3D, out: Point2D): void {
+        const k = ZOOM / (p.z + DEPTH);
+        out.x = (this.width_ >> 1) + p.x * k;
+        out.y = (this.height_ >> 1) + p.y * k;
+    }
+
     // draw the cells of a face as glass
     private drawFace(dst: Uint32Array, face: number[], alpha: number): void {
         const g3 = this.grid3_;
         const g2 = this.grid2_;
         const cell = this.cell_;
-        const cx = this.width_ >> 1;
-        const cy = this.height_ >> 1;
 
         // grid of the face, projected once
         faceGrid(this.rotated_, face, g3);
         for (let i = 0; i < g3.length; i++) {
-            const p = g3[i];
-            const k = ZOOM / (p.z + DEPTH);
-            g2[i].x = cx + p.x * k;
-            g2[i].y = cy + p.y * k;
+            this.project(g3[i], g2[i]);
         }
 
         // cells (projected cells of a planar face stay convex)
