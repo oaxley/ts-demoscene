@@ -10,6 +10,7 @@ import { Brush } from "../files/effects/ts-brush/src/brush";
 import { Bump } from "../files/effects/ts-bump/src/bump";
 import { Cube } from "../files/effects/ts-cube/src/cube";
 import { Flames } from "../files/effects/ts-flames/src/flames";
+import { Flag } from "../files/effects/ts-flag/src/flag";
 import { Glenz } from "../files/effects/ts-glenz/src/glenz";
 import { Lens } from "../files/effects/ts-lens/src/lens";
 import { LightRays } from "../files/effects/ts-lightrays/src/lightrays";
@@ -33,6 +34,7 @@ export const EFFECTS = {
     "ts-bump": Bump,
     "ts-cube": Cube,
     "ts-flames": Flames,
+    "ts-flag": Flag,
     "ts-glenz": Glenz,
     "ts-lens": Lens,
     "ts-lightrays": LightRays,

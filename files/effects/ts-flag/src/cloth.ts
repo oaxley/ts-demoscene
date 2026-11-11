@@ -27,6 +27,9 @@ const SUB_DAMPING = Math.pow(DAMPING, 1 / SUBSTEPS); // same, per sub-step
 const SHEAR = 0.5; // stiffness of the diagonal links (fraction of the correction applied)
 const BEND = 0.1; // stiffness of the links 2 apart: soft, so the cloth can fold
 const ANCHORS = 3; // long range attachments per point
+const WAVE = 0.6; // wind turbulence travelling along the cloth (fraction of the wind, in z)
+const WAVE_K = 0.45; // ... its spatial frequency (radians per column)
+const WAVE_W = 0.25; // ... and its speed (radians per step)
 const SKIN = 0.1; // drag of the wind along the cloth (pulls the hanging flag out)
 const EPSILON = 1e-9; // below this, a length or a normal is degenerate
 const RIPPLE = 0.02; // rest pose ripple in z (fraction of the spacing): lets the cloth fold out of its plane
@@ -51,6 +54,7 @@ export class Cloth {
     private readonly prev_: Float64Array; // previous positions
     private readonly force_: Float64Array; // wind force per point (scratch)
     private readonly pinned_: Uint8Array; // =1 when the point is attached to the pole
+    private time_: number; // steps since the last reset (moves the wind waves)
 
     private readonly linkA_: Uint16Array; // links: first end, second end, rest length
     private readonly linkB_: Uint16Array;
@@ -79,6 +83,7 @@ export class Cloth {
         this.prev_ = new Float64Array(n * 3);
         this.force_ = new Float64Array(n * 3);
         this.pinned_ = new Uint8Array(n);
+        this.time_ = 0;
 
         for (let r = 0; r < rows; r++) {
             for (let c = 0; c < cols; c++) {
@@ -142,6 +147,7 @@ export class Cloth {
     public reset(): void {
         this.pos.set(this.rest_);
         this.prev_.set(this.rest_);
+        this.time_ = 0;
     }
 
     /* one step of the simulation
@@ -181,6 +187,8 @@ export class Cloth {
                 this.attach();
             }
         }
+
+        this.time_++;
     }
 
     // the largest relative stretch (or compression) of a link between direct neighbours
@@ -259,10 +267,15 @@ export class Cloth {
             }
         }
 
-        for (let i = 0; i < force.length; i += 3) {
-            force[i] += wind.x * SKIN;
-            force[i + 1] += wind.y * SKIN;
-            force[i + 2] += wind.z * SKIN;
+        // drag along the wind, and the turbulence: a push in z that travels from the pole to the tip
+        const strength = Math.hypot(wind.x, wind.y, wind.z);
+        for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols; c++) {
+                const i = (r * cols + c) * 3;
+                force[i] += wind.x * SKIN;
+                force[i + 1] += wind.y * SKIN;
+                force[i + 2] += wind.z * SKIN + strength * WAVE * Math.sin(c * WAVE_K - this.time_ * WAVE_W);
+            }
         }
     }
 

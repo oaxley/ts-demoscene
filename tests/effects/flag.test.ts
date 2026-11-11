@@ -8,7 +8,24 @@
 //----- imports
 import { describe, test, expect } from "vitest";
 
+import { Noise } from "library/maths/noise";
+import { TexVertex } from "library/gfx/texture";
+
 import { Cloth, Wind } from "../../files/effects/ts-flag/src/cloth";
+import {
+    Flag,
+    STILL_FRAMES,
+    FALL_FRAMES,
+    RAMP_FRAMES,
+    CYCLE_FRAMES,
+    DEPTH,
+    NEAR,
+    windAt,
+    cellShade,
+    isConvex,
+    buildQuad,
+} from "../../files/effects/ts-flag/src/flag";
+import { runEffect } from "../harness/runner";
 
 //----- helpers
 const COLS = 32;
@@ -111,4 +128,105 @@ describe("cloth", () => {
         expect(Array.from(cloth.pos)).toEqual(Array.from(make().pos));
         expect(cloth.kineticEnergy()).toBe(0);
     });
+});
+
+describe("flag effect", () => {
+    const quad = (pts: number[][]): TexVertex[] => pts.map(([x, y]) => ({ x, y, z: 1, u: 0, v: 0 }));
+
+    test("no wind while still and falling", () => {
+        const noise = new Noise.Noise1D(1);
+        for (const f of [0, STILL_FRAMES - 1, STILL_FRAMES + FALL_FRAMES - 1]) {
+            expect(windAt(f, noise)).toEqual({ x: 0, y: 0, z: 0 });
+        }
+    });
+
+    test("wind ramps up then gusts", () => {
+        const noise = new Noise.Noise1D(1);
+        const start = STILL_FRAMES + FALL_FRAMES;
+        const third = windAt(start + Math.floor(RAMP_FRAMES / 3), noise).x;
+        const end = windAt(start + RAMP_FRAMES - 1, noise).x;
+        expect(end).toBeGreaterThan(third);
+
+        const xs = new Set<number>();
+        for (let f = start + RAMP_FRAMES; f < start + RAMP_FRAMES + 50; f++) {
+            const w = windAt(f, noise);
+            expect(w.x).toBeGreaterThan(0);
+            xs.add(w.x);
+        }
+        expect(xs.size).toBeGreaterThanOrEqual(2);
+        expect(windAt(start + 300, new Noise.Noise1D(7))).toEqual(windAt(start + 300, new Noise.Noise1D(7)));
+    });
+
+    test("both sides of a cell are lit", () => {
+        // flat cloth (no ripple), then the same cloth turned over (y mirrored: the normal flips)
+        const cloth = make();
+        for (let i = 2; i < cloth.pos.length; i += 3) cloth.pos[i] = 0;
+        const front = cellShade(cloth, 3, 3);
+        expect(front).toBeGreaterThan(0.35);
+        expect(front).toBeLessThanOrEqual(1);
+        for (let i = 1; i < cloth.pos.length; i += 3) cloth.pos[i] = -cloth.pos[i];
+        expect(cellShade(cloth, 3, 3)).toBeCloseTo(front, 9);
+    });
+
+    test("convex quads", () => {
+        expect(
+            isConvex(
+                quad([
+                    [0, 0],
+                    [10, 0],
+                    [10, 10],
+                    [0, 10],
+                ]),
+            ),
+        ).toBe(true);
+        expect(
+            isConvex(
+                quad([
+                    [0, 0],
+                    [10, 10],
+                    [10, 0],
+                    [0, 10],
+                ]),
+            ),
+        ).toBe(false); // bow tie
+        expect(
+            isConvex(
+                quad([
+                    [0, 0],
+                    [10, 0],
+                    [2, 2],
+                    [0, 10],
+                ]),
+            ),
+        ).toBe(false); // dart
+    });
+
+    test("no point behind the near plane", () => {
+        const cloth = make();
+        for (let i = 2; i < cloth.pos.length; i += 3) cloth.pos[i] = -DEPTH * 2;
+        const out: TexVertex[] = [0, 1, 2, 3].map(() => ({ x: 0, y: 0, z: 0, u: 0, v: 0 }));
+        buildQuad(cloth, 5, 5, out, 320, 240);
+        out.forEach((v) => {
+            expect(v.z).toBeGreaterThanOrEqual(NEAR);
+            expect(Number.isFinite(v.x) && Number.isFinite(v.y)).toBe(true);
+        });
+    });
+
+    test("texture corners", () => {
+        const cloth = make();
+        const out: TexVertex[] = [0, 1, 2, 3].map(() => ({ x: 0, y: 0, z: 0, u: 0, v: 0 }));
+        buildQuad(cloth, COLS - 2, ROWS - 2, out, 320, 240);
+        expect(out[2].u).toBeCloseTo(256, 6);
+        expect(out[2].v).toBeCloseTo(256, 6);
+        buildQuad(cloth, 0, 0, out, 320, 240);
+        expect([out[0].u, out[0].v]).toEqual([0, 0]);
+    });
+
+    test("restart is identical", async () => {
+        // harness frame k = effect frame k-1 (the first run() only starts the throttle)
+        const res = await runEffect(Flag, CYCLE_FRAMES + 20, 1);
+        for (const k of [1, 5, 19]) {
+            expect(res.checkpoints[String(CYCLE_FRAMES + k)]).toBe(res.checkpoints[String(k)]);
+        }
+    }, 120000);
 });
