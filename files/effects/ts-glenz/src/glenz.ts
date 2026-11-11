@@ -18,7 +18,7 @@ import { RGBA } from "library/color/RGBA";
 
 import { Surface } from "library/gfx/surface";
 import { fillGlassPolygon } from "library/gfx/polygon";
-import { TrigTables, rotate } from "library/maths/projection";
+import { rotate } from "library/maths/projection";
 
 //----- globals
 export const CUBE_SIZE = 90; // half edge length
@@ -32,9 +32,10 @@ export const WHITE = RGBA.toUInt32(255, 255, 255);
 export const FRONT_ALPHA = 0.45; // opacity of the front faces glass
 export const BACK_ALPHA = 0.3; // opacity of the back faces glass
 
-const STEP_X = 1; // rotation steps per frame (degrees, distinct per axis)
-const STEP_Y = 2;
-const STEP_Z = 3;
+const DEG = Math.PI / 180;
+const STEP_X = 0.5 * DEG; // rotation steps per frame (radians, distinct per axis)
+const STEP_Y = 1.0 * DEG;
+const STEP_Z = 1.5 * DEG;
 const DRIFT_X = 60; // cube centre drift (camera space, x / y only)
 const DRIFT_Y = 30;
 const DRIFT_SPEED = 0.01; // drift speed (radians per frame)
@@ -125,7 +126,6 @@ export function faceGrid(p: Point3D[], face: number[], out: Point3D[]): void {
 //----- class
 export class Glenz extends IAnimation {
     //----- members
-    private tables_: TrigTables; // pre-computed cosine/sine tables
     private background_: Surface; // background image
 
     private rotated_: Point3D[]; // rotated and drifted corners (camera space)
@@ -134,7 +134,7 @@ export class Glenz extends IAnimation {
     private grid2_: Point2D[]; // ... projected (screen)
     private cell_: Point2D[]; // cell polygon given to the filler
 
-    private ax_: number; // rotation angles (degrees)
+    private ax_: number; // rotation angles (radians)
     private ay_: number;
     private az_: number;
 
@@ -143,7 +143,6 @@ export class Glenz extends IAnimation {
         super("glenz", display);
 
         // set the vars
-        this.tables_ = new TrigTables();
         this.background_ = new Surface();
 
         this.rotated_ = VERTICES.map(() => ({ x: 0, y: 0, z: 0 }));
@@ -164,11 +163,19 @@ export class Glenz extends IAnimation {
 
     // update the animation: rotate, drift and project the cube
     protected update(): void {
-        const { cos, sin } = this.tables_;
         const ax = this.ax_;
         const ay = this.ay_;
         const az = this.az_;
-        rotate(VERTICES, cos[ax], sin[ax], cos[ay], sin[ay], cos[az], sin[az], this.rotated_);
+        rotate(
+            VERTICES,
+            Math.cos(ax),
+            Math.sin(ax),
+            Math.cos(ay),
+            Math.sin(ay),
+            Math.cos(az),
+            Math.sin(az),
+            this.rotated_,
+        );
 
         // drift the cube centre in x / y (never z: the cube stays in front of the camera)
         const t = this.frames_ * DRIFT_SPEED;
@@ -182,9 +189,9 @@ export class Glenz extends IAnimation {
         }
 
         // next angles
-        this.ax_ = (ax + STEP_X) % 360;
-        this.ay_ = (ay + STEP_Y) % 360;
-        this.az_ = (az + STEP_Z) % 360;
+        this.ax_ = (ax + STEP_X) % (2 * Math.PI);
+        this.ay_ = (ay + STEP_Y) % (2 * Math.PI);
+        this.az_ = (az + STEP_Z) % (2 * Math.PI);
     }
 
     // perspective projection of a camera space point on the screen (corners and grid points alike)

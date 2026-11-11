@@ -12,7 +12,7 @@ The effect is a Glenz vector: a spinning cube made of checkered glass, in front 
 Where faces overlap, the picture is seen through two layers of glass.
 
 The cube is made of 8 corners and 6 square faces. For each frame, the corners are rotated around the X, Y and Z axes,
-each axis with a different speed (1, 2 and 3 degrees per frame). The cube centre also drifts slowly on two sine waves
+each axis with a different speed (0.5, 1 and 1.5 degrees per frame). The cube centre also drifts slowly on two sine waves
 (in x and y only, so it always stays in front of the camera). The corners are then projected on the screen:
 
 ```javascript
