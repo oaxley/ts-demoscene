@@ -12,6 +12,15 @@ import { Point2D, Point3D } from "library/core/interfaces";
 import { perspective } from "library/maths/projection";
 import { isClockwise } from "library/maths/mesh";
 import { torusMesh, reflect, sphereUV, envDirection } from "../../files/effects/ts-mirror/src/torus";
+import {
+    floorColor,
+    drawFloor,
+    buildEnvMap,
+    SKY_COLOR,
+    TILE,
+    HORIZON,
+    FLOOR_Y,
+} from "../../files/effects/ts-mirror/src/floor";
 
 //----- helpers
 const R = 60;
@@ -138,5 +147,63 @@ describe("ts-mirror torus", () => {
         }
         expect(checked).toBeGreaterThan(900);
         expect(envDirection(0, 0, d)).toBe(false);
+    });
+});
+
+describe("ts-mirror floor", () => {
+    test("checker alternates and has no double column at x = 0", () => {
+        expect(floorColor(1, 400, 0)).not.toBe(floorColor(TILE + 1, 400, 0));
+        expect(floorColor(-1, 400, 0)).not.toBe(floorColor(1, 400, 0));
+        expect(floorColor(1, 400, 0)).toBe(floorColor(1, 400, 2 * TILE));
+    });
+
+    test("fog toward the sky", () => {
+        expect(floorColor(0, 1e7, 0)).toBe(SKY_COLOR);
+        expect(floorColor(0, Infinity, 0)).toBe(SKY_COLOR);
+        expect(floorColor(0, 400, 0)).not.toBe(SKY_COLOR);
+    });
+
+    test("floor behind the camera stays a valid fogged colour", () => {
+        // same fog as in front, and the checker still alternates
+        const front = floorColor(1, 400, 0);
+        const back = floorColor(1, -400, 0);
+        const lum = (c: number) => (c & 0xff) + ((c >>> 8) & 0xff) + ((c >>> 16) & 0xff);
+        expect([lum(back), lum(floorColor(TILE + 1, -400, 0))].sort()).toEqual(
+            [lum(front), lum(floorColor(TILE + 1, 400, 0))].sort(),
+        );
+    });
+
+    test("drawFloor fills the screen", () => {
+        const dst = new Uint32Array(640 * 480);
+        drawFloor(dst, 640, 480, 0);
+        for (let i = 0; i < dst.length; i++) {
+            if (dst[i] === 0 || dst[i] >>> 24 !== 0xff) {
+                throw new Error(`bad pixel ${i}: ${dst[i].toString(16)}`);
+            }
+        }
+        const row = (y: number) => dst.subarray(y * 640, (y + 1) * 640);
+        expect(row(HORIZON).every((c) => c === SKY_COLOR)).toBe(true);
+        expect(new Set(row(479)).size).toBeGreaterThan(1);
+    });
+
+    test("scroll moves the floor toward the viewer", () => {
+        const bottom = (scroll: number) => {
+            const dst = new Uint32Array(640 * 480);
+            drawFloor(dst, 640, 480, scroll);
+            return Array.from(dst.subarray(479 * 640));
+        };
+        expect(bottom(TILE)).not.toEqual(bottom(0));
+        expect(bottom(2 * TILE)).toEqual(bottom(0));
+    });
+
+    test("env map: centre is floor under the torus, rim is sky", () => {
+        const map = new Uint32Array(256 * 256);
+        buildEnvMap(map, 0, 83, 500, 0);
+        const d = v3(0, 0, 0);
+        envDirection(128, 128, d);
+        const t = (FLOOR_Y - 83) / d.y;
+        expect(map[(128 << 8) | 128]).toBe(floorColor(d.x * t, 500 + d.z * t, 0));
+        expect(map[0]).toBe(SKY_COLOR);
+        expect(map[(2 << 8) | 128]).toBe(SKY_COLOR);
     });
 });
