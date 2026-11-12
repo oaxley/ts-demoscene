@@ -19,8 +19,8 @@ A screen row below the horizon always sees the floor at the same depth, so the f
 by row:
 
 ```javascript
-z = FLOOR_Y * ZOOM / (y - HORIZON); // depth of the row
-x = (screen_x - width / 2) * z / ZOOM; // linear along the row
+z = (FLOOR_Y * ZOOM) / (y - HORIZON); // depth of the row
+x = ((screen_x - width / 2) * z) / ZOOM; // linear along the row
 ```
 
 The squares scroll toward the viewer (an offset is added to `z`), and the colour fades into the sky
@@ -54,8 +54,8 @@ points straight down:
 
 ```javascript
 m = sqrt(2 * (1 + r.y));
-u = 128 + 127 * r.x / m;
-v = 128 + 127 * r.z / m;
+u = 128 + (127 * r.x) / m;
+v = 128 + (127 * r.z) / m;
 ```
 
 The centre of the map is the floor right under the torus, the horizon is a circle of radius
