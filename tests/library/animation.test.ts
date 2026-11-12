@@ -6,7 +6,7 @@
  */
 
 //----- imports
-import { describe, test, expect } from "vitest";
+import { describe, test, expect, vi } from "vitest";
 
 import { IAnimation } from "library/core/animation";
 import { Display } from "library/core/display";
@@ -37,6 +37,19 @@ class Probe extends IAnimation {
     protected render(time: number): void {
         this.calls.push(`r${time}`);
     }
+}
+
+// only defines update(): render() must default to drawing the back-buffer
+class UpdateOnly extends IAnimation {
+    constructor() {
+        super("update-only", new Display(new FakeCanvas(4, 4) as unknown as HTMLCanvasElement));
+    }
+
+    public get display(): Display {
+        return this.display_;
+    }
+
+    protected update(): void {}
 }
 
 //----- tests
@@ -83,5 +96,14 @@ describe("IAnimation", () => {
             a.run(t);
         }
         expect(a.calls.filter((c) => c[0] == "u")).toEqual(["u41", "u82", "u200"]);
+    });
+
+    test("render() draws the back-buffer by default", () => {
+        const a = new UpdateOnly();
+        const draw = vi.spyOn(a.display, "draw");
+        a.setup();
+        a.run(1);
+        a.run(2);
+        expect(draw).toHaveBeenCalledTimes(2);
     });
 });

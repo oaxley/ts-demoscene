@@ -9,7 +9,8 @@
  *                  animation; a click on the window pauses/resumes it
  *      run(time) : called on every frame; when the animation is running,
  *                  calls update(time) then render(time) and increments the
- *                  frames counter. If a frame rate is given to the
+ *                  frames counter. render() draws the back-buffer on the
+ *                  screen by default. If a frame rate is given to the
  *                  constructor, frames are limited to this rate.
  *      cleanup() : nothing by default
  */
@@ -127,6 +128,8 @@ export abstract class IAnimation extends IStateTask {
     // update the animation
     protected abstract update(time: number): void;
 
-    // render the animation on the screen
-    protected abstract render(time: number): void;
+    // render the animation on the screen (default: flip the back-buffer)
+    protected render(_time: number): void {
+        this.display_.draw();
+    }
 }

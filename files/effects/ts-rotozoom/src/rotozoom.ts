@@ -82,10 +82,4 @@ export class Rotozoom extends IAnimation {
         // increase the rotation angle
         this.angle_ = (this.angle_ + 1) % 360;
     }
-
-    // render the animation on screen
-    protected render(): void {
-        // flip the back-buffer onto the screen
-        this.display_.draw();
-    }
 }

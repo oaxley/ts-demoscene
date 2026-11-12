@@ -84,10 +84,4 @@ export class Plasma extends IAnimation {
             }
         }
     }
-
-    // render the animation on screen
-    protected render(): void {
-        // flip the back-buffer onto the screen
-        this.display_.draw();
-    }
 }

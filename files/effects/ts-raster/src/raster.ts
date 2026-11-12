@@ -124,10 +124,4 @@ export class RasterBars extends IAnimation {
         const xpos = this.display_.width - this.image_.width;
         this.display_.surface.blend({ x: xpos, y: 0 }, this.image_);
     }
-
-    // render the animation
-    protected render(): void {
-        // flip the back-buffer onto the screen
-        this.display_.draw();
-    }
 }

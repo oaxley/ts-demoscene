@@ -128,10 +128,4 @@ export class Tunnel extends IAnimation {
             }
         }
     }
-
-    // render the animation on the screen
-    protected render(): void {
-        // flip the back-buffer onto the screen
-        this.display_.draw();
-    }
 }

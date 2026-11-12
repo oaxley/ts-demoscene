@@ -254,10 +254,4 @@ export class Smoke extends IAnimation {
         const t = this.frames_ / 200;
         this.drawTrails(t);
     }
-
-    // render the animation on the screen
-    protected render(): void {
-        // flip the back-buffer onto the screen
-        this.display_.draw();
-    }
 }

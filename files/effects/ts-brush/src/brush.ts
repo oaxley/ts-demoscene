@@ -346,9 +346,4 @@ export class Brush extends IAnimation {
             this.paint(pen, BRUSH_SIZE, INK_ALPHA);
         }
     }
-
-    // render the animation on the screen
-    protected render(): void {
-        this.display_.draw();
-    }
 }
