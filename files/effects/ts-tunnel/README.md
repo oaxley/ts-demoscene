@@ -8,14 +8,16 @@
 
 ## **Algorithm**
 
-We need at least two arrays:
+The camera flies inside a tube of radius 1 along the z axis.
 
-- distance: contains the distance from each pixels to the center of the screen.
-- angle: contains the angle from the pixel to the center of the screen.
-
-For each frame, we go through all the pixels, grab the corresponding distance / angle and
-lookup in the texture to get the correct color.  
-If we add an offset that moves with time, then the texture is rotated inside the tunnel.
+- On a coarse grid (one point every 8 pixels), a ray is cast from the camera to the wall of the tube.
+  The hit point gives the texture coordinates (angle around the tube, depth) and the light:
+  fog that darkens the walls with the depth, and a glow that grows towards the end of the tunnel.
+- Inside each 8x8 block the values are interpolated, so each pixel is only a texture lookup and a shade.
+- The camera drifts away from the axis and looks left / right / up / down (with a slow roll):
+  the near walls and the end of the tunnel move differently, which gives the depth and the steering.
+- The image is reduced to a 128x128 tile and mirrored into a seamless 256x256 texture, so it wraps
+  around and along the tube without any seam.
 
 ## **License**
 
