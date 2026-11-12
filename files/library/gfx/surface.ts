@@ -158,6 +158,11 @@ export class Surface {
         this.framebuffer_!.data32.fill(0);
     }
 
+    // fill the surface with a colour (clear() leaves transparent pixels)
+    public fill(c: RGBA | number): void {
+        this.framebuffer_!.data32.fill(c instanceof RGBA ? c.uint32 : c >>> 0);
+    }
+
     // copy from another surface
     public copy(other: Surface): void {
         this.create(other.width_, other.height_);

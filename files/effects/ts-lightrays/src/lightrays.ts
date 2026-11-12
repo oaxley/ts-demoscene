@@ -15,6 +15,7 @@ import { Point2D } from "library/core/interfaces";
 import { RGBA } from "library/color/RGBA";
 import { mixRGB } from "library/color/gradient";
 import { Surface } from "library/gfx/surface";
+import { BAYER4, redChannel } from "library/gfx/pixels";
 
 //----- globals
 export const FPS = 25;
@@ -37,9 +38,6 @@ const WHITE = [0xff, 0xf0, 0xd2]; // warm white
 const LETTER = RGBA.toUInt32(0x0a, 0x0a, 0x0e);
 const EXPOSURE = 1.6; // ray brightness multiplier
 
-// 4x4 ordered dither: start offset of the samples, hides the steps between them
-const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5].map((v) => (v + 0.5) / 16);
-
 //----- functions
 
 /* text mask from the mask image (red channel > 127 = letter), which must have the screen size
@@ -48,13 +46,9 @@ const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5].map((v) => 
  *      1 for a letter pixel, 0 otherwise
  */
 export function maskFrom(image: Surface, w: number, h: number): Uint8Array {
-    if (image.width !== w || image.height !== h) {
-        throw new Error(`Mask is ${image.width}x${image.height}, expected ${w}x${h}.`);
-    }
-    const pixels = image.data32;
-    const mask = new Uint8Array(w * h);
+    const mask = redChannel(image, w, h, "Mask");
     for (let i = 0; i < mask.length; i++) {
-        mask[i] = (pixels[i] & 0xff) > 127 ? 1 : 0;
+        mask[i] = mask[i] > 127 ? 1 : 0;
     }
     return mask;
 }
@@ -155,7 +149,8 @@ export function radialBlur(src: Uint8Array, w: number, h: number, lx: number, ly
             // step toward the light
             const sx = ((lx - x) * DENSITY) / SAMPLES;
             const sy = ((ly - y) * DENSITY) / SAMPLES;
-            const jitter = BAYER[((y & 3) << 2) | (x & 3)];
+            // ordered dither: start offset of the samples, hides the steps between them
+            const jitter = BAYER4[((y & 3) << 2) | (x & 3)];
             let px = x + 0.5 + sx * jitter;
             let py = y + 0.5 + sy * jitter;
             let sum = 0;

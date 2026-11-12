@@ -15,6 +15,7 @@ import { Color } from "library/color/color";
 import { RGBA } from "library/color/RGBA";
 
 import { Surface } from "library/gfx/surface";
+import { applyPalette, redChannel } from "library/gfx/pixels";
 
 //----- globals
 export const SPOT_SIZE = 512; // light spot (environment map) size
@@ -26,17 +27,7 @@ const DEPTH = 2; // relief depth (slope multiplier)
 //----- functions
 // heights from the height map image (grey: red channel), which must have the screen size
 export function heights(image: Surface, w: number, h: number): Uint8Array {
-    if (image.width !== w || image.height !== h) {
-        throw new Error(`Height map is ${image.width}x${image.height}, expected ${w}x${h}.`);
-    }
-
-    const pixels = image.data32;
-    const map = new Uint8Array(w * h);
-    for (let i = 0; i < map.length; i++) {
-        map[i] = pixels[i] & 0xff;
-    }
-
-    return map;
+    return redChannel(image, w, h, "Height map");
 }
 
 /* blur a height map (box blur 3x3, repeated)
@@ -219,13 +210,7 @@ export class Bump extends IAnimation {
 
     // render the animation on screen
     protected render(): void {
-        const lut = this.palette_.toUint32Array();
-        const light = this.light_;
-        const dst = this.display_.surface.data32;
-
-        for (let i = 0; i < light.length; i++) {
-            dst[i] = lut[light[i]];
-        }
+        applyPalette(this.light_, this.palette_.toUint32Array(), this.display_.surface.data32);
 
         // flip the back-buffer onto the screen
         this.display_.draw();

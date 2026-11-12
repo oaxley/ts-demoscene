@@ -12,14 +12,12 @@ import { Surface } from "library/gfx/surface";
 import { Point2D } from "library/core/interfaces";
 import { lerp, smoothstep } from "library/maths/utils";
 import { RGBA } from "library/color/RGBA";
+import { BAYER4 } from "library/gfx/pixels";
 
 //----- globals
 const EDGE_SAMPLE = 8; // background columns used to compute the fill color
 const EDGE_FADE = 96; // background columns faded into the fill color
 const EDGE_SMOOTH = 24; // vertical smoothing radius of the fill color (lines)
-
-// 4x4 ordered dithering thresholds (to round the very dark gradient without banding)
-const BAYER4 = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5].map((v) => (v + 0.5) / 16);
 
 //----- interfaces
 // particule parameters

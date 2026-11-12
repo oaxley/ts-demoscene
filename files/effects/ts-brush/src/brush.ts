@@ -15,6 +15,7 @@ import { IAnimation } from "library/core/animation";
 import { Display } from "library/core/display";
 import { Point2D } from "library/core/interfaces";
 import { RGBA } from "library/color/RGBA";
+import { fadeToColor } from "library/gfx/pixels";
 import { Stroke, layoutWord, WORD, KANJI_GRID } from "./kanji";
 import { samplePath } from "library/maths/svgpath";
 import { smoothstep } from "library/maths/utils";
@@ -303,22 +304,7 @@ export class Brush extends IAnimation {
             return;
         }
 
-        const a = Math.round(256 / remaining);
-        const pr = PAPER & 0xff;
-        const pg = (PAPER >>> 8) & 0xff;
-        const pb = (PAPER >>> 16) & 0xff;
-        for (let i = 0; i < data32.length; i++) {
-            const d = data32[i];
-            const r = d & 0xff;
-            const g = (d >>> 8) & 0xff;
-            const b = (d >>> 16) & 0xff;
-            data32[i] =
-                (0xff000000 |
-                    ((b + (((pb - b) * a) >> 8)) << 16) |
-                    ((g + (((pg - g) * a) >> 8)) << 8) |
-                    (r + (((pr - r) * a) >> 8))) >>>
-                0;
-        }
+        fadeToColor(data32, PAPER, Math.round(256 / remaining));
     }
 
     // update the animation

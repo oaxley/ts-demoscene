@@ -14,6 +14,7 @@ import { Color } from "library/color/color";
 import { RGBA } from "library/color/RGBA";
 import { Point2D, Point3D } from "library/core/interfaces";
 import { bresenham } from "library/gfx/bresenham";
+import { applyPalette } from "library/gfx/pixels";
 import { TrigTables, projectSameAngle } from "library/maths/projection";
 
 //----- globals
@@ -214,12 +215,7 @@ export class Flames extends IAnimation {
     // render the animation on the screen
     protected render(): void {
         // copy the flames
-        const lut = this.palette_.toUint32Array();
-        const flames = this.flames_;
-        const data32 = this.display_.surface.data32;
-        for (let i = 0; i < flames.length; i++) {
-            data32[i] = lut[flames[i]];
-        }
+        applyPalette(this.flames_, this.palette_.toUint32Array(), this.display_.surface.data32);
 
         // flip the back-buffer onto the screen
         this.display_.draw();

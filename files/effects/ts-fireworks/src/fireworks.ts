@@ -123,9 +123,7 @@ export class Fireworks extends IAnimation {
         const l = this.layout_;
 
         // opaque black background (clear() leaves transparent pixels)
-        for (let y = 0; y < this.height_; y++) {
-            s.hline({ x: 0, y: y }, { x: this.width_ - 1, y: y }, this.black_);
-        }
+        s.fill(this.black_);
 
         // particles first, so the sprite covers them where it is opaque and they show through its transparent parts
         const p = this.particles_;

@@ -13,10 +13,10 @@
 import { IAnimation } from "library/core/animation";
 import { Display } from "library/core/display";
 
-import { RGBA } from "library/color/RGBA";
 import { verticalGradient } from "library/color/gradient";
 
 import { Surface } from "library/gfx/surface";
+import { mixToBuffer } from "library/gfx/pixels";
 import { TEXTURE_SIZE, TexVertex, drawTexturedPolygon } from "library/gfx/texture";
 import { Noise } from "library/maths/noise";
 
@@ -230,7 +230,7 @@ export class Flag extends IAnimation {
         const frame = this.frames_ % CYCLE_FRAMES;
         const fade = Math.min(frame + 1, CYCLE_FRAMES - frame) / FADE_FRAMES;
         if (fade < 1) {
-            this.fade(dst, fade);
+            mixToBuffer(dst, this.background_, Math.round(Math.max(0, fade) * 256));
         }
 
         // flip the back-buffer onto the screen
@@ -290,20 +290,6 @@ export class Flag extends IAnimation {
                 tri[2] = quad[3];
                 drawTexturedPolygon(dst, this.width_, this.height_, tri, texture, shade);
             }
-        }
-    }
-
-    // blend the frame toward the background: t = 1 leaves the frame, t = 0 gives the background
-    private fade(dst: Uint32Array, t: number): void {
-        const bg = this.background_;
-        const k = Math.round(Math.max(0, t) * 256);
-        for (let i = 0; i < dst.length; i++) {
-            const p = dst[i];
-            const q = bg[i];
-            const r = (q & 0xff) + ((((p & 0xff) - (q & 0xff)) * k) >> 8);
-            const g = ((q >> 8) & 0xff) + (((((p >> 8) & 0xff) - ((q >> 8) & 0xff)) * k) >> 8);
-            const b = ((q >> 16) & 0xff) + (((((p >> 16) & 0xff) - ((q >> 16) & 0xff)) * k) >> 8);
-            dst[i] = RGBA.toUInt32(r, g, b);
         }
     }
 }
