@@ -31,7 +31,7 @@ export const TILE = 60; // checker square size (world units)
 export const FOG = 1500; // floor light: exp(-distance / FOG), mixed toward the sky
 export const MIRROR_FOG = 600; // shorter fog in the mirror: the 256x256 map can't show far squares
 
-export const SKY: [number, number, number] = [24, 40, 110]; // sky and fog colour
+export const SKY: [number, number, number] = [105, 135, 175]; // sky and fog colour
 export const CHECK_A: [number, number, number] = [230, 230, 240]; // checker colours
 export const CHECK_B: [number, number, number] = [0, 0, 0];
 
