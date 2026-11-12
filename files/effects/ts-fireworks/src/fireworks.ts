@@ -127,24 +127,19 @@ export class Fireworks extends IAnimation {
             s.hline({ x: 0, y: y }, { x: this.width_ - 1, y: y }, this.black_);
         }
 
-        // sprite, pinned bottom-left
-        if (l.spriteW > 0 && l.spriteH > 0) {
-            s.blend({ x: l.spriteX, y: l.spriteY }, this.sprite_, undefined, 1.0);
-        }
-
-        // particles on the right half only
-        const half = this.width_ / 2;
+        // particles first, so the sprite covers them where it is opaque and they show through its transparent parts
         const p = this.particles_;
         for (let i = 0; i < p.count; i++) {
-            if (p.x[i] < half || p.x[i] >= this.width_) {
-                continue;
-            }
-
             if (p.kind[i] === 0) {
                 s.disc(p.x[i], p.y[i], ROCKET_SIZE, ROCKET_COLOR);
             } else {
                 s.disc(p.x[i], p.y[i], SPARK_SIZE, p.color[i], Math.min(1, 2 * p.life[i]));
             }
+        }
+
+        // sprite, pinned bottom-left
+        if (l.spriteW > 0 && l.spriteH > 0) {
+            s.blend({ x: l.spriteX, y: l.spriteY }, this.sprite_, undefined, 1.0);
         }
 
         // flip the back-buffer onto the screen

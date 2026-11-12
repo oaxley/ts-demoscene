@@ -108,7 +108,79 @@ describe("ts-fireworks effect", () => {
         expect(px(639, 479)).toBe(0);
     });
 
-    test("particles stay on the right half after 200 frames", async () => {
+    test("a spark on the left half, outside the sprite, is drawn", async () => {
+        const { FakeCanvas } = await import("../harness/dom");
+        const { Display } = await import("library/core/display");
+        const { Fireworks } = await import("../../files/effects/ts-fireworks/src/fireworks");
+
+        const canvas = new FakeCanvas(640, 480);
+        const display = new Display(canvas as unknown as HTMLCanvasElement);
+        const fx = new Fireworks(display) as unknown as {
+            run: (t: number) => void;
+            toggle: () => void;
+            particles_: {
+                burst: (x: number, y: number, n: number, c: number) => void;
+                vx: Float32Array;
+                vy: Float32Array;
+            };
+        };
+        fx.toggle();
+        fx.run(0);
+        fx.particles_.burst(100, 20, 1, 0xffffff);
+        fx.particles_.vx[0] = 0;
+        fx.particles_.vy[0] = 0;
+        fx.run(50);
+
+        expect(display.surface.getPixel(100, 20).uint32 & 0xffffff).not.toBe(0);
+    });
+
+    test("a spark shows through the transparent part of the sprite", async () => {
+        const { FakeCanvas } = await import("../harness/dom");
+        const { Display } = await import("library/core/display");
+        const { Fireworks } = await import("../../files/effects/ts-fireworks/src/fireworks");
+
+        const canvas = new FakeCanvas(640, 480);
+        const display = new Display(canvas as unknown as HTMLCanvasElement);
+        const fx = new Fireworks(display) as unknown as {
+            setup: () => void;
+            run: (t: number) => void;
+            toggle: () => void;
+            isAnimated: boolean;
+            layout_: { spriteX: number; spriteY: number; spriteW: number; spriteH: number };
+            sprite_: { width: number; data32: Uint32Array };
+            particles_: {
+                burst: (x: number, y: number, n: number, c: number) => void;
+                vx: Float32Array;
+                vy: Float32Array;
+            };
+        };
+        fx.setup();
+        for (let i = 0; i < 200 && !fx.isAnimated; i++) {
+            await new Promise((resolve) => setTimeout(resolve, 0));
+        }
+
+        // find a fully transparent sprite pixel and put a spark on it
+        const l = fx.layout_;
+        let hole: { x: number; y: number } | undefined;
+        for (let y = 0; y < l.spriteH && !hole; y++) {
+            for (let x = 0; x < l.spriteW && !hole; x++) {
+                if ((fx.sprite_.data32[y * fx.sprite_.width + x] & 0xff000000) === 0) {
+                    hole = { x: l.spriteX + x, y: l.spriteY + y };
+                }
+            }
+        }
+        expect(hole).toBeDefined();
+
+        fx.run(0);
+        fx.particles_.burst(hole!.x, hole!.y, 1, 0xffffff);
+        fx.particles_.vx[0] = 0;
+        fx.particles_.vy[0] = 0;
+        fx.run(50);
+
+        expect(display.surface.getPixel(hole!.x, hole!.y).uint32 & 0xffffff).not.toBe(0);
+    });
+
+    test("particles spawn on the right half after 200 frames", async () => {
         const { FakeCanvas } = await import("../harness/dom");
         const { Display } = await import("library/core/display");
         const { Fireworks } = await import("../../files/effects/ts-fireworks/src/fireworks");
