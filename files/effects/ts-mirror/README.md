@@ -27,7 +27,7 @@ The squares scroll toward the viewer (an offset is added to `z`), and the colour
 colour with the depth (fog, `exp(-z / FOG)`), so the floor melts into the sky at the horizon.
 
 Far away a pixel covers several squares, and taking only one of them gives flickering noise.
-Instead, the checker is _box filtered_. Each pixel gets the share of blue squares under its
+Instead, the checker is _box filtered_. Each pixel gets the share of black squares under its
 footprint, computed exactly with the integral of the square wave, and the two colours are mixed
 by that share.
 

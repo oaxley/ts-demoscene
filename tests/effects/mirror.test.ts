@@ -249,6 +249,7 @@ describe("ts-mirror floor", () => {
         // an isolated texel is brighter (or darker) than both its neighbours by a lot: aliasing
         const map = new Uint32Array(256 * 256);
         const red = (u: number, v: number) => map[(v << 8) | u] & 0xff;
+        const jump = 0.2 * Math.abs(CHECK_A[0] - CHECK_B[0]); // 20% of the checker contrast
         for (const scroll of [0, 17]) {
             buildEnvMap(map, 0, 83, 500, scroll);
             let isolated = 0;
@@ -263,7 +264,7 @@ describe("ts-mirror floor", () => {
                         [red(u - 1, v), red(u + 1, v)],
                         [red(u, v - 1), red(u, v + 1)],
                     ]) {
-                        if (Math.min(c - a, c - b) > 40 || Math.min(a - c, b - c) > 40) {
+                        if (Math.min(c - a, c - b) > jump || Math.min(a - c, b - c) > jump) {
                             isolated++;
                             break;
                         }
@@ -365,22 +366,22 @@ describe("ts-mirror effect", () => {
         expect(px(a, 5, 470)).not.toEqual(sky);
 
         // inside the torus bounding box (frame 29), well above the floor horizon area:
-        // both checker hues show (white-ish and blue-dominant), reflected on the torus
+        // both checker hues show (white-ish and black), reflected on the torus
         const c = torusPath(29);
         const cx = Math.round(WIDTH / 2 + (c.x * ZOOM) / c.z);
         const cy = Math.round(HORIZON + (c.y * ZOOM) / c.z);
         const e = Math.round(((MAJOR_R + MINOR_R) * ZOOM) / c.z);
         let white = 0;
-        let blue = 0;
+        let black = 0;
         for (let y = cy - e; y < cy + e; y++) {
             for (let x = cx - e; x < cx + e; x++) {
                 const [r, g, bl] = px(a, x, y);
                 if (r > 150 && g > 150 && bl > 150) white++;
-                if (bl > 120 && bl > r + 80) blue++;
+                if (r < 30 && g < 30 && bl < 30) black++;
             }
         }
         expect(white).toBeGreaterThan(20);
-        expect(blue).toBeGreaterThan(20);
+        expect(black).toBeGreaterThan(20);
         expect(Buffer.from(a).equals(Buffer.from(b))).toBe(false);
 
         // the mirror reflects less than 100%: the sky seen in the torus is darker than the sky,
@@ -398,7 +399,5 @@ describe("ts-mirror effect", () => {
             }
         }
         expect(darkSky).toBeGreaterThan(20);
-        void CHECK_A;
-        void CHECK_B;
     });
 });

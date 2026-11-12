@@ -33,7 +33,7 @@ export const MIRROR_FOG = 600; // shorter fog in the mirror: the 256x256 map can
 
 export const SKY: [number, number, number] = [24, 40, 110]; // sky and fog colour
 export const CHECK_A: [number, number, number] = [230, 230, 240]; // checker colours
-export const CHECK_B: [number, number, number] = [30, 60, 200];
+export const CHECK_B: [number, number, number] = [0, 0, 0];
 
 export const SKY_COLOR = RGBA.toUInt32(SKY[0], SKY[1], SKY[2]);
 
