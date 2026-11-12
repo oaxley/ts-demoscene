@@ -35,8 +35,7 @@ export class Fireworks extends IAnimation {
     private rng_: Rng; // seeded random generator
     private particles_: Particles; // rockets and sparks
     private apex_: number[]; // positions (x, y pairs) of the rockets reaching their apex
-    private white_: RGBA; // colour of the band
-    private black_: RGBA; // background of the right half
+    private black_: RGBA; // background
 
     //----- methods
     // constructor
@@ -44,11 +43,10 @@ export class Fireworks extends IAnimation {
         super("fireworks", display, FPS);
 
         this.sprite_ = new Surface();
-        this.layout_ = layout(this.width_, this.height_, 0, 0);
+        this.layout_ = layout(this.height_, 0, 0);
         this.rng_ = new Rng(SEED);
         this.particles_ = new Particles(MAX_PARTICLES, this.rng_);
         this.apex_ = [];
-        this.white_ = new RGBA(255, 255, 255);
         this.black_ = new RGBA(0, 0, 0);
     }
 
@@ -63,7 +61,7 @@ export class Fireworks extends IAnimation {
     // compute the layout from the sprite size (0x0 if it could not be loaded), then scale the sprite to it
     private computeLayout(): void {
         const src = this.sprite_;
-        this.layout_ = layout(this.width_, this.height_, src.width, src.height);
+        this.layout_ = layout(this.height_, src.width, src.height);
 
         const { spriteW, spriteH } = this.layout_;
         if (spriteW === src.width && spriteH === src.height) {
@@ -124,13 +122,12 @@ export class Fireworks extends IAnimation {
         const s = this.display_.surface;
         const l = this.layout_;
 
-        // opaque black background (clear() leaves transparent pixels), then the white band on the left
+        // opaque black background (clear() leaves transparent pixels)
         for (let y = 0; y < this.height_; y++) {
             s.hline({ x: 0, y: y }, { x: this.width_ - 1, y: y }, this.black_);
-            s.hline({ x: 0, y: y }, { x: l.bandWidth - 1, y: y }, this.white_);
         }
 
-        // sprite on the band
+        // sprite, pinned bottom-left
         if (l.spriteW > 0 && l.spriteH > 0) {
             s.blend({ x: l.spriteX, y: l.spriteY }, this.sprite_, undefined, 1.0);
         }

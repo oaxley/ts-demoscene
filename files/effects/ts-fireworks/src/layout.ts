@@ -2,15 +2,14 @@
  * @file    layout.ts
  * @author  Sebastien LEGRAND
  *
- * @brief   Layout of the white band and the sprite on the left half
+ * @brief   Layout of the sprite on the left half (pinned bottom-left)
  */
 
 //----- globals
-export const BAND_MARGIN = 20;
+export const SPRITE_HEIGHT_RATIO = 0.9; // the sprite fills 90% of the screen height
 
 //----- interfaces
 export interface Layout {
-    bandWidth: number;
     spriteX: number;
     spriteY: number;
     spriteW: number;
@@ -18,18 +17,15 @@ export interface Layout {
 }
 
 //----- functions
-// sprite scaled to fit the screen height and the left half (minus margins), centred in the band
-export function layout(screenW: number, screenH: number, spriteW: number, spriteH: number): Layout {
-    const half = screenW / 2;
-    const scale = Math.min(1, screenH / spriteH, (half - 2 * BAND_MARGIN) / spriteW);
+// sprite at 90% of the screen height (aspect kept), pinned bottom-left
+export function layout(screenH: number, spriteW: number, spriteH: number): Layout {
+    const scale = (screenH * SPRITE_HEIGHT_RATIO) / spriteH;
     const w = Math.round(spriteW * scale);
     const h = Math.round(spriteH * scale);
-    const bandWidth = w + 2 * BAND_MARGIN;
 
     return {
-        bandWidth: bandWidth,
-        spriteX: Math.floor((half - bandWidth) / 2) + BAND_MARGIN,
-        spriteY: Math.floor((screenH - h) / 2),
+        spriteX: 0,
+        spriteY: screenH - h,
         spriteW: w,
         spriteH: h,
     };

@@ -13,24 +13,26 @@ import { layout } from "../../files/effects/ts-fireworks/src/layout";
 
 //----- tests
 describe("ts-fireworks layout", () => {
-    test("small sprite: drawn at native size, centred in the left half", () => {
-        const l = layout(640, 480, 100, 80);
-        expect(l.spriteW).toBe(100);
-        expect(l.spriteH).toBe(80);
-        expect(l.spriteX).toBe(110);
-        expect(l.spriteY).toBe(200);
-        expect(l.bandWidth).toBe(140);
+    test("sprite is 90% of the screen height, pinned to the bottom-left", () => {
+        const l = layout(480, 200, 400);
+        expect(l.spriteH).toBe(432);
+        expect(l.spriteW).toBe(216);
+        expect(l.spriteX).toBe(0);
+        expect(l.spriteY).toBe(480 - 432);
     });
 
-    test("sprite wider than the left half: scaled to fit, aspect kept", () => {
-        const l = layout(640, 480, 800, 400);
-        expect(l.spriteW).toBeLessThanOrEqual(320 - 40);
-        expect(l.spriteW / l.spriteH).toBeCloseTo(2, 6);
+    test("wide sprite: height wins, it may run past the left half, aspect kept", () => {
+        const l = layout(480, 640, 400);
+        expect(l.spriteH).toBe(432);
+        expect(l.spriteW).toBe(691);
+        expect(l.spriteY).toBe(480 - 432);
     });
 
-    test("sprite taller than the screen: scaled to the height", () => {
-        const l = layout(640, 480, 100, 960);
-        expect(l.spriteH).toBe(480);
+    test("small sprite: enlarged to 90% of the height too", () => {
+        const l = layout(480, 100, 80);
+        expect(l.spriteH).toBe(432);
+        expect(l.spriteW).toBe(540);
+        expect(l.spriteY).toBe(480 - 432);
     });
 });
 
@@ -86,31 +88,27 @@ describe("ts-fireworks effect", () => {
         expect(EFFECTS["ts-fireworks"]).toBe(Fireworks);
     });
 
-    test("band: white from x=0 to bandWidth-1, not white right after", async () => {
+    test("background: black on the whole screen before the sprite is drawn", async () => {
         const { FakeCanvas } = await import("../harness/dom");
         const { Display } = await import("library/core/display");
         const { Fireworks } = await import("../../files/effects/ts-fireworks/src/fireworks");
 
         const canvas = new FakeCanvas(640, 480);
         const display = new Display(canvas as unknown as HTMLCanvasElement);
-        // no sprite file in the test: the band is laid out from a 0x0 sprite
         const fx = new Fireworks(display) as unknown as {
             run: (t: number) => void;
             toggle: () => void;
-            layout_: { bandWidth: number };
         };
         fx.toggle();
         fx.run(0);
         fx.run(50);
 
-        const band = fx.layout_.bandWidth;
         const px = (x: number, y: number) => display.surface.getPixel(x, y).uint32 & 0xffffff;
-        expect(px(0, 0)).toBe(0xffffff);
-        expect(px(band - 1, 239)).toBe(0xffffff);
-        expect(px(band, 239)).not.toBe(0xffffff);
+        expect(px(0, 0)).toBe(0);
+        expect(px(639, 479)).toBe(0);
     });
 
-    test("no particle over the band after 200 frames", async () => {
+    test("particles stay on the right half after 200 frames", async () => {
         const { FakeCanvas } = await import("../harness/dom");
         const { Display } = await import("library/core/display");
         const { Fireworks } = await import("../../files/effects/ts-fireworks/src/fireworks");
@@ -120,8 +118,7 @@ describe("ts-fireworks effect", () => {
         const fx = new Fireworks(display) as unknown as {
             run: (t: number) => void;
             toggle: () => void;
-            layout_: { bandWidth: number };
-            particles_: { count: number };
+            particles_: { count: number; x: Float32Array };
         };
         fx.toggle();
         let peak = 0;
@@ -130,12 +127,16 @@ describe("ts-fireworks effect", () => {
             peak = Math.max(peak, fx.particles_.count);
         }
         expect(peak).toBeGreaterThan(0);
-        // the whole left half is either the band or the (empty) sprite area
-        const band = fx.layout_.bandWidth;
+
+        // nothing is drawn on the left half outside the sprite's box: no fireworks there
+        const l = (fx as unknown as { layout_: { spriteX: number; spriteY: number; spriteW: number; spriteH: number } })
+            .layout_;
         let stray = 0;
-        for (let x = band; x < 320; x++) {
+        for (let x = 0; x < 320; x++) {
             for (let y = 0; y < 480; y++) {
-                if ((display.surface.getPixel(x, y).uint32 & 0xffffff) !== 0) {
+                const inSprite =
+                    x >= l.spriteX && x < l.spriteX + l.spriteW && y >= l.spriteY && y < l.spriteY + l.spriteH;
+                if (!inSprite && (display.surface.getPixel(x, y).uint32 & 0xffffff) !== 0) {
                     stray++;
                 }
             }
@@ -145,7 +146,7 @@ describe("ts-fireworks effect", () => {
 });
 
 describe("ts-fireworks sprite", () => {
-    test("real sprite stays inside the left half, on the band", async () => {
+    test("real sprite is pinned bottom-left, inside the left half", async () => {
         const { FakeCanvas } = await import("../harness/dom");
         const { Display } = await import("library/core/display");
         const { Fireworks } = await import("../../files/effects/ts-fireworks/src/fireworks");
@@ -155,7 +156,7 @@ describe("ts-fireworks sprite", () => {
         const fx = new Fireworks(display) as unknown as {
             setup: () => void;
             run: (t: number) => void;
-            layout_: { bandWidth: number; spriteW: number; spriteH: number };
+            layout_: { spriteX: number; spriteY: number; spriteW: number; spriteH: number };
             isAnimated: boolean;
         };
         fx.setup();
@@ -173,15 +174,9 @@ describe("ts-fireworks sprite", () => {
             fx.run(1000 + i * 50);
         }
 
-        // the sprite pixels stay inside the band: nothing beyond the band in the left half
-        let spill = 0;
-        for (let x = fx.layout_.bandWidth; x < 320; x++) {
-            for (let y = 0; y < 480; y++) {
-                if ((display.surface.getPixel(x, y).uint32 & 0xffffff) !== 0) {
-                    spill++;
-                }
-            }
-        }
-        expect(spill).toBe(0);
+        // the sprite is 90% of the height and pinned to the bottom-left corner
+        expect(fx.layout_.spriteH).toBe(432);
+        expect(fx.layout_.spriteX).toBe(0);
+        expect(fx.layout_.spriteY + fx.layout_.spriteH).toBe(480);
     });
 });
