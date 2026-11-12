@@ -7,9 +7,6 @@ public/**
 # remove declaration type directory
 types/**
 
-# remove sandbox directory
-files/effects/ts-sandbox/**
-
 # remove temporary directory
 tmp/**
 
@@ -18,3 +15,9 @@ tmp/**
 
 # remove workspace directory (plans, designs, notes)
 workspace/**
+
+# graphify knowledge graph output
+graphify-out/**
+
+# opencode config
+opencode.json
