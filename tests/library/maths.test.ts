@@ -15,6 +15,7 @@ import { Fixed } from "library/maths/fixed";
 import { Mersenne } from "library/maths/mersenne";
 import { rotate, perspective } from "library/maths/projection";
 import { Mulberry32 } from "library/maths/mulberry";
+import { IPrng } from "library/maths/prng";
 import { Point2D } from "library/core/interfaces";
 import { Point3D } from "library/core/interfaces";
 
@@ -201,6 +202,25 @@ describe("shared helpers", () => {
         const c = new Mulberry32(1);
         expect(c.next()).toBe(0.6270739405881613);
         expect(c.next()).toBe(0.002735721180215478);
+    });
+
+    test("Mulberry32 is an IPrng", () => {
+        const g = new Mulberry32(5);
+        expect(g).toBeInstanceOf(IPrng);
+
+        // initialize() restarts the sequence
+        const first = [g.next(), g.next()];
+        g.initialize(5);
+        expect([g.next(), g.next()]).toEqual(first);
+
+        // the IPrng helpers work on top of it
+        g.initialize(1);
+        expect(g.rand()).toBeCloseTo(0.6270739405881613, 9);
+        for (let i = 0; i < 100; i++) {
+            const n = g.randInt(3, 7);
+            expect(Number.isInteger(n) && n >= 3 && n < 7).toBe(true);
+        }
+        expect(Number.isFinite(g.randGaus(0, 1))).toBe(true);
     });
 
     test("perspective", () => {
