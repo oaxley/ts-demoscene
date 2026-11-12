@@ -10,7 +10,7 @@ import { IAnimation } from "library/core/animation";
 import { Display } from "library/core/display";
 import { Point2D, Point3D } from "library/core/interfaces";
 
-import { RGBA } from "library/color/RGBA";
+import { verticalGradient } from "library/color/gradient";
 
 import { Surface } from "library/gfx/surface";
 import { TEXTURE_SIZE, TexVertex, drawTexturedPolygon } from "library/gfx/texture";
@@ -102,19 +102,6 @@ export function faceShade(p: Point3D[], face: number[]): number {
     return Math.min(1, AMBIENT + DIFFUSE * Math.max(0, dot));
 }
 
-// background: vertical gradient from SKY_TOP to SKY_BOTTOM (w * h pixels)
-function gradient(w: number, h: number): Uint32Array {
-    const out = new Uint32Array(w * h);
-
-    for (let y = 0; y < h; y++) {
-        const t = y / (h - 1);
-        const [r, g, b] = SKY_TOP.map((c, i) => Math.round(c + (SKY_BOTTOM[i] - c) * t));
-        out.fill(RGBA.toUInt32(r, g, b), y * w, (y + 1) * w);
-    }
-
-    return out;
-}
-
 // cube centre for a frame: two sines of unrelated frequencies per axis,
 // smooth (no jump, never stops) and never repeating exactly
 export function cubePath(frame: number): Point2D {
@@ -147,7 +134,7 @@ export class Cube extends IAnimation {
         // set the vars
         this.tables_ = new TrigTables();
         this.texture_ = new Surface();
-        this.background_ = gradient(this.width_, this.height_);
+        this.background_ = verticalGradient(this.width_, this.height_, SKY_TOP, SKY_BOTTOM);
 
         this.rotated_ = VERTICES.map(() => ({ x: 0, y: 0, z: 0 }));
         this.projected_ = VERTICES.map(() => ({ x: 0, y: 0 }));

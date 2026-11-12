@@ -15,6 +15,7 @@ import { Color } from "library/color/color";
 import { COLOR_MODEL } from "library/color/basecolor";
 import { Palette } from "library/color/palette";
 import { Surface } from "library/gfx/surface";
+import { mixRGB, verticalGradient } from "library/color/gradient";
 
 //----- tests
 describe("RGBA", () => {
@@ -110,5 +111,23 @@ describe("Surface.blend", () => {
         dst.blend({ x: 0, y: 0 }, src, undefined, 0.5, new RGBA(1, 2, 3));
         expect(RGBA.fromUInt32(dst.data32[0])).toEqual([100, 50, 25, 255]);
         expect(RGBA.fromUInt32(dst.data32[1])).toEqual([0, 0, 0, 255]);
+    });
+});
+
+describe("gradient", () => {
+    test("mixRGB rounds each channel", () => {
+        expect(mixRGB([0, 0, 0], [255, 100, 10], 0.5)).toEqual([128, 50, 5]);
+    });
+
+    test("verticalGradient fills each row with the mixed colour", () => {
+        const g = verticalGradient(2, 3, [0, 16, 96], [0, 0, 0]);
+        expect(Array.from(g)).toEqual([
+            RGBA.toUInt32(0, 16, 96),
+            RGBA.toUInt32(0, 16, 96),
+            RGBA.toUInt32(0, 8, 48),
+            RGBA.toUInt32(0, 8, 48),
+            RGBA.toUInt32(0, 0, 0),
+            RGBA.toUInt32(0, 0, 0),
+        ]);
     });
 });

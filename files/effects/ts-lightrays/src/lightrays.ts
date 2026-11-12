@@ -13,6 +13,7 @@ import { IAnimation } from "library/core/animation";
 import { Display } from "library/core/display";
 import { Point2D } from "library/core/interfaces";
 import { RGBA } from "library/color/RGBA";
+import { mixRGB } from "library/color/gradient";
 import { Surface } from "library/gfx/surface";
 
 //----- globals
@@ -61,10 +62,9 @@ export function maskFrom(image: Surface, w: number, h: number): Uint8Array {
 // palette: background -> orange -> warm white
 function palette(): Uint32Array {
     const lut = new Uint32Array(256);
-    const mix = (a: number[], b: number[], t: number): number[] => a.map((v, k) => Math.round(v + (b[k] - v) * t));
     for (let i = 0; i < 256; i++) {
         const t = i / 255;
-        const c = t < 0.6 ? mix(BACKGROUND, ORANGE, t / 0.6) : mix(ORANGE, WHITE, (t - 0.6) / 0.4);
+        const c = t < 0.6 ? mixRGB(BACKGROUND, ORANGE, t / 0.6) : mixRGB(ORANGE, WHITE, (t - 0.6) / 0.4);
         lut[i] = RGBA.toUInt32(c[0], c[1], c[2]);
     }
     return lut;

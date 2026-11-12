@@ -14,6 +14,7 @@ import { IAnimation } from "library/core/animation";
 import { Display } from "library/core/display";
 
 import { RGBA } from "library/color/RGBA";
+import { verticalGradient } from "library/color/gradient";
 
 import { Surface } from "library/gfx/surface";
 import { TEXTURE_SIZE, TexVertex, drawTexturedPolygon } from "library/gfx/texture";
@@ -162,19 +163,6 @@ export function buildQuad(cloth: Cloth, c: number, r: number, out: TexVertex[], 
     }
 }
 
-// background: vertical gradient from SKY_TOP to SKY_BOTTOM (w * h pixels)
-function gradient(w: number, h: number): Uint32Array {
-    const out = new Uint32Array(w * h);
-
-    for (let y = 0; y < h; y++) {
-        const t = y / (h - 1);
-        const [r, g, b] = SKY_TOP.map((c, i) => Math.round(c + (SKY_BOTTOM[i] - c) * t));
-        out.fill(RGBA.toUInt32(r, g, b), y * w, (y + 1) * w);
-    }
-
-    return out;
-}
-
 //----- class
 export class Flag extends IAnimation {
     //----- members
@@ -193,7 +181,7 @@ export class Flag extends IAnimation {
         super("flag", display, FPS);
 
         this.texture_ = new Surface();
-        this.background_ = gradient(this.width_, this.height_);
+        this.background_ = verticalGradient(this.width_, this.height_, SKY_TOP, SKY_BOTTOM);
         this.noise_ = new Noise.Noise1D(WIND_SEED);
         this.cloth_ = new Cloth(COLS, ROWS, SPACING, { x: POLE_X, y: POLE_Y, z: 0 });
 
