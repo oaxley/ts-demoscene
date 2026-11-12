@@ -196,6 +196,11 @@ describe("shared helpers", () => {
             expect(v).toBeLessThan(1);
         }
         expect(new Mulberry32(2).next()).not.toBe(new Mulberry32(1).next());
+
+        // values of the original fireworks generator (seed 1)
+        const c = new Mulberry32(1);
+        expect(c.next()).toBe(0.6270739405881613);
+        expect(c.next()).toBe(0.002735721180215478);
     });
 
     test("perspective", () => {
