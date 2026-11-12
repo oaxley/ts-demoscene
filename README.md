@@ -40,6 +40,7 @@ An attempt to recreate all the old demoscene effects from the 90s in Typescript 
                 <li><a href="./files/effects/ts-smoke/README.md">Smoke</a></li>
                 <li><a href="./files/effects/ts-sprites/README.md">Sprites</a></li>
                 <li><a href="./files/effects/ts-starfield/README.md">Starfield</a></li>
+                <li><a href="./files/effects/ts-mirror/README.md">Torus Mirror</a></li>
                 <li><a href="./files/effects/ts-tunnel/README.md">Tunnel</a></li>
                 <li><a href="./files/effects/ts-twister/README.md">Twister</a></li>
                 <li><a href="./files/effects/ts-water/README.md">Water</a></li>
