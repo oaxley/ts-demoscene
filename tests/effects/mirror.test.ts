@@ -14,13 +14,24 @@ import { isClockwise } from "library/maths/mesh";
 import { torusMesh, reflect, sphereUV, envDirection } from "../../files/effects/ts-mirror/src/torus";
 import {
     floorColor,
+    checker,
     drawFloor,
     buildEnvMap,
     SKY_COLOR,
     TILE,
     HORIZON,
     FLOOR_Y,
+    FOG,
+    MIRROR_FOG,
+    ZOOM,
+    CHECK_A,
+    CHECK_B,
 } from "../../files/effects/ts-mirror/src/floor";
+import { Mirror, torusPath, isSkyQuad, MAJOR_R, MINOR_R, REFLECTANCE } from "../../files/effects/ts-mirror/src/mirror";
+import { EFFECTS } from "../effects";
+import { Display } from "library/core/display";
+import { FakeCanvas } from "../harness/dom";
+import { WIDTH, HEIGHT } from "../harness/runner";
 
 //----- helpers
 const R = 60;
@@ -198,12 +209,196 @@ describe("ts-mirror floor", () => {
 
     test("env map: centre is floor under the torus, rim is sky", () => {
         const map = new Uint32Array(256 * 256);
-        buildEnvMap(map, 0, 83, 500, 0);
+        // torus above the middle of a square (x = 0.5 TILE, z = 8.5 TILE): no edge under it
+        buildEnvMap(map, 0.5 * TILE, 83, 8.5 * TILE, 0);
         const d = v3(0, 0, 0);
         envDirection(128, 128, d);
         const t = (FLOOR_Y - 83) / d.y;
-        expect(map[(128 << 8) | 128]).toBe(floorColor(d.x * t, 500 + d.z * t, 0));
+        // right under the torus the footprint is tiny: the sharp checker colour (± filtering)
+        const want = floorColor(
+            0.5 * TILE + d.x * t,
+            8.5 * TILE + d.z * t,
+            0,
+            Math.hypot(d.x * t, d.z * t),
+            MIRROR_FOG,
+        );
+        const got = map[(128 << 8) | 128];
+        for (let k = 0; k < 3; k++) {
+            expect(Math.abs(((got >>> (8 * k)) & 0xff) - ((want >>> (8 * k)) & 0xff))).toBeLessThan(16);
+        }
         expect(map[0]).toBe(SKY_COLOR);
         expect(map[(2 << 8) | 128]).toBe(SKY_COLOR);
+    });
+
+    test("filtered checker: exact when sharp, mid grey when the footprint covers many squares", () => {
+        // footprint 0: exactly the checker
+        for (const x of [-130, -1, 1, 59, 61, 200]) {
+            expect(checker(x / TILE, 0.3, 0, 0)).toBe(Math.floor(x / TILE) & 1);
+        }
+        // footprint of 8 squares: the average of both colours
+        expect(checker(0.3, 0.3, 8, 8)).toBeCloseTo(0.5, 6);
+        expect(checker(0.3, 0.3, 8, 0)).toBeCloseTo(0.5, 6);
+        // always in [0, 1]
+        for (let k = 0; k < 50; k++) {
+            const c = checker(k * 0.37, k * 0.91, (k % 7) * 0.3, (k % 5) * 0.4);
+            expect(c >= 0 && c <= 1).toBe(true);
+        }
+    });
+
+    test("env map has no speckle (no isolated texels in the far ring)", () => {
+        // an isolated texel is brighter (or darker) than both its neighbours by a lot: aliasing
+        const map = new Uint32Array(256 * 256);
+        const red = (u: number, v: number) => map[(v << 8) | u] & 0xff;
+        for (const scroll of [0, 17]) {
+            buildEnvMap(map, 0, 83, 500, scroll);
+            let isolated = 0;
+            let n = 0;
+            for (let v = 1; v < 255; v++) {
+                for (let u = 1; u < 255; u++) {
+                    const rho = Math.hypot((u + 0.5 - 128) / 127, (v + 0.5 - 128) / 127);
+                    if (rho < 0.45 || rho >= 0.7) continue;
+                    n++;
+                    const c = red(u, v);
+                    for (const [a, b] of [
+                        [red(u - 1, v), red(u + 1, v)],
+                        [red(u, v - 1), red(u, v + 1)],
+                    ]) {
+                        if (Math.min(c - a, c - b) > 40 || Math.min(a - c, b - c) > 40) {
+                            isolated++;
+                            break;
+                        }
+                    }
+                }
+            }
+            expect(isolated / n).toBeLessThan(0.005);
+        }
+    });
+
+    test("far floor rows blend instead of flickering", () => {
+        // rows whose pixels cover 2 to 3 squares in depth: filtered, the contrast left (relative
+        // to the fogged A / B contrast) is small, instead of whole rows of pure A or pure B
+        const y = HORIZON + Math.round((FLOOR_Y * ZOOM) / 4200);
+        const z = (FLOOR_Y * ZOOM) / (y - HORIZON);
+        const full = Math.abs(CHECK_A[0] - CHECK_B[0]) * Math.exp(-z / FOG);
+        for (const scroll of [0, 13, 29, 41]) {
+            const dst = new Uint32Array(640 * 480);
+            drawFloor(dst, 640, 480, scroll);
+            const red = Array.from(dst.subarray(y * 640, (y + 1) * 640), (c) => c & 0xff);
+            expect((Math.max(...red) - Math.min(...red)) / full).toBeLessThan(0.5);
+        }
+    });
+
+    test("env map fogs far sideways floor points (no aliased checker)", () => {
+        // a ray going right, just below the horizon, hits the floor ~6000 units away sideways
+        const map = new Uint32Array(256 * 256);
+        buildEnvMap(map, 0, 83, 500, 0);
+        const d = v3(1, 0.02, 0);
+        const l = len(d);
+        const uv: Point2D = { x: 0, y: 0 };
+        sphereUV(v3(d.x / l, d.y / l, d.z / l), uv);
+        const c = map[(Math.floor(uv.y) << 8) | Math.floor(uv.x)];
+        const ch = (k: number, s: number) => Math.abs(((c >>> (8 * k)) & 0xff) - ((s >>> (8 * k)) & 0xff));
+        for (let k = 0; k < 3; k++) {
+            expect(ch(k, SKY_COLOR)).toBeLessThan(12);
+        }
+    });
+});
+
+describe("ts-mirror effect", () => {
+    test("registered", () => {
+        expect(EFFECTS["ts-mirror"]).toBe(Mirror);
+    });
+
+    test("path keeps the torus on screen and above the floor", () => {
+        const e = MAJOR_R + MINOR_R;
+        for (let f = 0; f <= 5000; f += 7) {
+            const c = torusPath(f);
+            expect(c.y + e).toBeLessThan(FLOOR_Y);
+            for (const [dx, dy] of [
+                [-e, -e],
+                [e, -e],
+                [e, e],
+                [-e, e],
+            ]) {
+                const z = c.z - e; // nearest depth: largest on screen
+                const sx = WIDTH / 2 + ((c.x + dx) * ZOOM) / z;
+                const sy = HORIZON + ((c.y + dy) * ZOOM) / z;
+                expect(sx >= 0 && sx <= WIDTH && sy >= 0 && sy <= HEIGHT).toBe(true);
+            }
+        }
+    });
+
+    test("sky quads", () => {
+        const up = [v3(0, -1, 0), v3(0.1, -0.99, 0), v3(0, -0.9, 0.43), v3(-0.3, -0.95, 0)];
+        expect(isSkyQuad(up, [0, 1, 2, 3])).toBe(true);
+        const mixed = [...up.slice(0, 3), v3(0, 0.1, 0.99)];
+        expect(isSkyQuad(mixed, [0, 1, 2, 3])).toBe(false);
+    });
+
+    // render n frames, returns the pixels of the last two
+    async function frames(n: number): Promise<Uint8ClampedArray[]> {
+        const canvas = new FakeCanvas(WIDTH, HEIGHT);
+        const display = new Display(canvas as unknown as HTMLCanvasElement);
+        const m = new Mirror(display);
+        m.setup();
+        for (let i = 0; i < 200 && !m.isAnimated; i++) {
+            await new Promise((r) => setTimeout(r, 0));
+        }
+        const out: Uint8ClampedArray[] = [];
+        for (let i = 0; i < n; i++) {
+            m.run(1000 + i * 50);
+            if (i >= n - 2) {
+                out.push(Uint8ClampedArray.from(canvas.getContext("2d").getImageData(0, 0, WIDTH, HEIGHT).data));
+            }
+        }
+        return out;
+    }
+
+    test("frame shows sky, floor and the mirrored torus", async () => {
+        const [a, b] = await frames(31);
+        const px = (d: Uint8ClampedArray, x: number, y: number) => {
+            const i = (y * WIDTH + x) * 4;
+            return [d[i], d[i + 1], d[i + 2]];
+        };
+        const sky = [SKY_COLOR & 0xff, (SKY_COLOR >>> 8) & 0xff, (SKY_COLOR >>> 16) & 0xff];
+        expect(px(a, 5, 5)).toEqual(sky);
+        expect(px(a, 5, 470)).not.toEqual(sky);
+
+        // inside the torus bounding box (frame 29), well above the floor horizon area:
+        // both checker hues show (white-ish and blue-dominant), reflected on the torus
+        const c = torusPath(29);
+        const cx = Math.round(WIDTH / 2 + (c.x * ZOOM) / c.z);
+        const cy = Math.round(HORIZON + (c.y * ZOOM) / c.z);
+        const e = Math.round(((MAJOR_R + MINOR_R) * ZOOM) / c.z);
+        let white = 0;
+        let blue = 0;
+        for (let y = cy - e; y < cy + e; y++) {
+            for (let x = cx - e; x < cx + e; x++) {
+                const [r, g, bl] = px(a, x, y);
+                if (r > 150 && g > 150 && bl > 150) white++;
+                if (bl > 120 && bl > r + 80) blue++;
+            }
+        }
+        expect(white).toBeGreaterThan(20);
+        expect(blue).toBeGreaterThan(20);
+        expect(Buffer.from(a).equals(Buffer.from(b))).toBe(false);
+
+        // the mirror reflects less than 100%: the sky seen in the torus is darker than the sky,
+        // so the torus outline never vanishes against the sky or the fogged floor
+        let darkSky = 0;
+        for (let y = cy - e; y < cy + e; y++) {
+            for (let x = cx - e; x < cx + e; x++) {
+                const [r, g, bl] = px(a, x, y);
+                if (
+                    Math.abs(r - Math.round(sky[0] * REFLECTANCE)) <= 1 &&
+                    Math.abs(bl - Math.round(sky[2] * REFLECTANCE)) <= 1 &&
+                    g < sky[1]
+                )
+                    darkSky++;
+            }
+        }
+        expect(darkSky).toBeGreaterThan(20);
+        void CHECK_A;
+        void CHECK_B;
     });
 });

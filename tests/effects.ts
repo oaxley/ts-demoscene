@@ -16,6 +16,7 @@ import { Glenz } from "../files/effects/ts-glenz/src/glenz";
 import { Lens } from "../files/effects/ts-lens/src/lens";
 import { LightRays } from "../files/effects/ts-lightrays/src/lightrays";
 import { Metaballs } from "../files/effects/ts-metaball/src/metaballs";
+import { Mirror } from "../files/effects/ts-mirror/src/mirror";
 import { Moire } from "../files/effects/ts-moire/src/moire";
 import { ImgNoise } from "../files/effects/ts-noise/src/noise";
 import { Plasma } from "../files/effects/ts-plasma/src/plasma";
@@ -41,6 +42,7 @@ export const EFFECTS = {
     "ts-lens": Lens,
     "ts-lightrays": LightRays,
     "ts-metaball": Metaballs,
+    "ts-mirror": Mirror,
     "ts-moire": Moire,
     "ts-noise": ImgNoise,
     "ts-plasma": Plasma,
