@@ -19,6 +19,7 @@ import { RGBA } from "library/color/RGBA";
 import { Surface } from "library/gfx/surface";
 import { fillGlassPolygon } from "library/gfx/polygon";
 import { rotate, perspective } from "library/maths/projection";
+import { cubeVertices, CUBE_FACES, isClockwise } from "library/maths/mesh";
 
 //----- globals
 export const CUBE_SIZE = 90; // half edge length
@@ -47,39 +48,21 @@ const DRIFT_SPEED = 0.01; // drift speed (radians per frame)
  *       |      |            |      |
  *       3 ---- 2            7 ---- 6
  */
-export const VERTICES: Point3D[] = [
-    { x: -CUBE_SIZE, y: -CUBE_SIZE, z: -CUBE_SIZE },
-    { x: CUBE_SIZE, y: -CUBE_SIZE, z: -CUBE_SIZE },
-    { x: CUBE_SIZE, y: CUBE_SIZE, z: -CUBE_SIZE },
-    { x: -CUBE_SIZE, y: CUBE_SIZE, z: -CUBE_SIZE },
-    { x: -CUBE_SIZE, y: -CUBE_SIZE, z: CUBE_SIZE },
-    { x: CUBE_SIZE, y: -CUBE_SIZE, z: CUBE_SIZE },
-    { x: CUBE_SIZE, y: CUBE_SIZE, z: CUBE_SIZE },
-    { x: -CUBE_SIZE, y: CUBE_SIZE, z: CUBE_SIZE },
-];
+export const VERTICES: Point3D[] = cubeVertices(CUBE_SIZE);
 
 /* 6 faces, opposite pairs are (0,1), (2,3), (4,5)
  *
  * Seen from outside, the vertices are: top-left, top-right, bottom-right, bottom-left
  * (clockwise on screen with y down when the face looks at the camera).
  */
-export const FACES: number[][] = [
-    [0, 1, 2, 3], // front  (z = -S)
-    [5, 4, 7, 6], // back   (z = +S)
-    [4, 0, 3, 7], // left   (x = -S)
-    [1, 5, 6, 2], // right  (x = +S)
-    [4, 5, 1, 0], // top    (y = -S)
-    [3, 2, 6, 7], // bottom (y = +S)
-];
+export const FACES: number[][] = CUBE_FACES;
 
 const N = GRID + 1; // grid points per face edge
 
 //----- functions
 // a face looks at the camera when its first 3 projected vertices turn clockwise (y down);
 // edge-on (cross = 0) counts as back, so each face is in exactly one group
-export function isFront(a: Point2D, b: Point2D, c: Point2D): boolean {
-    return (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x) > 0;
-}
+export const isFront = isClockwise;
 
 // checker colour of the cell (i, j) of a face
 export function cellColor(i: number, j: number): number {

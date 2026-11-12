@@ -13,8 +13,9 @@ import { Point2D, Point3D } from "library/core/interfaces";
 import { verticalGradient } from "library/color/gradient";
 
 import { Surface } from "library/gfx/surface";
-import { TEXTURE_SIZE, TexVertex, drawTexturedPolygon } from "library/gfx/texture";
+import { TexVertex, drawTexturedPolygon, isTextureReady, loadTexture } from "library/gfx/texture";
 import { TrigTables, rotate, perspective } from "library/maths/projection";
+import { cubeVertices, CUBE_FACES, isClockwise, lambert, LIGHT_TOP_LEFT } from "library/maths/mesh";
 
 //----- globals
 export const CUBE_SIZE = 75; // half edge length
@@ -37,30 +38,14 @@ const SKY_BOTTOM: [number, number, number] = [0, 0, 0]; // ... black at the bott
  *       |      |            |      |
  *       3 ---- 2            7 ---- 6
  */
-export const VERTICES: Point3D[] = [
-    { x: -CUBE_SIZE, y: -CUBE_SIZE, z: -CUBE_SIZE },
-    { x: CUBE_SIZE, y: -CUBE_SIZE, z: -CUBE_SIZE },
-    { x: CUBE_SIZE, y: CUBE_SIZE, z: -CUBE_SIZE },
-    { x: -CUBE_SIZE, y: CUBE_SIZE, z: -CUBE_SIZE },
-    { x: -CUBE_SIZE, y: -CUBE_SIZE, z: CUBE_SIZE },
-    { x: CUBE_SIZE, y: -CUBE_SIZE, z: CUBE_SIZE },
-    { x: CUBE_SIZE, y: CUBE_SIZE, z: CUBE_SIZE },
-    { x: -CUBE_SIZE, y: CUBE_SIZE, z: CUBE_SIZE },
-];
+export const VERTICES: Point3D[] = cubeVertices(CUBE_SIZE);
 
 /* 6 faces, opposite pairs are (0,1), (2,3), (4,5)
  *
  * Seen from outside, the vertices are: top-left, top-right, bottom-right, bottom-left
  * of the image (clockwise on screen with y down), matching FACE_UV.
  */
-export const FACES: number[][] = [
-    [0, 1, 2, 3], // front  (z = -S)
-    [5, 4, 7, 6], // back   (z = +S)
-    [4, 0, 3, 7], // left   (x = -S)
-    [1, 5, 6, 2], // right  (x = +S)
-    [4, 5, 1, 0], // top    (y = -S)
-    [3, 2, 6, 7], // bottom (y = +S)
-];
+export const FACES: number[][] = CUBE_FACES;
 
 // texture coordinates of each face vertex (texture is 256x256)
 export const FACE_UV: Point2D[] = [
@@ -70,16 +55,12 @@ export const FACE_UV: Point2D[] = [
     { x: 0, y: 256 },
 ];
 
-// unit vector toward the light: top-left-front, normalised (-1, -1, -2)
-const LIGHT: Point3D = { x: -1 / Math.sqrt(6), y: -1 / Math.sqrt(6), z: -2 / Math.sqrt(6) };
 const AMBIENT = 0.4; // minimum face brightness
 const DIFFUSE = 0.6; // brightness added by the light
 
 //----- functions
 // back-face culling: a face is visible when its first 3 projected vertices turn clockwise (y down)
-export function isVisible(a: Point2D, b: Point2D, c: Point2D): boolean {
-    return (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x) > 0;
-}
+export const isVisible = isClockwise;
 
 // flat shading of a face: AMBIENT + DIFFUSE * max(0, n.L), n = unit outward normal
 export function faceShade(p: Point3D[], face: number[]): number {
@@ -98,8 +79,7 @@ export function faceShade(p: Point3D[], face: number[]): number {
     const ny = dz * rx - dx * rz;
     const nz = dx * ry - dy * rx;
 
-    const dot = (nx * LIGHT.x + ny * LIGHT.y + nz * LIGHT.z) / Math.hypot(nx, ny, nz);
-    return Math.min(1, AMBIENT + DIFFUSE * Math.max(0, dot));
+    return lambert(nx, ny, nz, LIGHT_TOP_LEFT, AMBIENT, DIFFUSE, false);
 }
 
 // cube centre for a frame: two sines of unrelated frequencies per axis,
@@ -147,12 +127,7 @@ export class Cube extends IAnimation {
 
     // load the face image, which must be TEXTURE_SIZE x TEXTURE_SIZE
     protected init(): Promise<unknown> {
-        return this.texture_.loadImage("/images/assets/ts-cube.texture.png").then(() => {
-            const { width, height } = this.texture_;
-            if (width !== TEXTURE_SIZE || height !== TEXTURE_SIZE) {
-                throw new Error(`Texture is ${width}x${height}, expected ${TEXTURE_SIZE}x${TEXTURE_SIZE}.`);
-            }
-        });
+        return loadTexture(this.texture_, "/images/assets/ts-cube.texture.png");
     }
 
     // update the animation: rotate and project the cube
@@ -184,7 +159,7 @@ export class Cube extends IAnimation {
         dst.set(this.background_);
 
         // texture not loaded yet: background only
-        if (this.texture_.width === TEXTURE_SIZE && this.texture_.height === TEXTURE_SIZE) {
+        if (isTextureReady(this.texture_)) {
             const texture = this.texture_.data32;
             const p2 = this.projected_;
             const p3 = this.rotated_;

@@ -17,7 +17,8 @@ import { verticalGradient } from "library/color/gradient";
 
 import { Surface } from "library/gfx/surface";
 import { mixToBuffer } from "library/gfx/pixels";
-import { TEXTURE_SIZE, TexVertex, drawTexturedPolygon } from "library/gfx/texture";
+import { TEXTURE_SIZE, TexVertex, drawTexturedPolygon, isTextureReady, loadTexture } from "library/gfx/texture";
+import { lambert, LIGHT_TOP_LEFT } from "library/maths/mesh";
 import { Noise } from "library/maths/noise";
 
 import { Cloth, Wind } from "./cloth";
@@ -58,10 +59,7 @@ const SIN_YAW = Math.sin(YAW);
 const SHIFT_X = 0; // flag position on screen (camera space offset)
 const SHIFT_Y = 0;
 
-// light: unit vector toward the light, top-left-front, normalised (-1, -1, -2)
-const LIGHT_X = -1 / Math.sqrt(6);
-const LIGHT_Y = -1 / Math.sqrt(6);
-const LIGHT_Z = -2 / Math.sqrt(6);
+// light: LIGHT_TOP_LEFT (top-left-front)
 const AMBIENT = 0.35; // minimum brightness
 const DIFFUSE = 0.65; // brightness added by the light
 
@@ -104,13 +102,11 @@ export function cellShade(cloth: Cloth, c: number, r: number): number {
     const nx = ay * bz - az * by;
     const ny = az * bx - ax * bz;
     const nz = ax * by - ay * bx;
-    const len = Math.hypot(nx, ny, nz);
-    if (len === 0) {
+    if (nx === 0 && ny === 0 && nz === 0) {
         return AMBIENT;
     }
 
-    const dot = Math.abs(nx * LIGHT_X + ny * LIGHT_Y + nz * LIGHT_Z) / len;
-    return Math.min(1, AMBIENT + DIFFUSE * dot);
+    return lambert(nx, ny, nz, LIGHT_TOP_LEFT, AMBIENT, DIFFUSE, true);
 }
 
 // =true when the 4 projected corners make a convex polygon (all turns on the same side)
@@ -197,12 +193,7 @@ export class Flag extends IAnimation {
 
     // load the flag image, which must be TEXTURE_SIZE x TEXTURE_SIZE
     protected init(): Promise<unknown> {
-        return this.texture_.loadImage("/images/assets/ts-flag.flag.png").then(() => {
-            const { width, height } = this.texture_;
-            if (width !== TEXTURE_SIZE || height !== TEXTURE_SIZE) {
-                throw new Error(`Texture is ${width}x${height}, expected ${TEXTURE_SIZE}x${TEXTURE_SIZE}.`);
-            }
-        });
+        return loadTexture(this.texture_, "/images/assets/ts-flag.flag.png");
     }
 
     // update the animation: one step of the cloth
@@ -222,7 +213,7 @@ export class Flag extends IAnimation {
         dst.set(this.background_);
 
         // texture not loaded yet: background only
-        if (this.texture_.width === TEXTURE_SIZE && this.texture_.height === TEXTURE_SIZE) {
+        if (isTextureReady(this.texture_)) {
             this.drawCloth(dst);
         }
 

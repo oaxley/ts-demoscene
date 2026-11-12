@@ -12,6 +12,9 @@
  *          so polygons sharing an edge never overlap nor leave holes.
  */
 
+//----- imports
+import { Surface } from "./surface";
+
 //----- globals
 export const TEXTURE_SIZE = 256; // textures are 256x256 (lookups (v << 8) | u)
 export const SUBDIV = 16; // exact perspective every SUBDIV pixels
@@ -203,6 +206,21 @@ export function drawTexturedPolygon(
         const c = texture[((v0 | 0) << 8) | (u0 | 0)];
         dst[p] = s === 256 ? c | 0xff000000 : shadePixel(c, s);
     }
+}
+
+// =true when the surface holds a TEXTURE_SIZE x TEXTURE_SIZE texture (false until it is loaded)
+export function isTextureReady(surface: Surface): boolean {
+    return surface.width === TEXTURE_SIZE && surface.height === TEXTURE_SIZE;
+}
+
+// load a texture image, which must be TEXTURE_SIZE x TEXTURE_SIZE (the promise is rejected otherwise)
+export function loadTexture(surface: Surface, url: string): Promise<void> {
+    return surface.loadImage(url).then(() => {
+        if (!isTextureReady(surface)) {
+            const { width, height } = surface;
+            throw new Error(`Texture is ${width}x${height}, expected ${TEXTURE_SIZE}x${TEXTURE_SIZE}.`);
+        }
+    });
 }
 
 // clamp a texel coordinate so that its truncation lies in [0, 255]
