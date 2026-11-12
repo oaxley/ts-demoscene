@@ -29,13 +29,13 @@ const FOCAL = 0.5; // focal length, relative to the screen width (90 degrees fie
 
 const U_AROUND = 3 * TEX_SIZE; // texels around the tube (the texture is repeated 3 times)
 const V_UNIT = 40; // texels per unit of depth (the tube radius is 1)
-const SPEED = 2.75; // flight speed (units per second)
+const SPEED = 3; // flight speed (units per second)
 const TWIST = 6; // rotation of the texture around the tube (texels per second)
 
 const Z_MAX = 64; // ray length limit (rays along the axis never hit the wall)
 const FOG = 4; // fog distance: the wall light is exp(-z / FOG)
 const HAZE = 10; // haze distance: the glow at the end is GLOW * (1 - exp(-z / HAZE))^3
-const GLOW = 20; // glow at the very end (per channel, 0..255): almost dark
+const GLOW = 30; // glow at the very end (per channel, 0..255): almost dark
 
 // texel offset added before interpolating, so the coordinates stay positive (|0 = floor)
 const BIAS = 2 * TEX_SIZE;
