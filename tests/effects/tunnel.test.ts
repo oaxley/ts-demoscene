@@ -21,9 +21,9 @@ function luma(data: Uint8ClampedArray, x: number, y: number): number {
     return data[i] + data[i + 1] + data[i + 2];
 }
 
-// brightest 8x8 block of a frame (centre of the block)
-function brightest(data: Uint8ClampedArray): { x: number; y: number } {
-    let best = -1;
+// darkest 8x8 block of a frame (centre of the block): the end of the tunnel
+function darkest(data: Uint8ClampedArray): { x: number; y: number } {
+    let best = Infinity;
     let at = { x: 0, y: 0 };
     for (let by = 0; by < HEIGHT; by += 8) {
         for (let bx = 0; bx < WIDTH; bx += 8) {
@@ -33,7 +33,7 @@ function brightest(data: Uint8ClampedArray): { x: number; y: number } {
                     sum += luma(data, x, y);
                 }
             }
-            if (sum > best) {
+            if (sum < best) {
                 best = sum;
                 at = { x: bx + 4, y: by + 4 };
             }
@@ -102,10 +102,12 @@ describe("ts-tunnel rendering", () => {
         return canvas.getContext("2d").getImageData(0, 0, WIDTH, HEIGHT).data;
     }
 
-    test("light at the end, darker walls in the distance, bright near walls", async () => {
+    test("almost dark at the end, darker walls in the distance, bright near walls", async () => {
         const data = await frame(0);
-        const end = brightest(data);
-        expect(luma(data, end.x, end.y)).toBeGreaterThan(600);
+        const end = darkest(data);
+        const l = luma(data, end.x, end.y);
+        expect(l).toBeGreaterThan(0); // a faint glow, not pure black
+        expect(l).toBeLessThan(90); // r + g + b
 
         // ring between the light and the edges: fog, darker than the near walls on the edges
         const ring = (r: number) => {
@@ -123,10 +125,10 @@ describe("ts-tunnel rendering", () => {
         expect(ring(70)).toBeLessThan(ring(220));
     });
 
-    test("the camera steers: the light at the end moves on both axes", async () => {
+    test("the camera steers: the end of the tunnel moves on both axes", async () => {
         const points = [];
         for (const ms of [0, 1500, 3000, 4500, 6000, 7500]) {
-            points.push(brightest(await frame(ms)));
+            points.push(darkest(await frame(ms)));
         }
         const xs = points.map((p) => p.x);
         const ys = points.map((p) => p.y);

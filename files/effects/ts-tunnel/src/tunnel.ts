@@ -34,7 +34,8 @@ const TWIST = 6; // rotation of the texture around the tube (texels per second)
 
 const Z_MAX = 64; // ray length limit (rays along the axis never hit the wall)
 const FOG = 4; // fog distance: the wall light is exp(-z / FOG)
-const HAZE = 10; // haze distance: the light at the end is (1 - exp(-z / HAZE))^3
+const HAZE = 10; // haze distance: the glow at the end is GLOW * (1 - exp(-z / HAZE))^3
+const GLOW = 20; // glow at the very end (per channel, 0..255): almost dark
 
 // texel offset added before interpolating, so the coordinates stay positive (|0 = floor)
 const BIAS = 2 * TEX_SIZE;
@@ -205,9 +206,9 @@ export class Tunnel extends IAnimation {
                 if (u < 0) u += TEX_SIZE;
                 if (v < 0) v += TEX_SIZE;
 
-                // light: fog on the walls, glow at the end (s + g <= 255: no overflow)
+                // light: fog on the walls, faint glow at the end (s + g <= 255: no overflow)
                 const e = 1 - Math.exp(-z / HAZE);
-                const g = 255 * e * e * e;
+                const g = GLOW * e * e * e;
                 const s = Math.min(255 * Math.exp(-z / FOG), 255 - g);
 
                 this.gridU_[k] = u;

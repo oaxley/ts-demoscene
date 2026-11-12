@@ -12,7 +12,7 @@ The camera flies inside a tube of radius 1 along the z axis.
 
 - On a coarse grid (one point every 8 pixels), a ray is cast from the camera to the wall of the tube.
   The hit point gives the texture coordinates (angle around the tube, depth) and the light:
-  fog that darkens the walls with the depth, and a glow that grows towards the end of the tunnel.
+  fog that darkens the walls with the depth, and a faint glow at the far end, which stays almost dark.
 - Inside each 8x8 block the values are interpolated, so each pixel is only a texture lookup and a shade.
 - The camera drifts away from the axis and looks left / right / up / down (with a slow roll):
   the near walls and the end of the tunnel move differently, which gives the depth and the steering.
