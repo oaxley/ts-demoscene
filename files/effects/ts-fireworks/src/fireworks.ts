@@ -17,7 +17,7 @@ import { layout, Layout } from "./layout";
 
 //----- globals
 export const FPS = 25; // fixed frame rate: the timeline is counted in frames
-const LAUNCH_PERIOD = 30; // frames between two rockets
+const LAUNCH_PERIOD = 12; // frames between two rockets (about five in flight at once)
 const ROCKET_SPEED = -9; // initial rocket speed (up)
 const GRAVITY = 0.15; // pulls the rockets and the sparks down
 const SPARKS_MIN = 40;

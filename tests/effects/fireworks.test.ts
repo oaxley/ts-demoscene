@@ -88,6 +88,33 @@ describe("ts-fireworks effect", () => {
         expect(EFFECTS["ts-fireworks"]).toBe(Fireworks);
     });
 
+    test("five rockets in flight at the same time", async () => {
+        const { FakeCanvas } = await import("../harness/dom");
+        const { Display } = await import("library/core/display");
+        const { Fireworks } = await import("../../files/effects/ts-fireworks/src/fireworks");
+
+        const canvas = new FakeCanvas(640, 480);
+        const display = new Display(canvas as unknown as HTMLCanvasElement);
+        const fx = new Fireworks(display) as unknown as {
+            run: (t: number) => void;
+            toggle: () => void;
+            particles_: { count: number; kind: Uint8Array };
+        };
+        fx.toggle();
+        let peak = 0;
+        for (let i = 0; i < 200; i++) {
+            fx.run(i * 50);
+            let rockets = 0;
+            for (let k = 0; k < fx.particles_.count; k++) {
+                if (fx.particles_.kind[k] === 0) {
+                    rockets++;
+                }
+            }
+            peak = Math.max(peak, rockets);
+        }
+        expect(peak).toBeGreaterThanOrEqual(5);
+    });
+
     test("background: black on the whole screen before the sprite is drawn", async () => {
         const { FakeCanvas } = await import("../harness/dom");
         const { Display } = await import("library/core/display");
