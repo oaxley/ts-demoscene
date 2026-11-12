@@ -6,7 +6,8 @@
  */
 
 //----- globals
-const RAND_MAX_VALUE: number = ~0 >>> 0;
+// 2^32: value() returns an unsigned 32-bit integer, so value() / RAND_RANGE is in [0, 1[
+const RAND_RANGE: number = 4294967296;
 
 //----- class
 export abstract class IPrng {
@@ -15,7 +16,7 @@ export abstract class IPrng {
     //----- methods
     constructor() {}
 
-    // return a new value from the generator
+    // return a new value from the generator (unsigned 32-bit integer, [0, 2^32 - 1])
     protected abstract value(): number;
 
     // initialize the random generator
@@ -23,7 +24,7 @@ export abstract class IPrng {
 
     // return a random number between [0.0, 1.0[
     public rand(): number {
-        return this.value() / RAND_MAX_VALUE;
+        return this.value() / RAND_RANGE;
     }
 
     // return an integer between [min, max[

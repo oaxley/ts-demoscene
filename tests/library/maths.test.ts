@@ -117,14 +117,38 @@ describe("Mersenne (MT19937)", () => {
         expect(mt.next()).toBe(4123659995);
     });
 
-    test("rand() in [0, 1]", () => {
+    test("rand() in [0, 1[", () => {
         const mt = new Mersenne();
         mt.initialize(42);
         for (let i = 0; i < 2000; i++) {
             const r = mt.rand();
             expect(r).toBeGreaterThanOrEqual(0);
-            expect(r).toBeLessThanOrEqual(1);
+            expect(r).toBeLessThan(1);
         }
+    });
+});
+
+describe("IPrng", () => {
+    // generator stuck on a fixed 32-bit output
+    class Fixed32 extends IPrng {
+        constructor(private v_: number) {
+            super();
+        }
+        protected value(): number {
+            return this.v_;
+        }
+        public initialize(): void {}
+    }
+
+    test("rand() never reaches 1, even for the largest output", () => {
+        expect(new Fixed32(0).rand()).toBe(0);
+        expect(new Fixed32(0x80000000).rand()).toBe(0.5);
+        expect(new Fixed32(0xffffffff).rand()).toBeLessThan(1);
+    });
+
+    test("randInt(min, max) excludes max", () => {
+        expect(new Fixed32(0xffffffff).randInt(0, 256)).toBe(255);
+        expect(new Fixed32(0).randInt(3, 7)).toBe(3);
     });
 });
 

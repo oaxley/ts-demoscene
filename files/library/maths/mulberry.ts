@@ -39,8 +39,8 @@ export class Mulberry32 extends IPrng {
         this.state_ = seed >>> 0;
     }
 
-    // next value, in [0, 1) (value / 2^32, unlike rand() which divides by 2^32 - 1)
+    // next value, in [0, 1[ (same as rand())
     public next(): number {
-        return this.value() / 4294967296;
+        return this.rand();
     }
 }
