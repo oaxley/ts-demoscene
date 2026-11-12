@@ -29,7 +29,7 @@ const FOCAL = 0.5; // focal length, relative to the screen width (90 degrees fie
 
 const U_AROUND = 3 * TEX_SIZE; // texels around the tube (the texture is repeated 3 times)
 const V_UNIT = 40; // texels per unit of depth (the tube radius is 1)
-const SPEED = 2.2; // flight speed (units per second)
+const SPEED = 2.75; // flight speed (units per second)
 const TWIST = 6; // rotation of the texture around the tube (texels per second)
 
 const Z_MAX = 64; // ray length limit (rays along the axis never hit the wall)
