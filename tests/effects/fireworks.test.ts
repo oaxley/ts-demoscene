@@ -143,3 +143,45 @@ describe("ts-fireworks effect", () => {
         expect(stray).toBe(0);
     });
 });
+
+describe("ts-fireworks sprite", () => {
+    test("real sprite stays inside the left half, on the band", async () => {
+        const { FakeCanvas } = await import("../harness/dom");
+        const { Display } = await import("library/core/display");
+        const { Fireworks } = await import("../../files/effects/ts-fireworks/src/fireworks");
+
+        const canvas = new FakeCanvas(640, 480);
+        const display = new Display(canvas as unknown as HTMLCanvasElement);
+        const fx = new Fireworks(display) as unknown as {
+            setup: () => void;
+            run: (t: number) => void;
+            layout_: { bandWidth: number; spriteW: number; spriteH: number };
+            isAnimated: boolean;
+        };
+        fx.setup();
+        for (let i = 0; i < 200 && !fx.isAnimated; i++) {
+            await new Promise((resolve) => setTimeout(resolve, 0));
+        }
+        expect(fx.layout_.spriteW).toBeGreaterThan(0);
+
+        // the drawn sprite is exactly the laid-out size, so it cannot spill
+        const drawn = (fx as unknown as { sprite_: { width: number; height: number } }).sprite_;
+        expect(drawn.width).toBe(fx.layout_.spriteW);
+        expect(drawn.height).toBe(fx.layout_.spriteH);
+
+        for (let i = 0; i < 5; i++) {
+            fx.run(1000 + i * 50);
+        }
+
+        // the sprite pixels stay inside the band: nothing beyond the band in the left half
+        let spill = 0;
+        for (let x = fx.layout_.bandWidth; x < 320; x++) {
+            for (let y = 0; y < 480; y++) {
+                if ((display.surface.getPixel(x, y).uint32 & 0xffffff) !== 0) {
+                    spill++;
+                }
+            }
+        }
+        expect(spill).toBe(0);
+    });
+});

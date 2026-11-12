@@ -60,9 +60,27 @@ export class Fireworks extends IAnimation {
         );
     }
 
-    // compute the layout from the sprite size (0x0 if it could not be loaded)
+    // compute the layout from the sprite size (0x0 if it could not be loaded), then scale the sprite to it
     private computeLayout(): void {
-        this.layout_ = layout(this.width_, this.height_, this.sprite_.width, this.sprite_.height);
+        const src = this.sprite_;
+        this.layout_ = layout(this.width_, this.height_, src.width, src.height);
+
+        const { spriteW, spriteH } = this.layout_;
+        if (spriteW === src.width && spriteH === src.height) {
+            return;
+        }
+
+        const scaled = new Surface({ width: spriteW, height: spriteH });
+        const from = src.data32;
+        const to = scaled.data32;
+        for (let y = 0; y < spriteH; y++) {
+            const sy = Math.min(src.height - 1, Math.floor((y * src.height) / spriteH));
+            for (let x = 0; x < spriteW; x++) {
+                const sx = Math.min(src.width - 1, Math.floor((x * src.width) / spriteW));
+                to[y * spriteW + x] = from[sy * src.width + sx];
+            }
+        }
+        this.sprite_ = scaled;
     }
 
     // update the animation
