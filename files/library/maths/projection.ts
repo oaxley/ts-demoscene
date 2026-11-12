@@ -118,3 +118,27 @@ export function projectSameAngle(
         output[i].y = center.y + Math.floor((py * zoom) / (pz + depth));
     }
 }
+
+/* perspective projection of a camera space point on the screen
+ *
+ * Args:
+ *      x, y, z : camera space point
+ *      zoom    : projection factor (x * zoom / (z + depth))
+ *      depth   : distance added to z
+ *      cx, cy  : screen centre
+ *      out     : projected point (written)
+ */
+export function perspective(
+    x: number,
+    y: number,
+    z: number,
+    zoom: number,
+    depth: number,
+    cx: number,
+    cy: number,
+    out: Point2D,
+): void {
+    const k = zoom / (z + depth);
+    out.x = cx + x * k;
+    out.y = cy + y * k;
+}

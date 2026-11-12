@@ -9,7 +9,7 @@
 import { IAnimation } from "library/core/animation";
 import { Display } from "library/core/display";
 import { Surface } from "library/gfx/surface";
-import { radians } from "library/maths/utils";
+import { TrigTables } from "library/maths/projection";
 
 //---- globals
 const FPS: number = 25;
@@ -21,8 +21,7 @@ export class Rotozoom extends IAnimation {
 
     private angle_: number; // current rotation angle
 
-    private cos_: number[]; // cos lookup table
-    private sin_: number[]; // sin lookup table
+    private tables_: TrigTables; // cos/sin lookup tables
 
     //----- methods
     constructor(display: Display) {
@@ -30,22 +29,10 @@ export class Rotozoom extends IAnimation {
 
         // set the vars
         this.angle_ = 0;
-        this.cos_ = [];
-        this.sin_ = [];
+        this.tables_ = new TrigTables();
 
         // load the texture image
         this.texture_ = new Surface();
-
-        // load the lookup tables
-        this.computeLUT();
-    }
-
-    // prepare the cos/sin tables
-    private computeLUT(): void {
-        for (let i = 0; i < 360; i++) {
-            this.cos_[i] = Math.cos(radians(i));
-            this.sin_[i] = Math.sin(radians(i));
-        }
     }
 
     // load the assets
@@ -59,8 +46,8 @@ export class Rotozoom extends IAnimation {
         const height = this.texture_.height;
 
         // cosinus / sinus lookup
-        const cs: number = this.cos_[this.angle_];
-        const sn: number = this.sin_[this.angle_];
+        const cs: number = this.tables_.cos[this.angle_];
+        const sn: number = this.tables_.sin[this.angle_];
 
         const w = this.display_.width;
         const h = this.display_.height;

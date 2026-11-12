@@ -6,18 +6,12 @@
  */
 
 //----- imports
-import { lerp } from "./utils";
+import { lerp, smoothstep } from "./utils";
 import { Mersenne } from "./mersenne";
 
 //----- globals
 const MAX_VERTICES = 256;
 const MAX_VERTICES_MASK = MAX_VERTICES - 1;
-
-//----- functions
-// smoothstep function
-function smoothStep(t: number): number {
-    return t * t * (3 - 2 * t);
-}
 
 //----- class
 export namespace Noise {
@@ -46,7 +40,7 @@ export namespace Noise {
             const xi = Math.floor(x);
             const xmin = xi & MAX_VERTICES_MASK;
             const xmax = (xmin + 1) & MAX_VERTICES_MASK;
-            return lerp(this.vertices_[xmin], this.vertices_[xmax], smoothStep(x - xi));
+            return lerp(this.vertices_[xmin], this.vertices_[xmax], smoothstep(x - xi));
         }
     }
 
@@ -98,8 +92,8 @@ export namespace Noise {
             const c11 = this.vertices_[this.permutation_[this.permutation_[rx1] + ry1]];
 
             // smoothing of tx & ty
-            const sx = smoothStep(x - xi);
-            const sy = smoothStep(y - yi);
+            const sx = smoothstep(x - xi);
+            const sy = smoothstep(y - yi);
 
             // 1st linear interpolation
             const nx0 = lerp(c00, c10, sx);

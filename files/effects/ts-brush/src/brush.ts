@@ -17,6 +17,7 @@ import { Point2D } from "library/core/interfaces";
 import { RGBA } from "library/color/RGBA";
 import { Stroke, layoutWord, WORD, KANJI_GRID } from "./kanji";
 import { samplePath } from "library/maths/svgpath";
+import { smoothstep } from "library/maths/utils";
 
 //----- globals
 export const FPS = 25;
@@ -116,7 +117,7 @@ export function brushStep(s: BrushState, penX: number, penY: number, size: numbe
  */
 export function penIndex(t: number, n: number): number {
     const c = Math.min(Math.max(t, 0), 1);
-    return (n - 1) * c * c * (3 - 2 * c);
+    return (n - 1) * smoothstep(c);
 }
 
 // unit direction between two points of a stroke (5 points apart, clamped)

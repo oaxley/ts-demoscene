@@ -10,7 +10,7 @@ import { IAnimation } from "library/core/animation";
 import { Display } from "library/core/display";
 import { Surface } from "library/gfx/surface";
 import { Point2D } from "library/core/interfaces";
-import { lerp } from "library/maths/utils";
+import { lerp, smoothstep } from "library/maths/utils";
 import { RGBA } from "library/color/RGBA";
 
 //----- globals
@@ -218,8 +218,7 @@ export class Smoke extends IAnimation {
                 let value = src[by * bw + x];
                 if (x < EDGE_FADE) {
                     // smoothstep from the fill color to the picture
-                    let k = x / EDGE_FADE;
-                    k = k * k * (3 - 2 * k);
+                    const k = smoothstep(x / EDGE_FADE);
                     const [r, g, b] = RGBA.fromUInt32(value);
                     const t = BAYER4[((y & 3) << 2) | (dx & 3)];
                     value = RGBA.toUInt32(

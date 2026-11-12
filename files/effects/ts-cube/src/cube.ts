@@ -14,7 +14,7 @@ import { RGBA } from "library/color/RGBA";
 
 import { Surface } from "library/gfx/surface";
 import { TEXTURE_SIZE, TexVertex, drawTexturedPolygon } from "library/gfx/texture";
-import { TrigTables, rotate } from "library/maths/projection";
+import { TrigTables, rotate, perspective } from "library/maths/projection";
 
 //----- globals
 export const CUBE_SIZE = 75; // half edge length
@@ -182,9 +182,7 @@ export class Cube extends IAnimation {
         const cy = this.height_ >> 1;
         for (let i = 0; i < this.rotated_.length; i++) {
             const p = this.rotated_[i];
-            const k = ZOOM / (p.z + DEPTH);
-            this.projected_[i].x = cx + (p.x + offset.x) * k;
-            this.projected_[i].y = cy + (p.y + offset.y) * k;
+            perspective(p.x + offset.x, p.y + offset.y, p.z, ZOOM, DEPTH, cx, cy, this.projected_[i]);
         }
 
         // next angles

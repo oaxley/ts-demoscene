@@ -8,12 +8,14 @@
 //----- imports
 import { describe, test, expect } from "vitest";
 
-import { radians, degrees, map, constrain, norm, lerp } from "library/maths/utils";
+import { radians, degrees, map, constrain, norm, lerp, smoothstep } from "library/maths/utils";
 import { Vector2D } from "library/maths/vector2d";
 import { Vector3D } from "library/maths/vector3d";
 import { Fixed } from "library/maths/fixed";
 import { Mersenne } from "library/maths/mersenne";
-import { rotate } from "library/maths/projection";
+import { rotate, perspective } from "library/maths/projection";
+import { Mulberry32 } from "library/maths/mulberry";
+import { Point2D } from "library/core/interfaces";
 import { Point3D } from "library/core/interfaces";
 
 //----- tests
@@ -174,5 +176,31 @@ describe("rotate", () => {
         rotate(cube, 1, 0, 1, 0, 1, 0, target);
         expect(target).toEqual(cube);
         expect(target[0]).toBe(first);
+    });
+});
+
+describe("shared helpers", () => {
+    test("smoothstep", () => {
+        expect(smoothstep(0)).toBe(0);
+        expect(smoothstep(1)).toBe(1);
+        expect(smoothstep(0.5)).toBe(0.5);
+    });
+
+    test("Mulberry32 is seeded and in [0, 1)", () => {
+        const a = new Mulberry32(1);
+        const b = new Mulberry32(1);
+        for (let i = 0; i < 10; i++) {
+            const v = a.next();
+            expect(v).toBe(b.next());
+            expect(v).toBeGreaterThanOrEqual(0);
+            expect(v).toBeLessThan(1);
+        }
+        expect(new Mulberry32(2).next()).not.toBe(new Mulberry32(1).next());
+    });
+
+    test("perspective", () => {
+        const out: Point2D = { x: 0, y: 0 };
+        perspective(10, -20, 0, 600, 500, 320, 200, out);
+        expect(out).toEqual({ x: 332, y: 176 });
     });
 });

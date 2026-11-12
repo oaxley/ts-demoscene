@@ -95,3 +95,15 @@ export function norm(value: number, low: number, high: number): number {
 export function lerp(source: number, target: number, amount: number): number {
     return source + (target - source) * amount;
 }
+
+/* smooth Hermite step: 0 at t = 0, 1 at t = 1, flat at both ends
+ *
+ * Args
+ *  t: a number between [0,1]
+ *
+ * Returns
+ *  t * t * (3 - 2 * t)
+ */
+export function smoothstep(t: number): number {
+    return t * t * (3 - 2 * t);
+}

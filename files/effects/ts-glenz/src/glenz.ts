@@ -18,7 +18,7 @@ import { RGBA } from "library/color/RGBA";
 
 import { Surface } from "library/gfx/surface";
 import { fillGlassPolygon } from "library/gfx/polygon";
-import { rotate } from "library/maths/projection";
+import { rotate, perspective } from "library/maths/projection";
 
 //----- globals
 export const CUBE_SIZE = 90; // half edge length
@@ -196,9 +196,7 @@ export class Glenz extends IAnimation {
 
     // perspective projection of a camera space point on the screen (corners and grid points alike)
     private project(p: Point3D, out: Point2D): void {
-        const k = ZOOM / (p.z + DEPTH);
-        out.x = (this.width_ >> 1) + p.x * k;
-        out.y = (this.height_ >> 1) + p.y * k;
+        perspective(p.x, p.y, p.z, ZOOM, DEPTH, this.width_ >> 1, this.height_ >> 1, out);
     }
 
     // draw the cells of a face as glass
