@@ -29,6 +29,7 @@ import { isClockwise } from "library/maths/mesh";
 
 import { torusMesh, reflect, sphereUV, TorusMesh } from "./torus";
 import { drawFloor, buildEnvMap, ZOOM, HORIZON } from "./floor";
+import { drawSky } from "./sky";
 
 //----- globals
 export const MAJOR_R = 60; // ring radius
@@ -46,6 +47,7 @@ const STEP_X = 1; // rotation steps per frame (degrees, distinct per axis)
 const STEP_Y = 2;
 const STEP_Z = 3;
 const SCROLL = 4; // floor scroll toward the viewer (units per frame)
+const CLOUD_SCROLL = 2; // cloud scroll (slower than the floor: they are further away)
 export const REFLECTANCE = 0.8; // the chrome reflects 80% of the light: its outline shows on the sky
 
 const MESH: TorusMesh = torusMesh(MAJOR_R, MINOR_R, RING, TUBE);
@@ -174,6 +176,7 @@ export class Mirror extends IAnimation {
         const map = this.envMap_;
         const c = this.centre_;
 
+        drawSky(dst, w, h, this.frames_ * CLOUD_SCROLL);
         drawFloor(dst, w, h, scroll);
         buildEnvMap(map, c.x, c.y, c.z, scroll);
 

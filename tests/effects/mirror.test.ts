@@ -17,7 +17,7 @@ import {
     checker,
     drawFloor,
     buildEnvMap,
-    SKY_COLOR,
+    HAZE_COLOR,
     TILE,
     HORIZON,
     FLOOR_Y,
@@ -29,6 +29,7 @@ import {
 } from "../../files/effects/ts-mirror/src/floor";
 import { Mirror, torusPath, isSkyQuad, MAJOR_R, MINOR_R, REFLECTANCE } from "../../files/effects/ts-mirror/src/mirror";
 import { cloudTexture, sampleCloud, CLOUD_SIZE } from "../../files/effects/ts-mirror/src/clouds";
+import { drawSky, skyColor, ZENITH, CLOUD_Y, CLOUD_SEED, CLOUD_TEXEL } from "../../files/effects/ts-mirror/src/sky";
 import { EFFECTS } from "../effects";
 import { Display } from "library/core/display";
 import { FakeCanvas } from "../harness/dom";
@@ -170,9 +171,9 @@ describe("ts-mirror floor", () => {
     });
 
     test("fog toward the sky", () => {
-        expect(floorColor(0, 1e7, 0)).toBe(SKY_COLOR);
-        expect(floorColor(0, Infinity, 0)).toBe(SKY_COLOR);
-        expect(floorColor(0, 400, 0)).not.toBe(SKY_COLOR);
+        expect(floorColor(0, 1e7, 0)).toBe(HAZE_COLOR);
+        expect(floorColor(0, Infinity, 0)).toBe(HAZE_COLOR);
+        expect(floorColor(0, 400, 0)).not.toBe(HAZE_COLOR);
     });
 
     test("floor behind the camera stays a valid fogged colour", () => {
@@ -185,16 +186,17 @@ describe("ts-mirror floor", () => {
         );
     });
 
-    test("drawFloor fills the screen", () => {
+    test("drawFloor fills the rows below the horizon", () => {
         const dst = new Uint32Array(640 * 480);
         drawFloor(dst, 640, 480, 0);
-        for (let i = 0; i < dst.length; i++) {
+        for (let i = (HORIZON + 1) * 640; i < dst.length; i++) {
             if (dst[i] === 0 || dst[i] >>> 24 !== 0xff) {
                 throw new Error(`bad pixel ${i}: ${dst[i].toString(16)}`);
             }
         }
         const row = (y: number) => dst.subarray(y * 640, (y + 1) * 640);
-        expect(row(HORIZON).every((c) => c === SKY_COLOR)).toBe(true);
+        expect(row(HORIZON).every((c) => c === 0)).toBe(true); // the sky is drawSky's job
+        expect(row(HORIZON + 1).every((c) => c !== 0)).toBe(true);
         expect(new Set(row(479)).size).toBeGreaterThan(1);
     });
 
@@ -227,8 +229,8 @@ describe("ts-mirror floor", () => {
         for (let k = 0; k < 3; k++) {
             expect(Math.abs(((got >>> (8 * k)) & 0xff) - ((want >>> (8 * k)) & 0xff))).toBeLessThan(16);
         }
-        expect(map[0]).toBe(SKY_COLOR);
-        expect(map[(2 << 8) | 128]).toBe(SKY_COLOR);
+        expect(map[0]).toBe(HAZE_COLOR);
+        expect(map[(2 << 8) | 128]).toBe(HAZE_COLOR);
     });
 
     test("filtered checker: exact when sharp, mid grey when the footprint covers many squares", () => {
@@ -301,7 +303,7 @@ describe("ts-mirror floor", () => {
         const c = map[(Math.floor(uv.y) << 8) | Math.floor(uv.x)];
         const ch = (k: number, s: number) => Math.abs(((c >>> (8 * k)) & 0xff) - ((s >>> (8 * k)) & 0xff));
         for (let k = 0; k < 3; k++) {
-            expect(ch(k, SKY_COLOR)).toBeLessThan(12);
+            expect(ch(k, HAZE_COLOR)).toBeLessThan(12);
         }
     });
 });
@@ -362,8 +364,10 @@ describe("ts-mirror effect", () => {
             const i = (y * WIDTH + x) * 4;
             return [d[i], d[i + 1], d[i + 2]];
         };
-        const sky = [SKY_COLOR & 0xff, (SKY_COLOR >>> 8) & 0xff, (SKY_COLOR >>> 16) & 0xff];
-        expect(px(a, 5, 5)).toEqual(sky);
+        const sky = [HAZE_COLOR & 0xff, (HAZE_COLOR >>> 8) & 0xff, (HAZE_COLOR >>> 16) & 0xff];
+        // the sky overhead is the zenith gradient or a cloud, never the flat haze
+        expect(px(a, 5, 5)).not.toEqual(sky);
+        expect(px(a, 5, 5)[2]).toBeGreaterThan(150);
         expect(px(a, 5, 470)).not.toEqual(sky);
 
         // inside the torus bounding box (frame 29), well above the floor horizon area:
@@ -449,5 +453,61 @@ describe("ts-mirror clouds", () => {
         expect(tex.levels[8][0]).toBeCloseTo(mean, 4);
         expect(sampleCloud(tex, 17, 93, 1000)).toBeCloseTo(mean, 4);
         expect(sampleCloud(tex, 17, 93, 0)).toBeCloseTo(at(17, 93), 6);
+    });
+});
+
+describe("ts-mirror sky", () => {
+    const red = (c: number) => c & 0xff;
+    const blue = (c: number) => (c >>> 16) & 0xff;
+    const sky = (scroll: number) => {
+        const dst = new Uint32Array(640 * 480);
+        drawSky(dst, 640, 480, scroll);
+        return dst;
+    };
+
+    test("fills the rows above the horizon, haze at the horizon", () => {
+        const dst = sky(0);
+        for (let i = 0; i < (HORIZON + 1) * 640; i++) {
+            if (dst[i] === 0 || dst[i] >>> 24 !== 0xff) {
+                throw new Error(`bad pixel ${i}: ${dst[i].toString(16)}`);
+            }
+        }
+        expect(dst.subarray(HORIZON * 640, (HORIZON + 1) * 640).every((c) => c === HAZE_COLOR)).toBe(true);
+        expect(dst[(HORIZON + 1) * 640]).toBe(0); // the floor is drawFloor's job
+    });
+
+    test("clouds overhead: white puffs and clear sky darker than the haze", () => {
+        const top = Array.from(sky(0).subarray(0, 640 * 20));
+        expect(new Set(top).size).toBeGreaterThan(20);
+        expect(top.some((c) => red(c) > 200 && blue(c) > 200)).toBe(true);
+        const clear = Math.min(...top.map(red));
+        expect(clear).toBeLessThan(red(HAZE_COLOR) - 30);
+        expect(Math.min(...top.map(blue))).toBeGreaterThan(Math.min(...top.map(red))); // blue sky
+    });
+
+    test("far clouds blend into the haze (rows near the horizon)", () => {
+        const row = Array.from(sky(0).subarray((HORIZON - 2) * 640, (HORIZON - 1) * 640));
+        for (const c of row) {
+            for (let k = 0; k < 3; k++) {
+                expect(Math.abs(((c >>> (8 * k)) & 0xff) - ((HAZE_COLOR >>> (8 * k)) & 0xff))).toBeLessThan(25);
+            }
+        }
+    });
+
+    test("scroll moves the clouds", () => {
+        expect(Array.from(sky(50).subarray(0, 640 * 40))).not.toEqual(Array.from(sky(0).subarray(0, 640 * 40)));
+    });
+
+    test("skyColor: zenith straight up without cloud cover, haze far away", () => {
+        // a clear spot of the texture
+        const tex = cloudTexture(CLOUD_SEED);
+        let cx = 0;
+        while (tex.levels[0][cx] > 0) cx++;
+        const c = skyColor(cx * CLOUD_TEXEL, 0, 1, -CLOUD_Y, 0);
+        for (let k = 0; k < 3; k++) {
+            expect(Math.abs(((c >>> (8 * k)) & 0xff) - ZENITH[k])).toBeLessThan(25);
+        }
+        expect(skyColor(0, 1e7, 0.001, 1e7, 1e5)).toBe(HAZE_COLOR);
+        expect(skyColor(0, 0, 0.5, NaN, 0)).toBe(HAZE_COLOR);
     });
 });

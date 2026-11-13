@@ -2,11 +2,11 @@
  * @file    floor.ts
  * @author  Sebastien LEGRAND
  *
- * @brief   Checkered floor, sky and environment map (ts-mirror)
+ * @brief   Checkered floor and environment map (ts-mirror)
  *
  *          The camera looks along +z (y down), the floor is the plane y = FLOOR_Y. A screen row
  *          below the horizon sees the floor at a constant depth z = FLOOR_Y * ZOOM / (y - HORIZON),
- *          so the floor is drawn row by row. The checker fades toward the sky colour with the
+ *          so the floor is drawn row by row. The checker fades toward the horizon haze with the
  *          depth (fog): the far squares never turn into noise and the floor melts into the sky.
  *
  *          Far away, a pixel covers many squares: picking one of them gives noise (aliasing). The
@@ -31,11 +31,11 @@ export const TILE = 60; // checker square size (world units)
 export const FOG = 1500; // floor light: exp(-distance / FOG), mixed toward the sky
 export const MIRROR_FOG = 600; // shorter fog in the mirror: the 256x256 map can't show far squares
 
-export const SKY: [number, number, number] = [105, 135, 175]; // sky and fog colour
+export const HAZE: [number, number, number] = [105, 135, 175]; // horizon haze: the fog colour of the floor and the clouds
 export const CHECK_A: [number, number, number] = [230, 230, 240]; // checker colours
 export const CHECK_B: [number, number, number] = [0, 0, 0];
 
-export const SKY_COLOR = RGBA.toUInt32(SKY[0], SKY[1], SKY[2]);
+export const HAZE_COLOR = RGBA.toUInt32(HAZE[0], HAZE[1], HAZE[2]);
 
 const Z_FAR = 1e6; // beyond this depth the floor is only fog
 const LEVELS = 16; // mix steps between the two checker colours
@@ -44,14 +44,14 @@ const ENV_BLUR = 2; // environment map filter width (texels): the torus shrinks 
 //----- functions
 
 /* checker colour for an odd share t, mixed toward the sky by the fog f:
- * mix(A, B, t) * f + SKY * (1 - f)
+ * mix(A, B, t) * f + HAZE * (1 - f)
  */
 function shade(t: number, f: number): number {
     const g = 1 - f;
     return RGBA.toUInt32(
-        Math.round((CHECK_A[0] + (CHECK_B[0] - CHECK_A[0]) * t) * f + SKY[0] * g),
-        Math.round((CHECK_A[1] + (CHECK_B[1] - CHECK_A[1]) * t) * f + SKY[1] * g),
-        Math.round((CHECK_A[2] + (CHECK_B[2] - CHECK_A[2]) * t) * f + SKY[2] * g),
+        Math.round((CHECK_A[0] + (CHECK_B[0] - CHECK_A[0]) * t) * f + HAZE[0] * g),
+        Math.round((CHECK_A[1] + (CHECK_B[1] - CHECK_A[1]) * t) * f + HAZE[1] * g),
+        Math.round((CHECK_A[2] + (CHECK_B[2] - CHECK_A[2]) * t) * f + HAZE[2] * g),
     );
 }
 
@@ -114,12 +114,12 @@ export function floorColor(
 ): number {
     const d = dist;
     if (!(d < Z_FAR) || !Number.isFinite(x) || !Number.isFinite(z)) {
-        return SKY_COLOR;
+        return HAZE_COLOR;
     }
     return shade(checker(x / TILE, (z + scroll) / TILE, wx / TILE, wz / TILE), Math.exp(-d / fog));
 }
 
-/* draw the sky (rows 0..HORIZON) and the floor (rows below)
+/* draw the floor (the rows below the horizon, the sky is drawn by sky.ts)
  *
  * Args:
  *      dst    : destination pixels (ABGR), width x height
@@ -127,8 +127,6 @@ export function floorColor(
  */
 export function drawFloor(dst: Uint32Array, width: number, height: number, scroll: number): void {
     const sky = Math.min(height, HORIZON + 1);
-    dst.fill(SKY_COLOR, 0, sky * width);
-
     const half = width / 2;
     const colors = new Uint32Array(LEVELS + 1);
     for (let y = sky; y < height; y++) {
@@ -239,12 +237,12 @@ export function buildEnvMap(map: Uint32Array, ox: number, oy: number, oz: number
         const x = fx[i];
         if (x !== x) {
             // NaN: sky
-            map[i] = SKY_COLOR;
+            map[i] = HAZE_COLOR;
             continue;
         }
         const d = dist[i];
         if (!(d * h < Z_FAR)) {
-            map[i] = SKY_COLOR;
+            map[i] = HAZE_COLOR;
             continue;
         }
         const t = checker(x0 + x * k, z0 + fz[i] * k, wx[i] * k, wz[i] * k);
