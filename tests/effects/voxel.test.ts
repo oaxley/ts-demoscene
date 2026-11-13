@@ -9,7 +9,7 @@
 import { describe, test, expect } from "vitest";
 
 import { Terrain, MAP_SIZE } from "../../files/effects/ts-voxel/src/terrain";
-import { moveCamera, Camera, RELIEF } from "../../files/effects/ts-voxel/src/voxel";
+import { moveCamera, textLayout, Camera, RELIEF } from "../../files/effects/ts-voxel/src/voxel";
 
 //----- tests
 describe("ts-voxel terrain", () => {
@@ -104,5 +104,16 @@ describe("ts-voxel camera", () => {
             expect(Number.isFinite(cam.y)).toBe(true);
             expect(cam.z).toBeGreaterThanOrEqual(RELIEF * terrain.heightAt(cam.x, cam.y) + 20);
         }
+    });
+});
+
+describe("ts-voxel text layout", () => {
+    test("the strip covers the view without wrapping onto itself", () => {
+        const { count, cx, size } = textLayout(100.7);
+        // glyphs + scroll offset (< size) must fit in the map width
+        expect((count + 1) * size).toBeLessThanOrEqual(MAP_SIZE);
+        // the band starts left of the camera, its far rows are seen up to +/- 218 texels
+        expect(cx).toBeLessThan(100);
+        expect(cx + count * size - size).toBeGreaterThan(100);
     });
 });

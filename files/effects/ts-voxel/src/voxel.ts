@@ -11,7 +11,7 @@ import { Display } from "library/core/display";
 import { Font } from "library/gfx/font";
 import { RGBA } from "library/color/RGBA";
 
-import { Terrain } from "./terrain";
+import { Terrain, MAP_SIZE } from "./terrain";
 
 //----- globals
 const TERRAIN_SEED = 0x5eed;
@@ -67,6 +67,19 @@ export function moveCamera(cam: Camera, terrain: Terrain, frame: number): void {
     cam.z = Math.max(cam.z, near + CAMERA_FLOOR);
 }
 
+/* number of glyphs in the text band and its left edge (map x)
+ *
+ * The band is as wide as possible without wrapping onto itself: the glyphs plus
+ * the scroll offset (< one glyph) fit in the map width. It is centred on the
+ * camera; only the far corners of the screen may miss a few letters.
+ */
+export function textLayout(camx: number): { count: number; cx: number; size: number } {
+    const size = FONT_SIZE * TEXT_SCALE;
+    const count = Math.floor(MAP_SIZE / size) - 1;
+    const cx = Math.floor(camx - ((count - 1) * size) / 2);
+    return { count, cx, size };
+}
+
 //----- class
 export class Voxel extends IAnimation {
     //----- members
@@ -107,10 +120,7 @@ export class Voxel extends IAnimation {
 
     // paint the visible part of the text in the band ahead of the camera
     private paintText(): void {
-        const cam = this.camera_;
-        const size = FONT_SIZE * TEXT_SCALE;
-        const span = 2 * (TEXT_AHEAD + FONT_SIZE * TEXT_DEPTH) * FOV + 2 * size; // visible width + margin
-        const count = Math.ceil(span / size) + 1;
+        const { count, cx, size } = textLayout(this.camera_.x);
 
         const first = Math.floor(this.scroll_ / size);
         const glyphs: Uint32Array[] = [];
@@ -118,8 +128,7 @@ export class Voxel extends IAnimation {
             glyphs.push(this.font_.getCharPixels(TEXT.charAt((first + i) % TEXT.length)));
         }
 
-        const cx = Math.floor(cam.x - span / 2);
-        const cy = Math.floor(cam.y + TEXT_AHEAD);
+        const cy = Math.floor(this.camera_.y + TEXT_AHEAD);
         this.terrain_.paintStrip(glyphs, FONT_SIZE, TEXT_SCALE, cx, cy, this.scroll_ % size, TEXT_TINT, TEXT_DEPTH);
     }
 
