@@ -11,6 +11,7 @@ import { IAnimation } from "library/core/animation";
 import { Display } from "library/core/display";
 import { Surface } from "library/gfx/surface";
 import { Font } from "library/gfx/font";
+import { RGBA } from "library/color/RGBA";
 
 import { Snake } from "./snake";
 
@@ -20,6 +21,8 @@ const FONT_CHAR_HEIGHT = 32;
 
 // the text of the snake, wandering in the upper half of the screen
 const SNAKE_TEXT = "Snake Scroller";
+// average colour of the girl's sprite (#8c9598)
+const SNAKE_COLOR = { r: 0x8c, g: 0x95, b: 0x98 };
 
 //----- interfaces
 interface TextScroller {
@@ -95,6 +98,22 @@ export class Scroller extends IAnimation {
         this.snakesfc_ = new Surface(area);
     }
 
+    // colour the glyph pixels with SNAKE_COLOR, keeping their brightness (the
+    // font is white on black, so the brightness is the anti-aliasing alpha)
+    private tint(pixels: Uint32Array): Uint32Array {
+        const out = new Uint32Array(pixels.length);
+        for (let i = 0; i < pixels.length; i++) {
+            const k = pixels[i] & 0xff; // red channel = brightness
+            out[i] = RGBA.toUInt32(
+                (SNAKE_COLOR.r * k) >> 8,
+                (SNAKE_COLOR.g * k) >> 8,
+                (SNAKE_COLOR.b * k) >> 8,
+                pixels[i] >>> 24,
+            );
+        }
+        return out;
+    }
+
     // draw the letters of the snake at their position
     private drawSnake(): void {
         const half = FONT_CHAR_WIDTH >> 1;
@@ -102,7 +121,7 @@ export class Scroller extends IAnimation {
 
         this.snakesfc_.clear();
         for (let i = 0; i < positions.length; i++) {
-            const chardata = this.fontmap_.getCharPixels(SNAKE_TEXT.charAt(i));
+            const chardata = this.tint(this.fontmap_.getCharPixels(SNAKE_TEXT.charAt(i)));
             const x = Math.floor(positions[i].x) - half;
             const y = Math.floor(positions[i].y) - half;
             // the black background of the letters is transparent (letters may overlap)
