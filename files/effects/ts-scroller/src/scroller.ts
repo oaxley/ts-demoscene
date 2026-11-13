@@ -12,9 +12,14 @@ import { Display } from "library/core/display";
 import { Surface } from "library/gfx/surface";
 import { Font } from "library/gfx/font";
 
+import { Snake } from "./snake";
+
 //----- globals
 const FONT_CHAR_WIDTH = 32;
 const FONT_CHAR_HEIGHT = 32;
+
+// the text of the snake, wandering in the upper half of the screen
+const SNAKE_TEXT = "Screwler Rules!";
 
 //----- interfaces
 interface TextScroller {
@@ -46,6 +51,9 @@ export class Scroller extends IAnimation {
     private sprite_: Surface; // the background sprite
 
     private text_: TextScroller; // the text scroller
+
+    private snake_: Snake; // the snake movement
+    private snakesfc_: Surface; // the surface where the snake is drawn
 
     //----- methods
     constructor(display: Display) {
@@ -80,6 +88,26 @@ export class Scroller extends IAnimation {
                 return y;
             },
         };
+
+        // the snake lives in the upper half of the display
+        const area = { width: display.width, height: display.height >> 1 };
+        this.snake_ = new Snake(SNAKE_TEXT.length, FONT_CHAR_WIDTH, area);
+        this.snakesfc_ = new Surface(area);
+    }
+
+    // draw the letters of the snake at their position
+    private drawSnake(): void {
+        const half = FONT_CHAR_WIDTH >> 1;
+        const positions = this.snake_.positions();
+
+        this.snakesfc_.clear();
+        for (let i = 0; i < positions.length; i++) {
+            const chardata = this.fontmap_.getCharPixels(SNAKE_TEXT.charAt(i));
+            const x = Math.floor(positions[i].x) - half;
+            const y = Math.floor(positions[i].y) - half;
+            // the black background of the letters is transparent (letters may overlap)
+            this.snakesfc_.writeBlock(chardata, x, y, FONT_CHAR_WIDTH, FONT_CHAR_HEIGHT, 0xff000000);
+        }
     }
 
     // draw a text scroller in the surface
@@ -114,6 +142,10 @@ export class Scroller extends IAnimation {
         // draw the text on the font surface
         this.drawText(this.text_);
 
+        // move the snake and draw it
+        this.snake_.update();
+        this.drawSnake();
+
         // update the text position
         this.text_.end += 1;
         if (this.text_.end >= this.text_.text.length) this.text_.end = this.text_.text.length;
@@ -138,6 +170,9 @@ export class Scroller extends IAnimation {
     protected render(): void {
         // surface clearing
         this.display_.surface.clear();
+
+        // the snake first, so it goes behind the girl
+        this.display_.surface.blend({ x: 0, y: 0 }, this.snakesfc_, undefined, 1.0, 0xff000000);
 
         // add the background sprite
         this.display_.surface.blend({ x: 0, y: 0 }, this.sprite_);

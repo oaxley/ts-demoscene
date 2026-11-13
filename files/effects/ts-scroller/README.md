@@ -57,6 +57,19 @@ let Y_pos = CenterY + Amplitude * sin((2 * PI * Frequency * X_pos) / DisplayWidt
 - _X_pos_ is the current position for this character
 - _DisplayWidth_ is the width of the display
 
+## **Snake Scroller**
+
+A second text ("Screwler Rules!") wanders in the upper half of the screen like the snake of the old game.
+
+- The head moves at a constant speed and steers smoothly (a few degrees per frame at most) toward an
+  invisible apple. When the apple is reached (or after a few seconds), a new one is picked further on the
+  left. The snake does not grow.
+- Every head position is kept in a history: each letter is drawn where the head was a few frames ago, so
+  the whole body follows exactly the same path.
+- When the whole snake has left the screen on the left, it comes back from the right side, at a random
+  height.
+- The snake is drawn before the girl sprite, so it goes behind her.
+
 ## **License**
 
 All the code are under the **Apache License 2.0**.  
