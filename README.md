@@ -23,22 +23,30 @@ An attempt to recreate all the old demoscene effects from the 90s in Typescript 
                 <li><a href="./files/effects/ts-flag/README.md">Country Flag</a></li>
                 <li><a href="./files/effects/ts-fireworks/README.md">Fireworks</a></li>
                 <li><a href="./files/effects/ts-flames/README.md">FireCube</a></li>
+            </ul>
+        </td>
+        <td valign="top">
+            <ul>
                 <li><a href="./files/effects/ts-glenz/README.md">Glenz</a></li>
                 <li><a href="./files/effects/ts-lens/README.md">Lens</a></li>
                 <li><a href="./files/effects/ts-lightrays/README.md">Light Rays</a></li>
                 <li><a href="./files/effects/ts-metaball/README.md">Metaballs</a></li>
                 <li><a href="./files/effects/ts-moire/README.md">Moire</a></li>
+                <li><a href="./files/effects/ts-noise/README.md">Noise</a></li>
             </ul>
         </td>
         <td valign="top">
             <ul>
-                <li><a href="./files/effects/ts-noise/README.md">Noise</a></li>
                 <li><a href="./files/effects/ts-plasma/README.md">Plasma</a></li>
                 <li><a href="./files/effects/ts-raster/README.md">Raster</a></li>
                 <li><a href="./files/effects/ts-rotozoom/README.md">Rotozoom</a></li>
                 <li><a href="./files/effects/ts-scroller/README.md">Scroller</a></li>
                 <li><a href="./files/effects/ts-smoke/README.md">Smoke</a></li>
                 <li><a href="./files/effects/ts-sprites/README.md">Sprites</a></li>
+            </ul>
+        </td>
+        <td valign="top">
+            <ul>
                 <li><a href="./files/effects/ts-starfield/README.md">Starfield</a></li>
                 <li><a href="./files/effects/ts-mirror/README.md">Torus Mirror</a></li>
                 <li><a href="./files/effects/ts-tunnel/README.md">Tunnel</a></li>
