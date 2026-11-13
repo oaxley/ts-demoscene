@@ -9,7 +9,7 @@
 ## **Algorithm**
 
 A chrome torus spins and drifts above an endless checkered floor. Its lower half reflects the
-floor, bent around its curves, and its upper half reflects the sky. Nothing is ray-traced: the
+floor, bent around its curves, and its upper half reflects a sky full of drifting clouds. Nothing is ray-traced: the
 mirror is the classic demoscene trick of the _environment map_.
 
 ### The floor
@@ -23,13 +23,27 @@ z = (FLOOR_Y * ZOOM) / (y - HORIZON); // depth of the row
 x = ((screen_x - width / 2) * z) / ZOOM; // linear along the row
 ```
 
-The squares scroll toward the viewer (an offset is added to `z`), and the colour fades into the sky
-colour with the depth (fog, `exp(-z / FOG)`), so the floor melts into the sky at the horizon.
+The squares scroll toward the viewer (an offset is added to `z`), and the colour fades into the
+horizon haze with the depth (fog, `exp(-z / FOG)`), so the floor melts into the sky at the horizon.
 
 Far away a pixel covers several squares, and taking only one of them gives flickering noise.
 Instead, the checker is _box filtered_. Each pixel gets the share of black squares under its
 footprint, computed exactly with the integral of the square wave, and the two colours are mixed
 by that share.
+
+### The sky
+
+The sky is a gradient, from deep blue overhead down to the haze at the horizon (the floor fog
+colour, so floor and sky meet without a line). The clouds lie on a flat ceiling, the plane
+`y = CLOUD_Y` above the camera: it is the floor turned upside down, drawn row by row the same way
+and scrolling at half the speed of the floor (it is further away).
+
+The cloud texture is made once from a seed: fractal value noise (5 octaves of a smooth random grid,
+each twice as fine and half as strong), shaped into puffs by a smooth threshold. Every grid period
+divides 256, so it tiles without a seam. Far away a pixel covers many texels, so the texture is kept
+at every size (each level is the 2x2 average of the previous one) and the level is picked from the
+pixel footprint: far clouds turn into an even veil instead of flickering. They also fade with the
+distance, into the gradient.
 
 ### The torus
 
@@ -59,14 +73,18 @@ v = 128 + (127 * r.z) / m;
 ```
 
 The centre of the map is the floor right under the torus, the horizon is a circle of radius
-`127 / sqrt(2)`, and the outer ring is the sky. The map is rebuilt every frame (the floor scrolls
-and the torus moves). Each texel is turned back into a direction, and a direction going down hits
-the floor, with the same filtered checker and a shorter fog. The per-texel geometry only depends on
-the torus height, so it is computed once and scaled.
+`127 / sqrt(2)`, and the outer ring is the cloud ceiling. Each texel is turned back into a
+direction: going down it hits the floor (same filtered checker, shorter fog), going up it hits the
+ceiling (same clouds and gradient). The per-texel geometry only depends on the distances from the
+torus to the floor and to the ceiling, so it is computed once and scaled.
 
-The only bad spot of a sphere map is its rim, where all the texels mean "straight up". It is
-always sky, and a quad whose 4 reflected rays all go up is simply drawn with the sky colour, so it
-can never smear.
+The only bad spot of a sphere map is its rim, where all the texels mean "straight up": the clouds
+overhead would smear there. So there are two maps, rebuilt every frame (the floor and the clouds
+scroll, the torus moves): one with its pole straight down, one with its pole straight up. A quad
+with a reflected ray going well up is drawn with the sky map, all the others with the floor map,
+and neither ever reaches its own rim. To keep the cost down, only one texel out of four is
+computed, the others are averaged from their neighbours (the maps are blurred anyway: the torus
+shrinks them a lot).
 
 The triangles are then drawn with the perspective-correct texture mapper used by the cube
 (`files/library/gfx/texture.ts`), with the environment map as texture. The chrome reflects 80 % of
