@@ -17,7 +17,7 @@
 //----- imports
 import { RGBA } from "library/color/RGBA";
 
-import { cloudTexture, sampleCloud, CloudTexture } from "./clouds";
+import { cloudTexture, sampleCloud, sampleLevel, CloudTexture } from "./clouds";
 import { HAZE, HAZE_COLOR, HORIZON, ZOOM } from "./floor";
 
 //----- globals
@@ -28,7 +28,7 @@ export const CLOUD_SEED = 7; // the clouds are the same at every run
 export const ZENITH: [number, number, number] = [40, 80, 160]; // sky colour straight up
 export const CLOUD: [number, number, number] = [245, 245, 250]; // thick cloud colour
 
-const SHADES = 32; // cloud density steps in a row colour table
+export const SHADES = 32; // cloud density steps in a colour table
 
 let clouds: CloudTexture | undefined;
 
@@ -43,7 +43,7 @@ export function getClouds(): CloudTexture {
 }
 
 // share of the zenith colour for a view direction going up by `up` (0: horizon, 1: zenith)
-function gradient(up: number): number {
+export function gradient(up: number): number {
     const t = 1 - (up < 0 ? 0 : up > 1 ? 1 : up);
     return 1 - t * t * t * t;
 }
@@ -57,6 +57,17 @@ function mix(g: number, c: number, f: number): number {
         Math.round((HAZE[1] + (ZENITH[1] - HAZE[1]) * g) * b + CLOUD[1] * a),
         Math.round((HAZE[2] + (ZENITH[2] - HAZE[2]) * g) * b + CLOUD[2] * a),
     );
+}
+
+/* sky colours for a gradient share g and a cloud visibility f, one per cloud density step
+ *
+ * Args:
+ *      out : SHADES + 1 colours, density k / SHADES
+ */
+export function skyShades(g: number, f: number, out: Uint32Array): void {
+    for (let k = 0; k <= SHADES; k++) {
+        out[k] = mix(g, k / SHADES, f);
+    }
 }
 
 /* colour of the sky seen through a point of the cloud ceiling
@@ -94,19 +105,26 @@ export function drawSky(dst: Uint32Array, width: number, height: number, scroll:
         const z = (h * ZOOM) / above;
         const g = gradient(above / Math.hypot(above, ZOOM));
         const f = Math.exp(-z / CLOUD_FOG);
-        for (let k = 0; k <= SHADES; k++) {
-            colors[k] = mix(g, k / SHADES, f);
-        }
+        skyShades(g, f, colors);
 
         // the footprint of a pixel: one pixel wide, one row deep (the larger one)
         const dx = z / ZOOM;
         const w = Math.max(dx, (z * z) / (h * ZOOM)) / CLOUD_TEXEL;
+        const level = w > 1 ? Math.log2(w) : 0;
         const tz = (z + scroll) / CLOUD_TEXEL;
         let tx = (-half * dx) / CLOUD_TEXEL;
         const step = dx / CLOUD_TEXEL;
+        // the density is sampled every other pixel and interpolated in between (a cloud texel
+        // covers several pixels, even overhead)
         let p = y * width;
-        for (let sx = 0; sx < width; sx++, tx += step) {
-            dst[p++] = colors[Math.round(sampleCloud(tex, tx, tz, w) * SHADES)];
+        let prev = sampleLevel(tex, level, tx, tz) * SHADES;
+        for (let sx = 0; sx < width; sx += 2, tx += 2 * step) {
+            const next = sampleLevel(tex, level, tx + 2 * step, tz) * SHADES;
+            dst[p++] = colors[(prev + 0.5) | 0];
+            if (sx + 1 < width) {
+                dst[p++] = colors[((prev + next) * 0.5 + 0.5) | 0];
+            }
+            prev = next;
         }
     }
     if (height > HORIZON) {

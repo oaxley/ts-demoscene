@@ -11,7 +11,14 @@ import { describe, test, expect } from "vitest";
 import { Point2D, Point3D } from "library/core/interfaces";
 import { perspective } from "library/maths/projection";
 import { isClockwise } from "library/maths/mesh";
-import { torusMesh, reflect, sphereUV, envDirection } from "../../files/effects/ts-mirror/src/torus";
+import {
+    torusMesh,
+    reflect,
+    sphereUV,
+    envDirection,
+    skyUV,
+    skyDirection,
+} from "../../files/effects/ts-mirror/src/torus";
 import {
     floorColor,
     checker,
@@ -27,7 +34,16 @@ import {
     CHECK_A,
     CHECK_B,
 } from "../../files/effects/ts-mirror/src/floor";
-import { Mirror, torusPath, isSkyQuad, MAJOR_R, MINOR_R, REFLECTANCE } from "../../files/effects/ts-mirror/src/mirror";
+import {
+    Mirror,
+    torusPath,
+    usesSkyMap,
+    MAJOR_R,
+    MINOR_R,
+    REFLECTANCE,
+    SCROLL,
+    CLOUD_SCROLL,
+} from "../../files/effects/ts-mirror/src/mirror";
 import { cloudTexture, sampleCloud, CLOUD_SIZE } from "../../files/effects/ts-mirror/src/clouds";
 import { drawSky, skyColor, ZENITH, CLOUD_Y, CLOUD_SEED, CLOUD_TEXEL } from "../../files/effects/ts-mirror/src/sky";
 import { EFFECTS } from "../effects";
@@ -210,10 +226,10 @@ describe("ts-mirror floor", () => {
         expect(bottom(2 * TILE)).toEqual(bottom(0));
     });
 
-    test("env map: centre is floor under the torus, rim is sky", () => {
+    test("env map: centre is floor under the torus", () => {
         const map = new Uint32Array(256 * 256);
         // torus above the middle of a square (x = 0.5 TILE, z = 8.5 TILE): no edge under it
-        buildEnvMap(map, 0.5 * TILE, 83, 8.5 * TILE, 0);
+        buildEnvMap(map, 0.5 * TILE, 83, 8.5 * TILE, 0, 0, false);
         const d = v3(0, 0, 0);
         envDirection(128, 128, d);
         const t = (FLOOR_Y - 83) / d.y;
@@ -229,8 +245,7 @@ describe("ts-mirror floor", () => {
         for (let k = 0; k < 3; k++) {
             expect(Math.abs(((got >>> (8 * k)) & 0xff) - ((want >>> (8 * k)) & 0xff))).toBeLessThan(16);
         }
-        expect(map[0]).toBe(HAZE_COLOR);
-        expect(map[(2 << 8) | 128]).toBe(HAZE_COLOR);
+        expect(map[0]).toBe(HAZE_COLOR); // outside the disc
     });
 
     test("filtered checker: exact when sharp, mid grey when the footprint covers many squares", () => {
@@ -254,7 +269,7 @@ describe("ts-mirror floor", () => {
         const red = (u: number, v: number) => map[(v << 8) | u] & 0xff;
         const jump = 0.2 * Math.abs(CHECK_A[0] - CHECK_B[0]); // 20% of the checker contrast
         for (const scroll of [0, 17]) {
-            buildEnvMap(map, 0, 83, 500, scroll);
+            buildEnvMap(map, 0, 83, 500, scroll, 0, false);
             let isolated = 0;
             let n = 0;
             for (let v = 1; v < 255; v++) {
@@ -295,7 +310,7 @@ describe("ts-mirror floor", () => {
     test("env map fogs far sideways floor points (no aliased checker)", () => {
         // a ray going right, just below the horizon, hits the floor ~6000 units away sideways
         const map = new Uint32Array(256 * 256);
-        buildEnvMap(map, 0, 83, 500, 0);
+        buildEnvMap(map, 0, 83, 500, 0, 0, false);
         const d = v3(1, 0.02, 0);
         const l = len(d);
         const uv: Point2D = { x: 0, y: 0 };
@@ -332,11 +347,15 @@ describe("ts-mirror effect", () => {
         }
     });
 
-    test("sky quads", () => {
-        const up = [v3(0, -1, 0), v3(0.1, -0.99, 0), v3(0, -0.9, 0.43), v3(-0.3, -0.95, 0)];
-        expect(isSkyQuad(up, [0, 1, 2, 3])).toBe(true);
-        const mixed = [...up.slice(0, 3), v3(0, 0.1, 0.99)];
-        expect(isSkyQuad(mixed, [0, 1, 2, 3])).toBe(false);
+    test("each quad picks the map whose blind spot it cannot see", () => {
+        // camera space is y down: a reflected ray going up has a negative y
+        const down = [v3(0, 1, 0), v3(0.1, 0.99, 0), v3(0, 0.9, 0.43), v3(-0.3, 0.95, 0)];
+        expect(usesSkyMap(down, [0, 1, 2, 3])).toBe(false);
+        const level = [v3(1, 0, 0), v3(0.99, -0.1, 0), v3(0.95, 0.3, 0), v3(0.9, -0.4, 0.17)];
+        expect(usesSkyMap(level, [0, 1, 2, 3])).toBe(false);
+        const upward = [...level.slice(0, 3), v3(0, -0.8, 0.6)];
+        expect(usesSkyMap(upward, [0, 1, 2, 3])).toBe(true);
+        expect(usesSkyMap([v3(0, -1, 0)], [0, 0, 0, 0])).toBe(true);
     });
 
     // render n frames, returns the pixels of the last two
@@ -387,23 +406,36 @@ describe("ts-mirror effect", () => {
         }
         expect(white).toBeGreaterThan(20);
         expect(black).toBeGreaterThan(20);
-        expect(Buffer.from(a).equals(Buffer.from(b))).toBe(false);
 
-        // the mirror reflects less than 100%: the sky seen in the torus is darker than the sky,
-        // so the torus outline never vanishes against the sky or the fogged floor
-        let darkSky = 0;
-        for (let y = cy - e; y < cy + e; y++) {
+        // the top of the torus reflects the blue sky (deep blue pixels) above the floor
+        let skyBlue = 0;
+        for (let y = cy - e; y < cy; y++) {
             for (let x = cx - e; x < cx + e; x++) {
-                const [r, g, bl] = px(a, x, y);
-                if (
-                    Math.abs(r - Math.round(sky[0] * REFLECTANCE)) <= 1 &&
-                    Math.abs(bl - Math.round(sky[2] * REFLECTANCE)) <= 1 &&
-                    g < sky[1]
-                )
-                    darkSky++;
+                const [r, , bl] = px(a, x, y);
+                if (bl > r + 60) skyBlue++;
             }
         }
-        expect(darkSky).toBeGreaterThan(20);
+        expect(skyBlue).toBeGreaterThan(20);
+        expect(Buffer.from(a).equals(Buffer.from(b))).toBe(false);
+
+        // the mirror reflects less than 100%: on the torus (the pixels that differ from the
+        // scene without it) no channel is brighter than 80% of white, so its outline shows
+        const bg = new Uint32Array(WIDTH * HEIGHT);
+        drawSky(bg, WIDTH, HEIGHT, 29 * CLOUD_SCROLL);
+        drawFloor(bg, WIDTH, HEIGHT, 29 * SCROLL);
+        let torus = 0;
+        let tooBright = 0;
+        for (let i = 0; i < WIDTH * HEIGHT; i++) {
+            const c = bg[i];
+            const r = a[i * 4];
+            const g = a[i * 4 + 1];
+            const bl = a[i * 4 + 2];
+            if (r === (c & 0xff) && g === ((c >>> 8) & 0xff) && bl === ((c >>> 16) & 0xff)) continue;
+            torus++;
+            if (Math.max(r, g, bl) > 255 * REFLECTANCE + 1) tooBright++;
+        }
+        expect(torus).toBeGreaterThan(1000);
+        expect(tooBright).toBe(0);
     });
 });
 
@@ -509,5 +541,112 @@ describe("ts-mirror sky", () => {
         }
         expect(skyColor(0, 1e7, 0.001, 1e7, 1e5)).toBe(HAZE_COLOR);
         expect(skyColor(0, 0, 0.5, NaN, 0)).toBe(HAZE_COLOR);
+    });
+});
+
+describe("ts-mirror sky map", () => {
+    const ch = (c: number, k: number) => (c >>> (8 * k)) & 0xff;
+
+    test("sky map: centre straight up, round trip", () => {
+        const uv: Point2D = { x: 0, y: 0 };
+        skyUV(v3(0, -1, 0), uv);
+        expect(uv).toEqual({ x: 128, y: 128 });
+        const d = v3(0, 0, 0);
+        let checked = 0;
+        for (let v = 0; v < 256; v += 9) {
+            for (let u = 0; u < 256; u += 9) {
+                if (!skyDirection(u, v, d)) continue;
+                expect(len(d)).toBeCloseTo(1, 9);
+                skyUV(d, uv);
+                expect(Math.abs(uv.x - (u + 0.5))).toBeLessThan(0.6);
+                expect(Math.abs(uv.y - (v + 0.5))).toBeLessThan(0.6);
+                checked++;
+            }
+        }
+        expect(checked).toBeGreaterThan(500);
+        skyDirection(128, 128, d);
+        expect(d.y).toBeLessThan(-0.99);
+    });
+
+    test("both maps show the same scene where both are valid", () => {
+        // the mirror switches maps from quad to quad: no visible seam when they agree
+        const floorMap = new Uint32Array(256 * 256);
+        const skyMap = new Uint32Array(256 * 256);
+        buildEnvMap(floorMap, 30, 83, 500, 40, 20, false);
+        buildEnvMap(skyMap, 30, 83, 500, 40, 20, true);
+        const a: Point2D = { x: 0, y: 0 };
+        const b: Point2D = { x: 0, y: 0 };
+        const texel = (m: Uint32Array, p: Point2D) => m[(Math.floor(p.y) << 8) | Math.floor(p.x)];
+        let diff = 0;
+        let n = 0;
+        for (let k = 0; k < 2000; k++) {
+            // spiral of directions with -0.5 < y < 0.5
+            const y = Math.sin(k * 0.7) * 0.5;
+            const phi = k * 2.399;
+            const s = Math.sqrt(1 - y * y);
+            const d = v3(s * Math.cos(phi), y, s * Math.sin(phi));
+            sphereUV(d, a);
+            skyUV(d, b);
+            const ca = texel(floorMap, a);
+            const cb = texel(skyMap, b);
+            for (let i = 0; i < 3; i++) diff += Math.abs(ch(ca, i) - ch(cb, i));
+            n += 3;
+        }
+        expect(diff / n).toBeLessThan(12); // both maps are built at half resolution
+    });
+
+    test("the floor map shows clouds above, the sky map the checker below", () => {
+        const floorMap = new Uint32Array(256 * 256);
+        const skyMap = new Uint32Array(256 * 256);
+        buildEnvMap(floorMap, 0, 83, 500, 0, 0, false);
+        buildEnvMap(skyMap, 0, 83, 500, 0, 0, true);
+        const ring = (m: Uint32Array, lo: number, hi: number) => {
+            const out: number[] = [];
+            for (let v = 0; v < 256; v++) {
+                for (let u = 0; u < 256; u++) {
+                    const rho = Math.hypot((u + 0.5 - 128) / 127, (v + 0.5 - 128) / 127);
+                    if (rho >= lo && rho < hi) out.push(m[(v << 8) | u]);
+                }
+            }
+            return out;
+        };
+        // floor map, upper directions (outside the horizon circle): white clouds and blue sky
+        const up = ring(floorMap, 0.75, 0.98);
+        expect(up.some((c) => ch(c, 0) > 200 && ch(c, 2) > 200)).toBe(true);
+        expect(up.some((c) => ch(c, 2) > ch(c, 0) + 60)).toBe(true);
+        // sky map: its centre (straight up) is sky or cloud, its lower ring the checker
+        const top = ring(skyMap, 0, 0.3);
+        expect(top.every((c) => ch(c, 2) >= ch(c, 0))).toBe(true);
+        const down = ring(skyMap, 0.8, 0.98);
+        expect(down.some((c) => ch(c, 0) > 180 && ch(c, 1) > 180)).toBe(true);
+        expect(down.some((c) => ch(c, 0) < 30 && ch(c, 2) < 30)).toBe(true);
+    });
+
+    test("sky map has no speckle (far clouds filtered)", () => {
+        const map = new Uint32Array(256 * 256);
+        const red = (u: number, v: number) => map[(v << 8) | u] & 0xff;
+        for (const cloud of [0, 37]) {
+            buildEnvMap(map, 0, 83, 500, 0, cloud, true);
+            let isolated = 0;
+            let n = 0;
+            for (let v = 1; v < 255; v++) {
+                for (let u = 1; u < 255; u++) {
+                    const rho = Math.hypot((u + 0.5 - 128) / 127, (v + 0.5 - 128) / 127);
+                    if (rho < 0.3 || rho >= 0.7) continue;
+                    n++;
+                    const c = red(u, v);
+                    for (const [a, b] of [
+                        [red(u - 1, v), red(u + 1, v)],
+                        [red(u, v - 1), red(u, v + 1)],
+                    ]) {
+                        if (Math.min(c - a, c - b) > 30 || Math.min(a - c, b - c) > 30) {
+                            isolated++;
+                            break;
+                        }
+                    }
+                }
+            }
+            expect(isolated / n).toBeLessThan(0.005);
+        }
     });
 });

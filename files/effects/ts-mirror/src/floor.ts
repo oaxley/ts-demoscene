@@ -13,15 +13,17 @@
  *          checker is box filtered instead: each pixel gets the average of the squares under its
  *          footprint, computed exactly with the integral of the square wave.
  *
- *          The environment map uses the very same colours: a direction going down hits the
- *          floor (seen from the torus centre), a direction going up sees the sky.
+ *          The environment maps use the very same colours: a direction going down hits the
+ *          floor (seen from the torus centre), a direction going up hits the cloud ceiling.
  */
 
 //----- imports
 import { Point3D } from "library/core/interfaces";
 import { RGBA } from "library/color/RGBA";
 
-import { envDirection } from "./torus";
+import { envDirection, skyDirection } from "./torus";
+import { skyShades, gradient, getClouds, CLOUD_Y, CLOUD_TEXEL, CLOUD_FOG, SHADES } from "./sky";
+import { sampleLevel } from "./clouds";
 
 //----- globals
 export const ZOOM = 600; // projection: x * ZOOM / z
@@ -157,95 +159,193 @@ export function drawFloor(dst: Uint32Array, width: number, height: number, scrol
     }
 }
 
-/* geometry of the environment map texels, for a torus 1 unit above the floor
+/* geometry of the environment map texels, for planes 1 unit away from the torus
  *
- * Everything scales with the height h of the torus above the floor: the floor point seen by a
- * texel (fx, fz), its distance and its footprint (wx, wz). Computed once, NaN = sky texel.
+ * A texel looks in one direction: down, it hits the floor; up, it hits the cloud ceiling. The
+ * hit point (px, pz), its distance and its footprint (wx, wz) scale with the distance between
+ * the torus and that plane, so they are computed once per map. `up` marks the texels hitting the
+ * ceiling (with the upward share of the direction for the sky gradient), NaN = no hit.
  */
 interface EnvGeometry {
-    fx: Float64Array;
-    fz: Float64Array;
+    px: Float64Array;
+    pz: Float64Array;
     dist: Float64Array;
     wx: Float64Array;
     wz: Float64Array;
+    up: Float64Array; // 0: floor texel, > 0: ceiling texel (upward share), NaN: outside
+    band: Uint8Array; // ceiling texels: gradient band (index in the colour tables)
+    lw: Float64Array; // ceiling texels: log2 of the footprint (unit distance)
 }
 
-let envGeometry: EnvGeometry | undefined;
+const BANDS = 32; // gradient steps in the sky part of the maps
+const FADE_STEPS = 16; // cloud visibility steps in the sky part of the maps
+const skyTables = new Uint32Array(BANDS * FADE_STEPS * (SHADES + 1));
+let skyTablesReady = false;
 
-function getEnvGeometry(): EnvGeometry {
-    if (envGeometry) {
-        return envGeometry;
+// colour tables of the ceiling texels: gradient band x visibility step x density step
+function getSkyTables(): Uint32Array {
+    if (!skyTablesReady) {
+        const row = new Uint32Array(SHADES + 1);
+        for (let b = 0; b < BANDS; b++) {
+            for (let f = 0; f < FADE_STEPS; f++) {
+                skyShades(gradient((b + 0.5) / BANDS), f / (FADE_STEPS - 1), row);
+                skyTables.set(row, (b * FADE_STEPS + f) * (SHADES + 1));
+            }
+        }
+        skyTablesReady = true;
+    }
+    return skyTables;
+}
+
+const envGeometry: (EnvGeometry | undefined)[] = [undefined, undefined];
+
+function getEnvGeometry(sky: boolean): EnvGeometry {
+    const cached = envGeometry[sky ? 1 : 0];
+    if (cached) {
+        return cached;
     }
     const n = 256 * 256;
     const g: EnvGeometry = {
-        fx: new Float64Array(n).fill(NaN),
-        fz: new Float64Array(n),
+        px: new Float64Array(n),
+        pz: new Float64Array(n),
         dist: new Float64Array(n),
         wx: new Float64Array(n),
         wz: new Float64Array(n),
+        up: new Float64Array(n).fill(NaN),
+        band: new Uint8Array(n),
+        lw: new Float64Array(n),
     };
     const dir: Point3D = { x: 0, y: 0, z: 0 };
     for (let v = 0; v < 256; v++) {
         for (let u = 0; u < 256; u++) {
-            if (!envDirection(u, v, dir) || dir.y <= 0) {
+            if (!(sky ? skyDirection(u, v, dir) : envDirection(u, v, dir))) {
                 continue;
             }
             const i = (v << 8) | u;
-            const fx = dir.x / dir.y;
-            const fz = dir.z / dir.y;
-            const dist = Math.hypot(fx, fz);
+            // cosine to the plane normal (floor below, ceiling above), cosine to the map pole
+            const toPlane = Math.abs(dir.y);
+            if (toPlane < 1e-9) {
+                g.up[i] = 0;
+                g.dist[i] = Infinity;
+                continue;
+            }
+            const toPole = sky ? -dir.y : dir.y;
+            const px = dir.x / toPlane;
+            const pz = dir.z / toPlane;
+            const dist = Math.hypot(px, pz);
 
-            // footprint of the texel on the floor: theta = angle from straight down,
-            // rho = sin(theta / 2) and one texel is 1 / 127 in rho, so
-            // dtheta = 2 / (127 cos(theta / 2)): radial size sec²(theta) dtheta, tangential
-            // size dist * dphi with dphi = (1 / 127) / rho
-            const cosT = dir.y;
-            const half = Math.sqrt((1 + cosT) / 2); // cos(theta / 2)
-            const rho = Math.max(Math.sqrt((1 - cosT) / 2), 1e-9); // sin(theta / 2)
-            const radial = (ENV_BLUR * 2) / (127 * half * cosT * cosT);
+            // footprint of the texel on the plane: theta = angle from the pole, rho = sin(theta / 2)
+            // and one texel is 1 / 127 in rho, so dtheta = 2 / (127 cos(theta / 2)); the radial
+            // size on the plane is sec²(angle to the normal) dtheta, the tangential size is
+            // dist * dphi with dphi = (1 / 127) / rho
+            const half = Math.sqrt(Math.max((1 + toPole) / 2, 1e-9)); // cos(theta / 2)
+            const rho = Math.max(Math.sqrt((1 - toPole) / 2), 1e-9); // sin(theta / 2)
+            const radial = (ENV_BLUR * 2) / (127 * half * toPlane * toPlane);
             const tangent = (ENV_BLUR * dist) / (127 * rho);
-            const cx = dist > 0 ? Math.abs(fx / dist) : 1;
-            const cz = dist > 0 ? Math.abs(fz / dist) : 0;
+            const cx = dist > 0 ? Math.abs(px / dist) : 1;
+            const cz = dist > 0 ? Math.abs(pz / dist) : 0;
 
-            g.fx[i] = fx;
-            g.fz[i] = fz;
+            g.px[i] = px;
+            g.pz[i] = pz;
             g.dist[i] = dist;
             g.wx[i] = cx * radial + cz * tangent;
             g.wz[i] = cz * radial + cx * tangent;
+            g.up[i] = dir.y < 0 ? -dir.y : 0;
+            g.band[i] = Math.min(BANDS - 1, Math.floor(g.up[i] * BANDS));
+            g.lw[i] = Math.log2(Math.max(g.wx[i], g.wz[i], 1e-9));
         }
     }
-    envGeometry = g;
+    envGeometry[sky ? 1 : 0] = g;
     return g;
 }
 
 /* environment map seen from the torus centre (256x256, index (v << 8) | u)
  *
  * Args:
- *      map        : the map pixels (ABGR), written
- *      ox, oy, oz : torus centre (camera space)
- *      scroll     : checker offset along z
+ *      map         : the map pixels (ABGR), written
+ *      ox, oy, oz  : torus centre (camera space)
+ *      scroll      : checker offset along z
+ *      cloudScroll : cloud offset along z
+ *      sky         : false: floor map (pole straight down), true: sky map (pole straight up)
  */
-export function buildEnvMap(map: Uint32Array, ox: number, oy: number, oz: number, scroll: number): void {
-    const { fx, fz, dist, wx, wz } = getEnvGeometry();
-    const h = FLOOR_Y - oy;
+export function buildEnvMap(
+    map: Uint32Array,
+    ox: number,
+    oy: number,
+    oz: number,
+    scroll: number,
+    cloudScroll: number,
+    sky: boolean,
+): void {
+    const { px, pz, dist, wx, wz, up, band, lw } = getEnvGeometry(sky);
+    const h = FLOOR_Y - oy; // torus to floor
+    const hc = oy - CLOUD_Y; // torus to ceiling
     const k = h / TILE; // world units -> squares
     const x0 = ox / TILE;
     const z0 = (oz + scroll) / TILE;
     const fog = -h / MIRROR_FOG;
 
-    for (let i = 0; i < map.length; i++) {
-        const x = fx[i];
-        if (x !== x) {
-            // NaN: sky
-            map[i] = HAZE_COLOR;
-            continue;
+    const clouds = getClouds();
+    const tables = getSkyTables();
+    const kc = hc / CLOUD_TEXEL; // world units -> cloud texels
+    const cx0 = ox / CLOUD_TEXEL;
+    const cz0 = (oz + cloudScroll) / CLOUD_TEXEL;
+    const fade = hc / CLOUD_FOG;
+    const log2kc = Math.log2(kc) + 0.5; // + 0.5: the level is rounded (one bilinear lookup)
+    const last = clouds.levels.length - 1;
+
+    // the even texels only: the map is filtered ENV_BLUR = 2 texels wide, so the odd ones are
+    // the average of their neighbours (4 times less work)
+    for (let v = 0; v < 256; v += 2) {
+        for (let u = 0; u < 256; u += 2) {
+            const i = (v << 8) | u;
+            const a = up[i];
+            if (a !== a) {
+                // NaN: outside the disc
+                map[i] = HAZE_COLOR;
+                continue;
+            }
+            const d = dist[i];
+            if (a > 0) {
+                // the ceiling: the clouds seen from the torus; filter level log2 of the footprint,
+                // cloud visibility exp(-distance / CLOUD_FOG) in steps
+                let level = (lw[i] + log2kc) | 0;
+                level = level < 0 ? 0 : level > last ? last : level;
+                const c = sampleLevel(clouds, level, cx0 + px[i] * kc, cz0 + pz[i] * kc);
+                const fs = ((FADE_STEPS - 1) * Math.exp(-d * fade) + 0.5) | 0;
+                map[i] = tables[(band[i] * FADE_STEPS + fs) * (SHADES + 1) + ((c * SHADES + 0.5) | 0)];
+                continue;
+            }
+            if (!(d * h < Z_FAR)) {
+                map[i] = HAZE_COLOR;
+                continue;
+            }
+            const t = checker(x0 + px[i] * k, z0 + pz[i] * k, wx[i] * k, wz[i] * k);
+            map[i] = shade(t, Math.exp(d * fog));
         }
-        const d = dist[i];
-        if (!(d * h < Z_FAR)) {
-            map[i] = HAZE_COLOR;
-            continue;
-        }
-        const t = checker(x0 + x * k, z0 + fz[i] * k, wx[i] * k, wz[i] * k);
-        map[i] = shade(t, Math.exp(d * fog));
     }
+    fillOdd(map);
+}
+
+// average of two ABGR colours, channel by channel
+function average(a: number, b: number): number {
+    return (((a & 0xfefefefe) >>> 1) + ((b & 0xfefefefe) >>> 1) + (a & b & 0x01010101)) >>> 0;
+}
+
+// fill the odd texels of a map whose even texels are set (the last row and column copy their neighbour)
+function fillOdd(map: Uint32Array): void {
+    for (let v = 0; v < 256; v += 2) {
+        const r = v << 8;
+        for (let u = 1; u < 255; u += 2) {
+            map[r | u] = average(map[r | (u - 1)], map[r | (u + 1)]);
+        }
+        map[r | 255] = map[r | 254];
+    }
+    for (let v = 1; v < 255; v += 2) {
+        const r = v << 8;
+        for (let u = 0; u < 256; u++) {
+            map[r | u] = average(map[(r - 256) | u], map[(r + 256) | u]);
+        }
+    }
+    map.copyWithin(255 << 8, 254 << 8, 255 << 8);
 }

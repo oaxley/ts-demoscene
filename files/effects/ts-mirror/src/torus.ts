@@ -105,3 +105,26 @@ export function envDirection(u: number, v: number, out: Point3D): boolean {
     out.z = q * k;
     return true;
 }
+
+/* the sky map: the same sphere map with its axis pointing straight up
+ *
+ * Its centre is the sky overhead, its only singular direction (the rim) is straight down. The
+ * mirror uses it for the quads that see the sky: the floor map squeezes everything above into its
+ * rim, where the clouds would smear.
+ */
+const flip: Point3D = { x: 0, y: 0, z: 0 };
+export function skyUV(r: Point3D, out: Point2D): void {
+    flip.x = r.x;
+    flip.y = -r.y;
+    flip.z = r.z;
+    sphereUV(flip, out);
+}
+
+// unit direction seen at the centre of texel (u, v) of the sky map (false outside the disc)
+export function skyDirection(u: number, v: number, out: Point3D): boolean {
+    if (!envDirection(u, v, out)) {
+        return false;
+    }
+    out.y = -out.y;
+    return true;
+}
