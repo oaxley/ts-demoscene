@@ -27,12 +27,16 @@ const TEXT_TINT = RGBA.toUInt32(0xff, 0xd8, 0x90);
 const DRAW_DISTANCE = 400;
 const HORIZON = 100; // screen line of the horizon
 const HEIGHT_SCALE = 240; // vertical projection factor
-export const RELIEF = 0.45; // terrain heights (0..255) to world units
+export const RELIEF = 0.3; // terrain heights (0..255) to world units
 const FOV = 1.0; // tan of the half field of view
 
 const CAMERA_SPEED = 1.5; // map units per frame
 const CAMERA_CLEARANCE = 55; // altitude above the terrain ahead
 const CAMERA_FLOOR = 20; // minimum altitude above the ground
+const CAMERA_SPRING = 0.002; // pull toward the target altitude
+const CAMERA_DAMPING = 0.06; // vertical speed damping
+const CAMERA_MAX_ACCEL = 0.04; // max change of vertical speed per frame
+const CAMERA_MAX_SPEED = 0.5; // max vertical speed per frame
 
 const SKY_TOP = [10, 16, 48];
 const SKY_HORIZON = [150, 170, 200];
@@ -42,29 +46,43 @@ export interface Camera {
     x: number;
     y: number;
     z: number; // altitude
+    vz: number; // vertical speed
     angle: number; // yaw (0 = looking toward +y)
 }
 
 //----- functions
-// move the camera forward with a slow sway, its altitude following the ground
-export function moveCamera(cam: Camera, terrain: Terrain, frame: number): void {
-    cam.angle = 0.15 * Math.sin(frame * 0.007);
-    cam.x += 0.6 * Math.sin(frame * 0.01) + CAMERA_SPEED * Math.sin(cam.angle);
-    cam.y += CAMERA_SPEED * Math.cos(cam.angle);
-
-    // follow the average ground from the camera to the text band, so the text
-    // stays in view; never go lower than the hills just ahead
+/* altitude the camera aims for: above the average ground from the camera to
+ * the text band (so the text stays in view), and well above the hills just
+ * ahead
+ */
+export function cruiseAltitude(cam: Camera, terrain: Terrain): number {
     let sum = 0;
     let near = 0;
     const ahead = [0, 30, 60, 90, 130, 170, 210];
     for (const d of ahead) {
         const h = RELIEF * terrain.heightAt(cam.x + d * Math.sin(cam.angle), cam.y + d * Math.cos(cam.angle));
         sum += h;
-        if (d <= 30 && h > near) near = h;
+        if (d <= 90 && h > near) near = h;
     }
+    return Math.max(sum / ahead.length + CAMERA_CLEARANCE, near + 2 * CAMERA_FLOOR);
+}
 
-    cam.z += (sum / ahead.length + CAMERA_CLEARANCE - cam.z) * 0.05;
-    cam.z = Math.max(cam.z, near + CAMERA_FLOOR);
+// move the camera forward with a slow sway, its altitude following the ground
+export function moveCamera(cam: Camera, terrain: Terrain, frame: number): void {
+    cam.angle = 0.15 * Math.sin(frame * 0.007);
+    cam.x += 0.6 * Math.sin(frame * 0.01) + CAMERA_SPEED * Math.sin(cam.angle);
+    cam.y += CAMERA_SPEED * Math.cos(cam.angle);
+
+    // ease toward the target altitude: a damped spring with bounded speed and
+    // acceleration, so the flight never jolts
+    const target = cruiseAltitude(cam, terrain);
+    const accel = (target - cam.z) * CAMERA_SPRING - cam.vz * CAMERA_DAMPING;
+    cam.vz += Math.max(-CAMERA_MAX_ACCEL, Math.min(CAMERA_MAX_ACCEL, accel));
+    cam.vz = Math.max(-CAMERA_MAX_SPEED, Math.min(CAMERA_MAX_SPEED, cam.vz));
+    cam.z += cam.vz;
+
+    // safety net: never under the ground
+    cam.z = Math.max(cam.z, RELIEF * terrain.heightAt(cam.x, cam.y) + CAMERA_FLOOR);
 }
 
 /* number of glyphs in the text band and its left edge (map x)
@@ -98,7 +116,7 @@ export class Voxel extends IAnimation {
 
         this.font_ = new Font("/images/assets/ts-voxel.font-map.png", { width: FONT_SIZE, height: FONT_SIZE });
         this.terrain_ = new Terrain(TERRAIN_SEED);
-        this.camera_ = { x: 0, y: 0, z: 0, angle: 0 };
+        this.camera_ = { x: 0, y: 0, z: 0, vz: 0, angle: 0 };
         this.scroll_ = 0;
 
         this.ybuffer_ = new Int32Array(this.width_);
@@ -114,8 +132,9 @@ export class Voxel extends IAnimation {
             this.sky_.fill(c, y * this.width_, (y + 1) * this.width_);
         }
 
-        // first position of the camera
+        // first position of the camera, already at its cruising altitude
         moveCamera(this.camera_, this.terrain_, 0);
+        this.camera_.z = cruiseAltitude(this.camera_, this.terrain_);
     }
 
     // paint the visible part of the text in the band ahead of the camera

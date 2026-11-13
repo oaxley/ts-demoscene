@@ -9,7 +9,7 @@
 import { describe, test, expect } from "vitest";
 
 import { Terrain, MAP_SIZE } from "../../files/effects/ts-voxel/src/terrain";
-import { moveCamera, textLayout, Camera, RELIEF } from "../../files/effects/ts-voxel/src/voxel";
+import { moveCamera, cruiseAltitude, textLayout, Camera, RELIEF } from "../../files/effects/ts-voxel/src/voxel";
 
 //----- tests
 describe("ts-voxel terrain", () => {
@@ -97,12 +97,33 @@ describe("ts-voxel terrain", () => {
 describe("ts-voxel camera", () => {
     test("camera stays above the terrain", () => {
         const terrain = new Terrain(0x5eed);
-        const cam: Camera = { x: 0, y: 0, z: 0, angle: 0 };
+        const cam: Camera = { x: 0, y: 0, z: 0, vz: 0, angle: 0 };
         for (let frame = 0; frame <= 2000; frame++) {
             moveCamera(cam, terrain, frame);
             expect(Number.isFinite(cam.x)).toBe(true);
             expect(Number.isFinite(cam.y)).toBe(true);
             expect(cam.z).toBeGreaterThanOrEqual(RELIEF * terrain.heightAt(cam.x, cam.y) + 20);
+        }
+    });
+});
+
+describe("ts-voxel smooth flight", () => {
+    test("altitude changes slowly and without jolts", () => {
+        const terrain = new Terrain(0x5eed);
+        const cam: Camera = { x: 0, y: 0, z: 0, vz: 0, angle: 0 };
+        // start at cruising altitude, like the effect
+        moveCamera(cam, terrain, 0);
+        cam.z = cruiseAltitude(cam, terrain);
+
+        let speed = cam.vz;
+        for (let frame = 1; frame <= 4000; frame++) {
+            const z = cam.z;
+            moveCamera(cam, terrain, frame);
+            const v = cam.z - z;
+            // vertical speed (units / frame) and its change (no sudden kick)
+            expect(Math.abs(v)).toBeLessThanOrEqual(0.6);
+            expect(Math.abs(v - speed)).toBeLessThanOrEqual(0.05);
+            speed = v;
         }
     });
 });

@@ -13,7 +13,8 @@
 The landscape is two 512x512 maps that wrap on every side (the camera flies forever):
 
 - a **height map**, made of 5 octaves of value noise. Each octave uses a lattice whose size divides
-  512, so the map tiles seamlessly.
+  512, so the map tiles seamlessly. The fine octaves are kept weak and the heights are curved
+  (`h^2.2`) so the landscape is mostly gentle valleys with a few rounded peaks.
 - a **colour map**, computed once from the height (water, grass, rock, snow) and lit by the slope.
 
 ### Voxel renderer
@@ -36,6 +37,12 @@ a fixed distance in front of the camera, then removed before the next frame. The
 map as usual, so the letters bend over the hills and dip into the valleys. The glyphs are stretched
 along the flight direction to compensate for the perspective, and the camera altitude follows the
 average ground between itself and the text so the band stays in view.
+
+### Smooth flight
+
+The camera altitude is a damped spring pulled toward a cruising altitude (above the average ground up
+to the text, and above the hills in the next 90 units). Its vertical speed and acceleration are capped,
+so the flight glides over the hills instead of jolting.
 
 ## **License**
 

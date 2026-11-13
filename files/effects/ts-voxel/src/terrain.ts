@@ -85,7 +85,7 @@ export class Terrain {
                 let a = 1;
                 for (let o = 0; o < OCTAVES.length; o++) {
                     v += periodicNoise(grids[o], OCTAVES[o], x, y) * a;
-                    a *= 0.5;
+                    a *= 0.4; // softer details: rolling hills rather than crags
                 }
                 raw[y * MAP_SIZE + x] = v;
                 if (v < min) min = v;
@@ -93,10 +93,10 @@ export class Terrain {
             }
         }
 
-        // normalise, then flatten the valleys
+        // normalise, then widen the flat valleys (fewer, rounder peaks)
         for (let i = 0; i < raw.length; i++) {
             const n = (raw[i] - min) / (max - min);
-            this.height[i] = Math.round(255 * Math.pow(n, 1.6));
+            this.height[i] = Math.round(255 * Math.pow(n, 2.2));
         }
     }
 
