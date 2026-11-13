@@ -351,11 +351,57 @@ describe("ts-mirror effect", () => {
         // camera space is y down: a reflected ray going up has a negative y
         const down = [v3(0, 1, 0), v3(0.1, 0.99, 0), v3(0, 0.9, 0.43), v3(-0.3, 0.95, 0)];
         expect(usesSkyMap(down, [0, 1, 2, 3])).toBe(false);
-        const level = [v3(1, 0, 0), v3(0.99, -0.1, 0), v3(0.95, 0.3, 0), v3(0.9, -0.4, 0.17)];
-        expect(usesSkyMap(level, [0, 1, 2, 3])).toBe(false);
-        const upward = [...level.slice(0, 3), v3(0, -0.8, 0.6)];
-        expect(usesSkyMap(upward, [0, 1, 2, 3])).toBe(true);
+        const level = [v3(1, 0, 0), v3(0.99, -0.1, 0), v3(0.95, 0.3, 0), v3(0.9, 0.2, 0.39)];
+        expect(usesSkyMap(level, [0, 1, 2, 3])).toBe(false); // looks down on average
+        const upward = [v3(1, 0, 0), v3(0.99, -0.1, 0), v3(0.95, 0.3, 0), v3(0, -0.8, 0.6)];
+        expect(usesSkyMap(upward, [0, 1, 2, 3])).toBe(true); // looks up on average
         expect(usesSkyMap([v3(0, -1, 0)], [0, 0, 0, 0])).toBe(true);
+    });
+
+    test("animation: no vertex near the rim of its map, maps agree where quads switch", () => {
+        // the private state of the effect, read after each update
+        type State = {
+            reflected_: Point3D[];
+            uv_: Point2D[];
+            skyUv_: Point2D[];
+            floorMap_: Uint32Array;
+            skyMap_: Uint32Array;
+            update(): void;
+            render(): void;
+        };
+        const m = new Mirror(new Display(new FakeCanvas(WIDTH, HEIGHT) as unknown as HTMLCanvasElement));
+        const st = m as unknown as State;
+        const mesh = torusMesh(MAJOR_R, MINOR_R, 32, 16);
+        const radius = (p: Point2D) => Math.hypot((p.x - 128) / 127, (p.y - 128) / 127);
+        const texel = (map: Uint32Array, p: Point2D) =>
+            map[(Math.min(255, Math.floor(p.y)) << 8) | Math.min(255, Math.floor(p.x))];
+        let worst = 0;
+        const jumps: number[] = [];
+        for (let f = 0; f < 120; f++) {
+            st.update();
+            st.render();
+            const users = new Map<number, number>(); // vertex -> bit 1: floor map, bit 2: sky map
+            for (const q of mesh.quads) {
+                const sky = usesSkyMap(st.reflected_, q);
+                for (const i of q) {
+                    worst = Math.max(worst, radius(sky ? st.skyUv_[i] : st.uv_[i]));
+                    users.set(i, (users.get(i) ?? 0) | (sky ? 2 : 1));
+                }
+            }
+            for (const [i, used] of users) {
+                if (used !== 3) continue;
+                const a = texel(st.floorMap_, st.uv_[i]);
+                const b = texel(st.skyMap_, st.skyUv_[i]);
+                let d = 0;
+                for (let k = 0; k < 3; k++)
+                    d = Math.max(d, Math.abs(((a >>> (8 * k)) & 0xff) - ((b >>> (8 * k)) & 0xff)));
+                jumps.push(d);
+            }
+        }
+        expect(worst).toBeLessThan(0.92);
+        jumps.sort((a, b) => a - b);
+        expect(jumps.length).toBeGreaterThan(100);
+        expect(jumps[Math.floor(jumps.length * 0.9)]).toBeLessThan(16);
     });
 
     // render n frames, returns the pixels of the last two

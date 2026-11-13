@@ -126,24 +126,19 @@ export function sampleLevel(tex: CloudTexture, level: number, x: number, y: numb
     }
     const k0 = level | 0;
     const t = level - k0;
+    // a texel j of level k averages the base texels 2^k j .. 2^k j + 2^k - 1: its centre is
+    // 2^k j + (2^k - 1) / 2, so a base point x is at x / 2^k - 1 / 2 + 1 / 2^(k + 1) in level k
     const s0 = 1 / (1 << k0);
-    const a = bilinear(tex.levels[k0], SIZE_SHIFT - k0, x * s0, y * s0);
+    const o0 = 0.5 * s0 - 0.5;
+    const a = bilinear(tex.levels[k0], SIZE_SHIFT - k0, x * s0 + o0, y * s0 + o0);
     if (t < 1e-6) {
         return a;
     }
     const k1 = k0 + 1;
-    const b = k1 === last ? tex.levels[last][0] : bilinear(tex.levels[k1], SIZE_SHIFT - k1, x * s0 * 0.5, y * s0 * 0.5);
+    const s1 = s0 * 0.5;
+    const o1 = 0.5 * s1 - 0.5;
+    const b = k1 === last ? tex.levels[last][0] : bilinear(tex.levels[k1], SIZE_SHIFT - k1, x * s1 + o1, y * s1 + o1);
     return a + (b - a) * t;
-}
-
-/* cloud density, nearest texel of an integer level (cheap: for the environment maps, which are
- * blurred anyway)
- */
-export function nearestLevel(tex: CloudTexture, level: number, x: number, y: number): number {
-    const shift = SIZE_SHIFT - level;
-    const mask = (1 << shift) - 1;
-    const s = 1 / (1 << level);
-    return tex.levels[level][((Math.floor(y * s) & mask) << shift) | (Math.floor(x * s) & mask)];
 }
 
 // bilinear sample of a level of size 1 << shift (texel k at coordinate k, repeating)

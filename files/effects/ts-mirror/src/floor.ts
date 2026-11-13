@@ -179,12 +179,12 @@ interface EnvGeometry {
 
 const BANDS = 32; // gradient steps in the sky part of the maps
 const FADE_STEPS = 16; // cloud visibility steps in the sky part of the maps
-const skyTables = new Uint32Array(BANDS * FADE_STEPS * (SHADES + 1));
-let skyTablesReady = false;
+let skyTables: Uint32Array | undefined; // built on first use (SHADES comes from sky.ts, which imports this file)
 
 // colour tables of the ceiling texels: gradient band x visibility step x density step
 function getSkyTables(): Uint32Array {
-    if (!skyTablesReady) {
+    if (!skyTables) {
+        skyTables = new Uint32Array(BANDS * FADE_STEPS * (SHADES + 1));
         const row = new Uint32Array(SHADES + 1);
         for (let b = 0; b < BANDS; b++) {
             for (let f = 0; f < FADE_STEPS; f++) {
@@ -192,7 +192,6 @@ function getSkyTables(): Uint32Array {
                 skyTables.set(row, (b * FADE_STEPS + f) * (SHADES + 1));
             }
         }
-        skyTablesReady = true;
     }
     return skyTables;
 }

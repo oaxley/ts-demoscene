@@ -54,7 +54,6 @@ export const CLOUD_SCROLL = 2; // cloud scroll (slower than the floor: they are 
 export const REFLECTANCE = 0.8; // the chrome reflects 80% of the light: its outline shows on the sky
 
 const MESH: TorusMesh = torusMesh(MAJOR_R, MINOR_R, RING, TUBE);
-const SKY_PICK = 0.5; // a quad with a reflected ray going up more than this uses the sky map
 
 //----- functions
 
@@ -71,12 +70,12 @@ export function torusPath(frame: number): Point3D {
 /* =true when a quad is drawn with the sky map, false: the floor map
  *
  * Each map has one blind spot, its rim: straight up for the floor map, straight down for the sky
- * map. A quad with a ray going well up (more than SKY_PICK, y is down) can't have a ray going
- * straight down (a quad is small), so the sky map is safe for it, and the floor map is safe for
- * all the others.
+ * map. A quad looking up on average uses the sky map, the others the floor map: the switch happens
+ * at the horizon, where both maps have the same resolution and show the same haze (no seam), and
+ * a quad is too small to reach the rim of the map it uses.
  */
 export function usesSkyMap(r: Point3D[], quad: number[]): boolean {
-    return r[quad[0]].y < -SKY_PICK || r[quad[1]].y < -SKY_PICK || r[quad[2]].y < -SKY_PICK || r[quad[3]].y < -SKY_PICK;
+    return r[quad[0]].y + r[quad[1]].y + r[quad[2]].y + r[quad[3]].y < 0; // y is down
 }
 
 //----- class

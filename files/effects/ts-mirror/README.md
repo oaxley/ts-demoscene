@@ -81,8 +81,8 @@ torus to the floor and to the ceiling, so it is computed once and scaled.
 The only bad spot of a sphere map is its rim, where all the texels mean "straight up": the clouds
 overhead would smear there. So there are two maps, rebuilt every frame (the floor and the clouds
 scroll, the torus moves): one with its pole straight down, one with its pole straight up. A quad
-with a reflected ray going well up is drawn with the sky map, all the others with the floor map,
-and neither ever reaches its own rim. To keep the cost down, only one texel out of four is
+looking up on average is drawn with the sky map, the others with the floor map: the switch
+happens at the horizon, where both maps show the same haze, and no quad reaches its own rim. To keep the cost down, only one texel out of four is
 computed, the others are averaged from their neighbours (the maps are blurred anyway: the torus
 shrinks them a lot).
 
