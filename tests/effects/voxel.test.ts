@@ -9,6 +9,7 @@
 import { describe, test, expect } from "vitest";
 
 import { Terrain, MAP_SIZE } from "../../files/effects/ts-voxel/src/terrain";
+import { moveCamera, Camera, RELIEF } from "../../files/effects/ts-voxel/src/voxel";
 
 //----- tests
 describe("ts-voxel terrain", () => {
@@ -67,10 +68,41 @@ describe("ts-voxel terrain", () => {
         expect(t.color).toEqual(before);
     });
 
+    test("glyphs can be stretched in depth", () => {
+        const t = new Terrain(42);
+        const before = t.color.slice();
+        const glyph = new Uint32Array(32 * 32).fill(0xffffffff);
+
+        // 1 texel wide, 4 texels deep per glyph pixel: 32 x 128 texels
+        t.paintStrip([glyph], 32, 1, 100, 200, 0, 0xff90d8ff, 4);
+
+        const changed = (x: number, y: number) => t.color[y * MAP_SIZE + x] !== before[y * MAP_SIZE + x];
+        expect(changed(100, 200)).toBe(true);
+        expect(changed(131, 327)).toBe(true);
+        expect(changed(132, 200)).toBe(false);
+        expect(changed(100, 328)).toBe(false);
+
+        t.restoreStrip();
+        expect(t.color).toEqual(before);
+    });
+
     test("blank glyphs leave the map untouched", () => {
         const t = new Terrain(42);
         const before = t.color.slice();
         t.paintStrip([new Uint32Array(32 * 32)], 32, 2, 10, 10, 0, 0xff90d8ff);
         expect(t.color).toEqual(before);
+    });
+});
+
+describe("ts-voxel camera", () => {
+    test("camera stays above the terrain", () => {
+        const terrain = new Terrain(0x5eed);
+        const cam: Camera = { x: 0, y: 0, z: 0, angle: 0 };
+        for (let frame = 0; frame <= 2000; frame++) {
+            moveCamera(cam, terrain, frame);
+            expect(Number.isFinite(cam.x)).toBe(true);
+            expect(Number.isFinite(cam.y)).toBe(true);
+            expect(cam.z).toBeGreaterThanOrEqual(RELIEF * terrain.heightAt(cam.x, cam.y) + 20);
+        }
     });
 });

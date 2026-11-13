@@ -152,6 +152,8 @@ export class Terrain {
      *      cx, cy   : left / near corner of the band in the map
      *      offset   : horizontal scroll offset in texels
      *      tint     : text colour (uint32, as in the maps)
+     *      depth    : size of a glyph pixel along the map y axis (default: scale);
+     *                 stretching the glyphs in depth compensates the perspective
      */
     public paintStrip(
         glyphs: Uint32Array[],
@@ -161,9 +163,10 @@ export class Terrain {
         cy: number,
         offset: number,
         tint: number,
+        depth: number = scale,
     ): void {
         const size = glyphSize * scale;
-        this.strip_ = { y: cy, h: size };
+        this.strip_ = { y: cy, h: glyphSize * depth };
 
         const tr = tint & 0xff;
         const tg = (tint >>> 8) & 0xff;
@@ -174,13 +177,13 @@ export class Terrain {
             const left = cx - offset + g * size;
 
             for (let gy = 0; gy < glyphSize; gy++) {
-                const my = cy + (glyphSize - 1 - gy) * scale;
+                const my = cy + (glyphSize - 1 - gy) * depth;
                 for (let gx = 0; gx < glyphSize; gx++) {
                     const k = pixels[gy * glyphSize + gx] & 0xff;
                     if (k === 0) continue;
 
                     const mx = left + gx * scale;
-                    for (let sy = 0; sy < scale; sy++) {
+                    for (let sy = 0; sy < depth; sy++) {
                         for (let sx = 0; sx < scale; sx++) {
                             const i = this.index(mx + sx, my + sy);
                             const b = this.base_[i];

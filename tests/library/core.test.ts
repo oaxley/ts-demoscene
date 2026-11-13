@@ -9,6 +9,7 @@
 import { describe, test, expect } from "vitest";
 
 import { Surface } from "library/gfx/surface";
+import { Font } from "library/gfx/font";
 import { bresenham } from "library/gfx/bresenham";
 import { Palette } from "library/color/palette";
 import { Color } from "library/color/color";
@@ -259,5 +260,19 @@ describe("Surface.disc", () => {
         const c = red(s.data32[10 * 21 + 10]);
         expect(c).toBeGreaterThan(0);
         expect(Number.isNaN(c)).toBe(false);
+    });
+});
+
+describe("Font.loaded", () => {
+    test("resolves once the font map is loaded, glyphs are then available", async () => {
+        const font = new Font("/images/assets/ts-scroller.font-map.png", { width: 32, height: 32 });
+        expect(await font.loaded).toBe(true);
+        const lit = font.getCharPixels("A").filter((p) => (p & 0xff) > 0).length;
+        expect(lit).toBeGreaterThan(0);
+    });
+
+    test("resolves to false for a missing asset", async () => {
+        const font = new Font("/images/assets/ts-scroller.nope.png", { width: 32, height: 32 });
+        expect(await font.loaded).toBe(false);
     });
 });

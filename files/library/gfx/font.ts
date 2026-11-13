@@ -15,6 +15,7 @@ export class Font {
     private font_: Surface;
     private unit_: Size;
     private chars_: Map<string, Uint32Array>; // cached character pixels
+    private loaded_: Promise<boolean>; // resolved once the font map is loaded
 
     //----- methods
     constructor(filename: string, unit: Size) {
@@ -25,14 +26,21 @@ export class Font {
 
         // load the font
         console.log("Loading font ...");
-        this.font_
+        this.loaded_ = this.font_
             .loadImage(filename)
-            .then(() => {
+            .then((ok) => {
                 console.log("Font: asset properly loaded");
+                return ok;
             })
             .catch(() => {
                 console.log(`Font: unable to load asset ${filename}`);
+                return false;
             });
+    }
+
+    // resolved (true on success) once the font map is loaded
+    public get loaded(): Promise<boolean> {
+        return this.loaded_;
     }
 
     // return the current size unit for this font

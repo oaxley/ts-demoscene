@@ -28,6 +28,7 @@ import { Sprites } from "../files/effects/ts-sprites/src/sprites";
 import { Starfield } from "../files/effects/ts-starfield/src/starfield";
 import { Tunnel } from "../files/effects/ts-tunnel/src/tunnel";
 import { Twister } from "../files/effects/ts-twister/src/twister";
+import { Voxel } from "../files/effects/ts-voxel/src/voxel";
 import { Water } from "../files/effects/ts-water/src/water";
 
 //----- globals
@@ -54,5 +55,6 @@ export const EFFECTS = {
     "ts-starfield": Starfield,
     "ts-tunnel": Tunnel,
     "ts-twister": Twister,
+    "ts-voxel": Voxel,
     "ts-water": Water,
 };
