@@ -183,6 +183,19 @@ describe("Surface clipping", () => {
         s.writeBlock(new Uint32Array([7, 8, 9, 10]), -1, 1, 2, 2);
         expect(Array.from(s.data32)).toEqual([1, 2, 3, 8, 5, 6]);
     });
+
+    test("writeBlock skips the mask pixels (transparent colour)", () => {
+        const s = new Surface({ width: 3, height: 2 });
+        s.data32.set([1, 2, 3, 4, 5, 6]);
+
+        // inside the surface (fast path without mask)
+        s.writeBlock(new Uint32Array([0, 7, 8, 0]), 0, 0, 2, 2, 0);
+        expect(Array.from(s.data32)).toEqual([1, 7, 3, 8, 5, 6]);
+
+        // clipped block
+        s.writeBlock(new Uint32Array([9, 0, 0, 10]), 2, 0, 2, 2, 0);
+        expect(Array.from(s.data32)).toEqual([1, 7, 9, 8, 5, 6]);
+    });
 });
 
 describe("Surface.disc", () => {

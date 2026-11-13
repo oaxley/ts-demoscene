@@ -229,24 +229,35 @@ export class Surface {
     /* write a block of pixels from a 32-bit array (bw * bh values)
      *
      * The block is clipped to the surface: pixels outside of it are ignored.
+     * mask (optional): the value of the transparent pixel, which is not written
      */
-    public writeBlock(data: Uint32Array, bx: number, by: number, bw: number, bh: number): void {
+    public writeBlock(data: Uint32Array, bx: number, by: number, bw: number, bh: number, mask?: number): void {
         const dst = this.framebuffer_!.data32;
+        const maskValue = mask === undefined ? undefined : mask >>> 0;
 
         let s_off = 0;
         for (let y = by; y < by + bh; y++, s_off += bw) {
             const addr = y * this.width_ + bx;
 
             // fast path: the whole row is inside the framebuffer
-            if (Number.isInteger(addr) && y >= 0 && y < this.height_ && bx >= 0 && bx + bw <= this.width_) {
+            if (
+                maskValue === undefined &&
+                Number.isInteger(addr) &&
+                y >= 0 &&
+                y < this.height_ &&
+                bx >= 0 &&
+                bx + bw <= this.width_
+            ) {
                 dst.set(data.subarray(s_off, s_off + bw), addr);
                 continue;
             }
 
             for (let x = 0; x < bw; x++) {
                 const px = bx + x;
+                const value = data[s_off + x];
+                if (value === maskValue) continue;
                 if (y >= 0 && y < this.height_ && px >= 0 && px < this.width_) {
-                    dst[(y * this.width_ + px) | 0] = data[s_off + x];
+                    dst[(y * this.width_ + px) | 0] = value;
                 }
             }
         }
