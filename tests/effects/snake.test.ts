@@ -76,18 +76,26 @@ describe("ts-scroller snake movement", () => {
         }
     });
 
+    test("several apples are alive at the same time", () => {
+        const snake = new Snake(LENGTH, SPACING, AREA);
+        expect(snake.apples).toHaveLength(4);
+        expect(new Set(snake.apples).size).toBe(4);
+    });
+
     test("a new apple is always further left than the head", () => {
         const snake = new Snake(LENGTH, SPACING, AREA);
-        let apple = { ...snake.apple };
+        let known = new Set(snake.apples);
         let changes = 0;
 
         for (let f = 0; f < 3000 && snake.respawned === 0; f++) {
             snake.update();
-            if (snake.apple.x !== apple.x || snake.apple.y !== apple.y) {
-                expect(snake.apple.x).toBeLessThanOrEqual(snake.head.x - 80);
-                apple = { ...snake.apple };
-                changes++;
+            for (const apple of snake.apples) {
+                if (!known.has(apple)) {
+                    expect(apple.x).toBeLessThanOrEqual(snake.head.x - 80);
+                    changes++;
+                }
             }
+            known = new Set(snake.apples);
         }
         expect(changes).toBeGreaterThan(0);
     });

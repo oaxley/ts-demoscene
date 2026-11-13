@@ -13,6 +13,7 @@ import { Point2D, Size } from "library/core/interfaces";
 export const SNAKE_SPEED = 2; // head speed (pixels per frame)
 export const SNAKE_MAX_TURN = (3 * Math.PI) / 180; // max turn per frame (radians)
 
+const APPLE_COUNT = 4; // number of apples alive at the same time
 const APPLE_MIN_DX = 80; // a new apple is between 80 and 200 px on the left
 const APPLE_MAX_DX = 200;
 const APPLE_MARGIN = 40; // vertical margin for the apples
@@ -37,6 +38,13 @@ export function steer(heading: number, target: number, maxTurn: number): number 
     return heading + Math.max(-maxTurn, Math.min(maxTurn, diff));
 }
 
+//----- interfaces
+interface Apple {
+    x: number;
+    y: number;
+    timer: number; // frames spent going to this apple
+}
+
 //----- class
 export class Snake {
     //----- members
@@ -48,8 +56,7 @@ export class Snake {
     private heading_: number; // head direction (radians, PI = left)
     private history_: Point2D[]; // previous head positions (newest first)
 
-    private apple_: Point2D; // the apple the snake is heading to
-    private timer_: number; // frames spent going to the current apple
+    private apples_: Apple[]; // the apples the snake is wandering toward
     private respawned_: number; // number of times the snake re-entered the screen
 
     //----- methods
@@ -70,8 +77,7 @@ export class Snake {
         this.head_ = { x: 0, y: 0 };
         this.heading_ = Math.PI;
         this.history_ = [];
-        this.apple_ = { x: 0, y: 0 };
-        this.timer_ = 0;
+        this.apples_ = [];
 
         this.spawn();
     }
@@ -81,9 +87,14 @@ export class Snake {
         return this.head_;
     }
 
-    // current target
+    // the apple the head is currently heading to (the nearest one)
     public get apple(): Point2D {
-        return this.apple_;
+        return this.target();
+    }
+
+    // all the apples alive
+    public get apples(): Point2D[] {
+        return this.apples_;
     }
 
     // number of times the snake re-entered the screen
@@ -109,16 +120,20 @@ export class Snake {
             return;
         }
 
-        // eat the apple (or give up) and look for the next one
-        this.timer_++;
-        const dist = Math.hypot(this.apple_.x - this.head_.x, this.apple_.y - this.head_.y);
-        if (dist < APPLE_REACHED || this.timer_ > APPLE_TIMEOUT) {
-            this.newApple();
+        // eat the apples (or give up on them) and replace them
+        for (let i = 0; i < this.apples_.length; i++) {
+            const apple = this.apples_[i];
+            apple.timer++;
+            const dist = Math.hypot(apple.x - this.head_.x, apple.y - this.head_.y);
+            if (dist < APPLE_REACHED || apple.timer > APPLE_TIMEOUT) {
+                this.apples_[i] = this.newApple();
+            }
         }
 
-        // steer toward the apple
-        const target = Math.atan2(this.apple_.y - this.head_.y, this.apple_.x - this.head_.x);
-        this.heading_ = steer(this.heading_, target, SNAKE_MAX_TURN);
+        // steer toward the nearest apple
+        const target = this.target();
+        const angle = Math.atan2(target.y - this.head_.y, target.x - this.head_.x);
+        this.heading_ = steer(this.heading_, angle, SNAKE_MAX_TURN);
         this.heading_ = Math.atan2(Math.sin(this.heading_), Math.cos(this.heading_));
 
         // move the head (the letters always stay inside the area vertically)
@@ -130,6 +145,20 @@ export class Snake {
         // the body follows the path of the head
         this.history_.unshift(this.head_);
         this.history_.length = (this.length_ - 1) * this.lag_ + 1;
+    }
+
+    // nearest apple from the head
+    private target(): Point2D {
+        let best = this.apples_[0];
+        let bestDist = Infinity;
+        for (const apple of this.apples_) {
+            const dist = Math.hypot(apple.x - this.head_.x, apple.y - this.head_.y);
+            if (dist < bestDist) {
+                best = apple;
+                bestDist = dist;
+            }
+        }
+        return best;
     }
 
     // true when every letter is past the left side of the screen
@@ -152,15 +181,18 @@ export class Snake {
             this.history_.push({ x: this.head_.x + i * SNAKE_SPEED, y });
         }
 
-        this.newApple();
+        this.apples_ = [];
+        for (let i = 0; i < APPLE_COUNT; i++) {
+            this.apples_.push(this.newApple());
+        }
     }
 
-    // pick a new apple on the left of the head
-    private newApple(): void {
-        this.apple_ = {
+    // a new apple on the left of the head
+    private newApple(): Apple {
+        return {
             x: this.head_.x - random(APPLE_MIN_DX, APPLE_MAX_DX),
             y: random(APPLE_MARGIN, this.area_.height - APPLE_MARGIN),
+            timer: 0,
         };
-        this.timer_ = 0;
     }
 }
