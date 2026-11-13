@@ -59,7 +59,7 @@ let Y_pos = CenterY + Amplitude * sin((2 * PI * Frequency * X_pos) / DisplayWidt
 
 ## **Snake Scroller**
 
-A second text ("Screwler Rules!") wanders in the upper half of the screen like the snake of the old game.
+A second text ("Snake Scroller") wanders in the upper half of the screen like the snake of the old game.
 
 - The head moves at a constant speed and steers smoothly (a few degrees per frame at most) toward an
   invisible apple. When the apple is reached (or after a few seconds), a new one is picked further on the

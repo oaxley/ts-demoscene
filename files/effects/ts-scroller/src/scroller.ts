@@ -19,7 +19,7 @@ const FONT_CHAR_WIDTH = 32;
 const FONT_CHAR_HEIGHT = 32;
 
 // the text of the snake, wandering in the upper half of the screen
-const SNAKE_TEXT = "Screwler Rules!";
+const SNAKE_TEXT = "Snake Scroller";
 
 //----- interfaces
 interface TextScroller {
