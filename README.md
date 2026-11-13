@@ -43,6 +43,7 @@ An attempt to recreate all the old demoscene effects from the 90s in Typescript 
                 <li><a href="./files/effects/ts-mirror/README.md">Torus Mirror</a></li>
                 <li><a href="./files/effects/ts-tunnel/README.md">Tunnel</a></li>
                 <li><a href="./files/effects/ts-twister/README.md">Twister</a></li>
+                <li><a href="./files/effects/ts-voxel/README.md">Voxel Hills</a></li>
                 <li><a href="./files/effects/ts-water/README.md">Water</a></li>
             </ul>
         </td>
