@@ -28,6 +28,7 @@ import {
     CHECK_B,
 } from "../../files/effects/ts-mirror/src/floor";
 import { Mirror, torusPath, isSkyQuad, MAJOR_R, MINOR_R, REFLECTANCE } from "../../files/effects/ts-mirror/src/mirror";
+import { cloudTexture, sampleCloud, CLOUD_SIZE } from "../../files/effects/ts-mirror/src/clouds";
 import { EFFECTS } from "../effects";
 import { Display } from "library/core/display";
 import { FakeCanvas } from "../harness/dom";
@@ -399,5 +400,54 @@ describe("ts-mirror effect", () => {
             }
         }
         expect(darkSky).toBeGreaterThan(20);
+    });
+});
+
+describe("ts-mirror clouds", () => {
+    const tex = cloudTexture(7);
+    const base = tex.levels[0];
+    const at = (x: number, y: number) => base[((y & 255) << 8) | (x & 255)];
+
+    test("densities in [0, 1], deterministic", () => {
+        expect(base.length).toBe(CLOUD_SIZE * CLOUD_SIZE);
+        expect(base.every((d) => d >= 0 && d <= 1)).toBe(true);
+        expect(cloudTexture(7).levels[0]).toEqual(base);
+        expect(cloudTexture(8).levels[0]).not.toEqual(base);
+    });
+
+    test("puffs: clear sky and thick clouds both present", () => {
+        let mean = 0;
+        let clear = 0;
+        let thick = 0;
+        for (const d of base) {
+            mean += d / base.length;
+            if (d < 0.05) clear++;
+            if (d > 0.8) thick++;
+        }
+        expect(mean).toBeGreaterThan(0.2);
+        expect(mean).toBeLessThan(0.6);
+        expect(clear).toBeGreaterThan(base.length * 0.1);
+        expect(thick).toBeGreaterThan(base.length * 0.05);
+    });
+
+    test("tiles without a seam", () => {
+        let inside = 0;
+        let seam = 0;
+        for (let k = 0; k < 256; k++) {
+            inside = Math.max(inside, Math.abs(at(100, k) - at(101, k)), Math.abs(at(k, 100) - at(k, 101)));
+            seam = Math.max(seam, Math.abs(at(255, k) - at(0, k)), Math.abs(at(k, 255) - at(k, 0)));
+        }
+        expect(seam).toBeLessThanOrEqual(inside * 1.5 + 0.02);
+        expect(sampleCloud(tex, 10.3 + 256, 40.7, 0)).toBeCloseTo(sampleCloud(tex, 10.3, 40.7, 0), 6);
+        expect(sampleCloud(tex, -5.5, 40.7 - 512, 0)).toBeCloseTo(sampleCloud(tex, 250.5, 40.7, 0), 6);
+    });
+
+    test("levels average down: a huge footprint gives the mean cover", () => {
+        expect(tex.levels.length).toBe(9);
+        expect(tex.levels[8].length).toBe(1);
+        const mean = base.reduce((a, b) => a + b, 0) / base.length;
+        expect(tex.levels[8][0]).toBeCloseTo(mean, 4);
+        expect(sampleCloud(tex, 17, 93, 1000)).toBeCloseTo(mean, 4);
+        expect(sampleCloud(tex, 17, 93, 0)).toBeCloseTo(at(17, 93), 6);
     });
 });
