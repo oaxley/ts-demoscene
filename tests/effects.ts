@@ -11,6 +11,7 @@ import { Bump } from "../files/effects/ts-bump/src/bump";
 import { Cube } from "../files/effects/ts-cube/src/cube";
 import { Flames } from "../files/effects/ts-flames/src/flames";
 import { Flag } from "../files/effects/ts-flag/src/flag";
+import { Fractal } from "../files/effects/ts-fractal/src/fractal";
 import { Fireworks } from "../files/effects/ts-fireworks/src/fireworks";
 import { Glenz } from "../files/effects/ts-glenz/src/glenz";
 import { Lens } from "../files/effects/ts-lens/src/lens";
@@ -39,6 +40,7 @@ export const EFFECTS = {
     "ts-flames": Flames,
     "ts-flag": Flag,
     "ts-fireworks": Fireworks,
+    "ts-fractal": Fractal,
     "ts-glenz": Glenz,
     "ts-lens": Lens,
     "ts-lightrays": LightRays,

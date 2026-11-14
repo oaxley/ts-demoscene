@@ -22,6 +22,14 @@ import {
     fixedPoint,
 } from "../../scripts/fractal/mandel";
 import { KEYFRAMES, keyframeUrl } from "../../files/effects/ts-fractal/src/keyframes";
+import {
+    TIMELINE,
+    phaseAt,
+    paletteIndex,
+    colourShift,
+    screenToKeyframe,
+    nextKeyframe,
+} from "../../files/effects/ts-fractal/src/zoom";
 
 //----- helpers
 const dist = (a: Complex, b: Complex): number => Math.hypot(a.re - b.re, a.im - b.im);
@@ -104,5 +112,134 @@ describe("ts-fractal keyframes", () => {
         expect(KEYFRAMES.pivot.y).toBeLessThan(KEYFRAMES.height);
         expect(KEYFRAMES.colourOffset).toBeGreaterThanOrEqual(0);
         expect(KEYFRAMES.colourOffset).toBeLessThan(255);
+    });
+});
+
+describe("ts-fractal zoom", () => {
+    const LEVELS = KEYFRAMES.count - 1;
+    const T = TIMELINE;
+    const CYCLE = T.hold + T.zoom + T.fade;
+    const SW = 640;
+    const SH = 480;
+
+    test("timeline: hold, zoom, fade, loop", () => {
+        expect(phaseAt(0, T, LEVELS)).toEqual({ z: 0, fade: 0 });
+        expect(phaseAt(T.hold - 1, T, LEVELS)).toEqual({ z: 0, fade: 0 });
+        expect(phaseAt(T.hold + T.zoom, T, LEVELS).z).toBeCloseTo(LEVELS, 9);
+        expect(phaseAt(T.hold + T.zoom, T, LEVELS).fade).toBe(0);
+        expect(phaseAt(CYCLE - 1, T, LEVELS).fade).toBeGreaterThan(0.9);
+        expect(phaseAt(CYCLE, T, LEVELS)).toEqual(phaseAt(0, T, LEVELS));
+        expect(phaseAt(CYCLE + 500, T, LEVELS)).toEqual(phaseAt(500, T, LEVELS));
+
+        let last = 0;
+        for (let i = T.hold; i <= T.hold + T.zoom; i++) {
+            const { z } = phaseAt(i, T, LEVELS);
+            expect(z).toBeGreaterThanOrEqual(last);
+            expect(z).toBeLessThanOrEqual(LEVELS + 1e-9);
+            last = z;
+        }
+    });
+
+    test("timeline: steady zoom in the middle", () => {
+        const mid = T.hold + T.zoom / 2;
+        const v1 = phaseAt(mid + 1, T, LEVELS).z - phaseAt(mid, T, LEVELS).z;
+        const v2 = phaseAt(mid + 301, T, LEVELS).z - phaseAt(mid + 300, T, LEVELS).z;
+        expect(v1).toBeCloseTo(v2, 9);
+        // eased start: the first step is much smaller than the cruise step
+        expect(phaseAt(T.hold + 1, T, LEVELS).z).toBeLessThan(v1 / 4);
+    });
+
+    test("palette index keeps 0 inside and stays in 1..255", () => {
+        expect(paletteIndex(0, 37)).toBe(0);
+        expect(paletteIndex(0, -300)).toBe(0);
+        for (const shift of [-600.4, -1, 0, 0.6, 254, 1000]) {
+            for (let v = 1; v < 256; v++) {
+                const i = paletteIndex(v, shift);
+                expect(i).toBeGreaterThanOrEqual(1);
+                expect(i).toBeLessThanOrEqual(255);
+            }
+        }
+        expect(paletteIndex(1, 0)).toBe(1);
+        expect(paletteIndex(255, 1)).toBe(1);
+    });
+
+    test("seam: the last keyframe gets the colours of the first", () => {
+        expect(colourShift(0, KEYFRAMES)).toBe(0);
+        for (const v of [1, 100, 254]) {
+            const vN = 1 + ((v - 1 + KEYFRAMES.colourOffset) % 255);
+            expect(paletteIndex(vN, colourShift(LEVELS, KEYFRAMES))).toBe(paletteIndex(v, 0));
+        }
+        // the shift goes the short way round the palette
+        expect(Math.abs(colourShift(LEVELS, KEYFRAMES))).toBeLessThanOrEqual(127.5);
+    });
+
+    test("the screen never leaves keyframe k", () => {
+        const corners = [
+            [0, 0],
+            [SW - 1, 0],
+            [0, SH - 1],
+            [SW - 1, SH - 1],
+        ];
+        for (const f of [0, 0.25, 0.5, 0.75, 0.999]) {
+            for (const [sx, sy] of corners) {
+                // rounded to the nearest pixel by the renderer
+                const [kx, ky] = screenToKeyframe(sx, sy, f, KEYFRAMES, SW);
+                expect(kx).toBeGreaterThanOrEqual(-0.5);
+                expect(kx).toBeLessThan(KEYFRAMES.width - 0.5);
+                expect(ky).toBeGreaterThanOrEqual(-0.5);
+                expect(ky).toBeLessThan(KEYFRAMES.height - 0.5);
+            }
+        }
+        const [x, y] = screenToKeyframe(SW - 1, SH - 1, 0, KEYFRAMES, SW);
+        expect(x).toBeCloseTo(KEYFRAMES.width - 1.25, 9);
+        expect(y).toBeCloseTo(KEYFRAMES.height - 1.25, 9);
+    });
+
+    test("continuity: f -> 1 on keyframe k is f = 0 on keyframe k+1", () => {
+        for (const [sx, sy] of [
+            [0, 0],
+            [SW - 1, 0],
+            [0, SH - 1],
+            [SW - 1, SH - 1],
+            [SW / 2, SH / 2],
+        ]) {
+            const [kx, ky] = screenToKeyframe(sx, sy, 1 - 1e-9, KEYFRAMES, SW);
+            const [nx, ny] = nextKeyframe(kx, ky, KEYFRAMES);
+            const [x0, y0] = screenToKeyframe(sx, sy, 0, KEYFRAMES, SW);
+            expect(Math.hypot(nx - x0, ny - y0)).toBeLessThan(0.01);
+        }
+    });
+
+    test("keyframe k -> k+1 follows the real zoom geometry", () => {
+        const S: Complex = { re: -0.743643887037151, im: 0.13182590420533 };
+        const n = nucleus(S, 35);
+        const s = sizeEstimate(n, 35);
+        const zoom: ZoomPath = { c0: { re: -0.6, im: 0 }, w0: 3.6, n, s, levels: LEVELS };
+        const { width: w, height: h } = KEYFRAMES;
+
+        // complex point of a keyframe pixel (same convention as the generator)
+        const toComplex = (k: number, x: number, y: number): Complex => {
+            const v = viewAt(zoom, k);
+            const px = v.width / w;
+            const du = (x + 0.5 - w / 2) * px;
+            const dv = (h / 2 - (y + 0.5)) * px;
+            const c = Math.cos(v.angle);
+            const sn = Math.sin(v.angle);
+            return { re: v.centre.re + du * c - dv * sn, im: v.centre.im + du * sn + dv * c };
+        };
+
+        for (const k of [0, 10, LEVELS - 1]) {
+            for (const [x, y] of [
+                [300, 200],
+                [600, 400],
+                [KEYFRAMES.pivot.x + 20, KEYFRAMES.pivot.y - 30],
+            ]) {
+                const [nx, ny] = nextKeyframe(x, y, KEYFRAMES);
+                const a = toComplex(k, x, y);
+                const b = toComplex(k + 1, nx, ny);
+                // within a hundredth of a keyframe k+1 pixel
+                expect(dist(a, b)).toBeLessThan((viewAt(zoom, k + 1).width / w) * 0.01);
+            }
+        }
     });
 });
