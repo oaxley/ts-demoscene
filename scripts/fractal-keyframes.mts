@@ -5,9 +5,12 @@
  * @brief   Render the ts-fractal zoom keyframes (offline, run by hand)
  *
  * Usage:
- *      node scripts/fractal-keyframes.mts [--size 960x720] [--ss 3] [--target 35|39] [--only k]
+ *      node scripts/fractal-keyframes.mts [--size 1440x1080] [--view 640] [--ss 3] [--target 35|39] [--only k]
  *
  *      --size  : keyframe size in pixels
+ *      --view  : width (keyframe pixels) of the screen view, centred in the keyframe;
+ *                small enough that keyframe k+1 covers the screen
+ *                during the whole level k (zoom x2 and the small turn)
  *      --ss    : supersampling (ss x ss samples per pixel)
  *      --target: period of the Seahorse Valley mini-Mandelbrot to dive into
  *      --only  : render only keyframe k (metadata is not rewritten)
@@ -19,7 +22,9 @@
  * Keyframe k shows the view at zoom level k of a similarity zoom that maps the
  * full set (keyframe 0) onto the mini-Mandelbrot (keyframe N). Every keyframe
  * is keyframe k-1 scaled by `ratio` and turned by `stepAngle` around the same
- * pixel (the pivot, image of the zoom fixed point).
+ * pixel (the pivot, image of the zoom fixed point). The screen shows the
+ * central `view` pixels of keyframe k at the start of level k: the margin
+ * around it lets keyframe k+1 fill the screen until the end of the level.
  */
 
 //----- imports
@@ -137,10 +142,17 @@ function writePng(file: string, width: number, height: number, values: Float32Ar
     fs.writeFileSync(file, PNG.sync.write(png, { colorType: 0, inputColorType: 0, inputHasAlpha: false }));
 }
 
-// most frequent palette offset between two keyframes (circular, mod 255)
-function colourOffset(first: Float32Array, last: Float32Array): number {
+/* most frequent palette offset between two keyframes (circular, mod 255)
+ *
+ * Only the central view counts: it is what the screen shows at the loop.
+ */
+function colourOffset(first: Float32Array, last: Float32Array, width: number, height: number, view: number): number {
     const hist = new Uint32Array(255);
-    for (let i = 0; i < first.length; i++) {
+    const viewH = Math.round((view * height) / width);
+    const x0 = Math.round((width - view) / 2);
+    const y0 = Math.round((height - viewH) / 2);
+    for (let p = 0; p < view * viewH; p++) {
+        const i = (y0 + Math.floor(p / view)) * width + x0 + (p % view);
         if (first[i] >= 0 && last[i] >= 0) {
             hist[(((toIndex(last[i]) - toIndex(first[i])) % 255) + 255) % 255]++;
         }
@@ -169,6 +181,7 @@ export const KEYFRAMES = {
     count: ${meta.count}, // number of keyframes (levels + 1)
     width: ${meta.width},
     height: ${meta.height},
+    view: ${meta.view}, // width of the screen view (keyframe pixels, centred) at the start of a level
     ratio: ${meta.ratio}, // scale between two keyframes
     stepAngle: ${meta.stepAngle}, // turn between two keyframes (radians, counter-clockwise)
     pivot: { x: ${pivot.x}, y: ${pivot.y} }, // pixel of the zoom fixed point
@@ -197,7 +210,8 @@ function runJob(job: Job): Promise<Float32Array> {
 }
 
 async function main(): Promise<void> {
-    const [width, height] = arg("--size", "960x720").split("x").map(Number);
+    const [width, height] = arg("--size", "1440x1080").split("x").map(Number);
+    const viewWidth = Number(arg("--view", "640"));
     const ss = Number(arg("--ss", "3"));
     const period = Number(arg("--target", "35"));
     const only = process.argv.includes("--only") ? Number(arg("--only", "0")) : -1;
@@ -213,11 +227,12 @@ async function main(): Promise<void> {
     const zoom: ZoomPath = { c0: C0, w0: W0, n, s, levels };
     const p = fixedPoint(zoom);
 
-    const scale = width / W0;
+    const scale = viewWidth / W0;
     const meta = {
         count: levels + 1,
         width,
         height,
+        view: viewWidth,
         ratio: Math.pow(size, -1 / levels),
         stepAngle: Math.atan2(s.im, s.re) / levels,
         pivot: { x: width / 2 - 0.5 + (p.re - C0.re) * scale, y: height / 2 - 0.5 - (p.im - C0.im) * scale },
@@ -241,7 +256,7 @@ async function main(): Promise<void> {
                 ss,
                 maxIt: Math.round(BASE_IT * Math.pow(period, k / levels)),
                 centre: view.centre,
-                pixel: view.width / width,
+                pixel: view.width / viewWidth,
                 angle: view.angle,
             });
             const file = path.join(EFFECT_DIR, `assets/kf-${String(k).padStart(2, "0")}.png`);
@@ -253,7 +268,7 @@ async function main(): Promise<void> {
     await Promise.all(lanes);
 
     if (only < 0) {
-        meta.colourOffset = colourOffset(results.get(0)!, results.get(levels)!);
+        meta.colourOffset = colourOffset(results.get(0)!, results.get(levels)!, width, height, viewWidth);
         writeMetadata(meta);
         console.log(`colour offset ${meta.colourOffset}`);
     }

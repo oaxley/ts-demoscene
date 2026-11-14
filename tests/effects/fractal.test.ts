@@ -22,6 +22,9 @@ import {
     fixedPoint,
 } from "../../scripts/fractal/mandel";
 import { KEYFRAMES, keyframeUrl } from "../../files/effects/ts-fractal/src/keyframes";
+import { Fractal } from "../../files/effects/ts-fractal/src/fractal";
+import { Display } from "library/core/display";
+import { FakeCanvas } from "../harness/dom";
 import {
     TIMELINE,
     phaseAt,
@@ -190,9 +193,32 @@ describe("ts-fractal zoom", () => {
                 expect(ky).toBeLessThan(KEYFRAMES.height - 0.5);
             }
         }
+        // at f = 0, one keyframe pixel per screen pixel, centred
+        const s = KEYFRAMES.view / SW;
         const [x, y] = screenToKeyframe(SW - 1, SH - 1, 0, KEYFRAMES, SW);
-        expect(x).toBeCloseTo(KEYFRAMES.width - 1.25, 9);
-        expect(y).toBeCloseTo(KEYFRAMES.height - 1.25, 9);
+        expect(x).toBeCloseTo((KEYFRAMES.width + KEYFRAMES.view) / 2 - 0.5 - 0.5 * s, 9);
+        expect(y).toBeCloseTo((KEYFRAMES.height + SH * s) / 2 - 0.5 - 0.5 * s, 9);
+    });
+
+    test("keyframe k+1 covers the whole screen, never magnified", () => {
+        for (const f of [0, 0.25, 0.5, 0.75, 0.999]) {
+            const [ox, oy] = nextKeyframe(...screenToKeyframe(0, 0, f, KEYFRAMES, SW), KEYFRAMES);
+            const [xx, xy] = nextKeyframe(...screenToKeyframe(SW - 1, 0, f, KEYFRAMES, SW), KEYFRAMES);
+            for (const [sx, sy] of [
+                [0, 0],
+                [SW - 1, 0],
+                [0, SH - 1],
+                [SW - 1, SH - 1],
+            ]) {
+                const [nx, ny] = nextKeyframe(...screenToKeyframe(sx, sy, f, KEYFRAMES, SW), KEYFRAMES);
+                expect(nx).toBeGreaterThanOrEqual(-0.5);
+                expect(nx).toBeLessThan(KEYFRAMES.width - 0.5);
+                expect(ny).toBeGreaterThanOrEqual(-0.5);
+                expect(ny).toBeLessThan(KEYFRAMES.height - 0.5);
+            }
+            // at least one keyframe k+1 pixel per screen pixel
+            expect(Math.hypot(xx - ox, xy - oy) / (SW - 1)).toBeGreaterThanOrEqual(1 - 1e-9);
+        }
     });
 
     test("continuity: f -> 1 on keyframe k is f = 0 on keyframe k+1", () => {
@@ -220,7 +246,7 @@ describe("ts-fractal zoom", () => {
         // complex point of a keyframe pixel (same convention as the generator)
         const toComplex = (k: number, x: number, y: number): Complex => {
             const v = viewAt(zoom, k);
-            const px = v.width / w;
+            const px = v.width / KEYFRAMES.view;
             const du = (x + 0.5 - w / 2) * px;
             const dv = (h / 2 - (y + 0.5)) * px;
             const c = Math.cos(v.angle);
@@ -238,8 +264,52 @@ describe("ts-fractal zoom", () => {
                 const a = toComplex(k, x, y);
                 const b = toComplex(k + 1, nx, ny);
                 // within a hundredth of a keyframe k+1 pixel
-                expect(dist(a, b)).toBeLessThan((viewAt(zoom, k + 1).width / w) * 0.01);
+                expect(dist(a, b)).toBeLessThan((viewAt(zoom, k + 1).width / KEYFRAMES.view) * 0.01);
             }
         }
     });
+});
+
+describe("ts-fractal playback", () => {
+    // the frame just before a keyframe change must be the frame just after it,
+    // everywhere on the screen (a jump in detail at each keyframe reads as a hitch)
+    test("no jump at the keyframe changes", async () => {
+        const canvas = new FakeCanvas(640, 480);
+        const fractal = new Fractal(new Display(canvas as unknown as HTMLCanvasElement));
+        fractal.setup();
+        for (let i = 0; i < 800 && !fractal.isAnimated; i++) {
+            await new Promise((resolve) => setTimeout(resolve, 0));
+        }
+        const internals = fractal as unknown as { phase_: { z: number; fade: number }; render(): void };
+        const frame = (z: number): Uint8ClampedArray => {
+            internals.phase_ = { z, fade: 0 };
+            internals.render();
+            return canvas.getContext("2d").buffer.slice();
+        };
+        const diff = (a: Uint8ClampedArray, b: Uint8ClampedArray, border: boolean): number => {
+            let d = 0;
+            let n = 0;
+            for (let y = 0; y < 480; y++) {
+                for (let x = 0; x < 640; x++) {
+                    const edge = x < 80 || x >= 560 || y < 60 || y >= 420;
+                    if (edge !== border) continue;
+                    const p = (y * 640 + x) * 4;
+                    d += Math.abs(a[p] - b[p]) + Math.abs(a[p + 1] - b[p + 1]) + Math.abs(a[p + 2] - b[p + 2]);
+                    n++;
+                }
+            }
+            return d / n;
+        };
+
+        for (const k of [5, 12, 20]) {
+            const before = frame(k - 1e-3);
+            const after = frame(k);
+            // one frame of the steady zoom, as a yardstick
+            const step = (KEYFRAMES.count - 1) / (TIMELINE.zoom - TIMELINE.ease);
+            const moved = frame(k + step);
+            for (const border of [false, true]) {
+                expect(diff(before, after, border)).toBeLessThan(diff(after, moved, border) * 0.25);
+            }
+        }
+    }, 120_000);
 });

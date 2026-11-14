@@ -6,8 +6,8 @@
  *
  *          The keyframes (scripts/fractal-keyframes.mts) hold a palette index
  *          per pixel. At zoom level z = k + f, keyframe k is drawn scaled and
- *          turned around the pivot, and keyframe k+1 is blended in where it
- *          covers the screen. The palette slowly shifts so that the last
+ *          turned around the pivot, and keyframe k+1 (which always covers the
+ *          whole screen) is blended in with weight f. The palette slowly shifts so that the last
  *          keyframe (a mini-Mandelbrot) gets the colours of the first one, then
  *          a crossfade loops the animation back to the start.
  */
@@ -126,14 +126,16 @@ export class Fractal extends IAnimation {
 
     /* keyframe k at zoom fraction f, keyframe k+1 blended with weight f
      *
-     * Both keyframes are walked incrementally along each screen line.
+     * Each keyframe covers twice the screen, so keyframe k+1 fills the whole
+     * screen during the whole level: the blend weight only depends on f and
+     * nothing snaps from one keyframe to the next. Both keyframes are walked
+     * incrementally along each screen line (nearest pixel).
      */
     private renderLevel(k: number, f: number): void {
         const out = this.display_.surface.data32;
         const pal = this.colours_[0];
         const w = this.width_;
         const kw = KEYFRAMES.width;
-        const kh = KEYFRAMES.height;
         const src = this.keyframes_[k];
         const next = this.keyframes_[k + 1];
 
@@ -164,15 +166,11 @@ export class Fractal extends IAnimation {
             let ny = noy + y * ndyy + 0.5;
             for (let x = 0; x < w; x++, addr++) {
                 const a = pal[src[(py | 0) * kw + (px | 0)]];
-                if (nx >= 0 && ny >= 0 && nx < kw && ny < kh && mix > 0) {
-                    const b = pal[next[(ny | 0) * kw + (nx | 0)]];
-                    out[addr] =
-                        0xff000000 |
-                        ((((a & 0xff00ff) * keep + (b & 0xff00ff) * mix) >>> 8) & 0xff00ff) |
-                        ((((a & 0xff00) * keep + (b & 0xff00) * mix) >>> 8) & 0xff00);
-                } else {
-                    out[addr] = a;
-                }
+                const b = pal[next[(ny | 0) * kw + (nx | 0)]];
+                out[addr] =
+                    0xff000000 |
+                    ((((a & 0xff00ff) * keep + (b & 0xff00ff) * mix) >>> 8) & 0xff00ff) |
+                    ((((a & 0xff00) * keep + (b & 0xff00) * mix) >>> 8) & 0xff00);
                 px += dxx;
                 py += dxy;
                 nx += ndxx;
@@ -189,7 +187,8 @@ export class Fractal extends IAnimation {
         const kf = this.keyframes_;
         const w = this.width_;
         const kw = KEYFRAMES.width;
-        const step = kw / w;
+        const [ox, oy] = screenToKeyframe(0, 0, 0, KEYFRAMES, w);
+        const step = KEYFRAMES.view / w;
         const mix = Math.round(fade * 256);
         const keep = 256 - mix;
 
@@ -200,9 +199,9 @@ export class Fractal extends IAnimation {
         const b0 = kf[0];
         let addr = 0;
         for (let y = 0; y < this.height_; y++) {
-            const row = Math.floor((y + 0.5) * step) * kw;
+            const row = ((oy + y * step + 0.5) | 0) * kw;
             for (let x = 0; x < w; x++, addr++) {
-                const i = row + Math.floor((x + 0.5) * step);
+                const i = row + ((ox + x * step + 0.5) | 0);
                 const a = last[a0[i]];
                 const b = first[b0[i]];
                 out[addr] =

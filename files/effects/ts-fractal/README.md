@@ -31,13 +31,15 @@ _M_. The level _N_ shows exactly _M_(first view), and the copy is upright at the
 
 Deep zooms need hundreds of thousands of iterations per pixel, far too slow for real time. A Node
 script (`scripts/fractal-keyframes.mts`) renders 34 keyframes offline, each one twice as deep as the
-previous one, with 3x3 samples per pixel. They are stored as 8-bit grayscale PNGs holding a
+previous one, with 3x3 samples per pixel. A keyframe (1440x1080) is more than twice as wide as the
+screen view (640 pixels at the start of a level), so that the next keyframe always covers the whole
+screen. They are stored as 8-bit grayscale PNGs holding a
 **palette index** (the logarithm of the smooth escape count), 0 for the inside of the set.
 
 Every keyframe is the previous one scaled by 2 and slightly turned around the same pixel (the
 image of the fixed point). At level _z = k + f_ the effect draws keyframe _k_ scaled by _2<sup>f</sup>_
 and turned by _f_ steps (a small rotozoom walked incrementally on every line), and blends in the
-sharper keyframe _k+1_ where it covers the screen.
+sharper keyframe _k+1_ with weight _f_ over the whole screen, so the change of keyframe is seamless.
 
 ### Colours
 
@@ -48,7 +50,7 @@ progressively during the zoom, so both ends get the same colours.
 Regenerate the keyframes with:
 
 ```bash
-$ node scripts/fractal-keyframes.mts [--size 960x720] [--ss 3] [--target 35|39]
+$ node scripts/fractal-keyframes.mts [--size 1440x1080] [--view 640] [--ss 3] [--target 35|39]
 ```
 
 ## **License**

@@ -89,12 +89,14 @@ export function paletteIndex(v: number, shift: number): number {
 
 /* keyframe k pixel shown by a screen pixel at zoom fraction f
  *
- * The screen covers the whole keyframe at f = 0 (pixel centres aligned).
+ * At f = 0 the screen covers the central `view` pixels of the keyframe.
  */
 export function screenToKeyframe(sx: number, sy: number, f: number, kf: Keyframes, screenW: number): [number, number] {
-    const s = kf.width / screenW;
-    const ux = (sx + 0.5) * s - 0.5 - kf.pivot.x;
-    const uy = (sy + 0.5) * s - 0.5 - kf.pivot.y;
+    // the screen has the keyframes' aspect ratio, both are centred
+    const s = kf.view / screenW;
+    const screenH = (screenW * kf.height) / kf.width;
+    const ux = (sx + 0.5 - screenW / 2) * s + kf.width / 2 - 0.5 - kf.pivot.x;
+    const uy = (sy + 0.5 - screenH / 2) * s + kf.height / 2 - 0.5 - kf.pivot.y;
     const a = f * kf.stepAngle;
     const c = Math.cos(a) / Math.pow(kf.ratio, f);
     const n = Math.sin(a) / Math.pow(kf.ratio, f);

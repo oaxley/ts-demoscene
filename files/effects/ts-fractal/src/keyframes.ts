@@ -11,11 +11,12 @@
 //----- globals
 export const KEYFRAMES = {
     count: 34, // number of keyframes (levels + 1)
-    width: 960,
-    height: 720,
+    width: 1440,
+    height: 1080,
+    view: 640, // width of the screen view (keyframe pixels, centred) at the start of a level
     ratio: 1.988262152326129, // scale between two keyframes
     stepAngle: -0.03693153256143496, // turn between two keyframes (radians, counter-clockwise)
-    pivot: { x: 440.80171323591014, y: 324.51696169551303 }, // pixel of the zoom fixed point
+    pivot: { x: 693.7011421572735, y: 516.1779744636754 }, // pixel of the zoom fixed point
     colourOffset: 245, // palette offset of the last keyframe vs the first
 };
 
