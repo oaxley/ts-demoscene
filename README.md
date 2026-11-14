@@ -23,6 +23,7 @@ An attempt to recreate all the old demoscene effects from the 90s in Typescript 
                 <li><a href="./files/effects/ts-flag/README.md">Country Flag</a></li>
                 <li><a href="./files/effects/ts-fireworks/README.md">Fireworks</a></li>
                 <li><a href="./files/effects/ts-flames/README.md">FireCube</a></li>
+                <li><a href="./files/effects/ts-fractal/README.md">Fractal Infinite Zoom</a></li>
             </ul>
         </td>
         <td valign="top">
