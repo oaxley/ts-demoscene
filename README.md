@@ -13,7 +13,7 @@ An attempt to recreate all the old demoscene effects from the 90s in Typescript 
 
 ## **Effects**
 
-<table>
+<table style="border: 0px solid black">
     <tr>
         <td valign="top">
             <ul>
