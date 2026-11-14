@@ -8,11 +8,20 @@
 
 ## **Algorithm**
 
-Nothing fancy here. You just draw a thick bar (50 pixels) with a color gradient from black to red
-then red to black. The bar has to be as wide as the screen, because in the old times, they were
-drawn on the screen by the CRT beam under the VGA controller.
+Four horizontal bars are drawn over a black background, each 50 pixels thick and as wide as the screen. The bars are drawn in the order violet, yellow, green, red, so the red bar ends up on top. This is a nod to the old days, when these bars were drawn line by line by the CRT beam of the VGA controller.
 
-Then for the animation, a simple sine wave do the trick.
+Each bar has its own colour, and its brightness depends on the row inside the bar:
+
+- Red: `(v, 0, 0)`
+- Green: `(0, v, 0)`
+- Yellow: `(v, v, 0)`
+- Violet: `(v, 0, v)`
+
+where `v = min(index * 10, 255)` and `index` is the distance from the bar's edge. The brightness rises from black at the edges to full colour in the middle of the bar, which gives the bar its gradient. The top half of the bar is drawn with the gradient going one way and the bottom half with it going the other way, so the bar looks rounded.
+
+Each bar moves vertically on a sine wave. Its position is `ymax + (ymax - BAR_SIZE) * sin(angle)`, where `ymax` is half the screen height. Each bar has its own angle (0.6, 0.4, 0.2 and 0.0 radians for red, green, yellow and violet), and the angle grows by `0.03` radians per frame. When it passes `2π`, it restarts at 0. The different starting angles make the bars move out of phase.
+
+After the bars are drawn, the screen is overlaid with a sprite pinned to the top-right corner.
 
 ## **License**
 
