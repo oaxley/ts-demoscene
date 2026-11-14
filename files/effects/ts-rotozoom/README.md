@@ -8,26 +8,31 @@
 
 ## **Texture**
 
-For this effect, you need a texture that is mostly squared and a length being a multiple of a
-power of 2.
+The texture must be exactly 256 pixels wide, and its height can be any value. The code uses the low 8 bits of the x coordinate as the texture column (`xb & 0xff`) and stores the texture row-major with a stride of 256 (`v << 8`), so any other width would sample the wrong pixels. The height is handled by a modulo, so the texture repeats vertically.
 
 ## **Algorithm**
 
-For each pixels (x,y), you perform a standard rotation at a predefine angle and map it back to
-the original coordinates of the texture.
+For each pixel `(x, y)` of the screen, the code rotates the coordinate by the current angle, scales it, and uses the result as a texture coordinate.
 
-On the 2D plan, a rotation can be expressed with
+The angle is an index in precomputed cosine and sine tables. It starts at 0 and grows by 1 degree per frame, wrapping at 360. The effect runs at 25 FPS.
 
-```javascript
-xb = Math.floor(x * Math.cos(angle) - y * Math.sin(angle));
-yb = Math.floor(x * Math.sin(angle) + y * Math.cos(angle));
+The rotation is the standard 2D rotation:
+
+```typescript
+xb = Math.floor((x * cos - y * sin) * zoom);
+yb = Math.floor((x * sin + y * cos) * zoom);
 ```
 
-To spice things up, and add a forward and back movement towards the camera, you can multiply these
-values by sin(angle + 1).
+The zoom factor is `zoom = sin + 1`, so it varies between 0 and 2. Since the same `sin` value is used for the rotation and the zoom, the picture grows and shrinks in step with the rotation. It is largest when the coordinates are scaled by 2, and it shrinks towards 0 when `sin` reaches -1. This gives the feeling of the texture moving towards and away from the camera.
 
-The coordinates are then map back to the texture coordinates with a modulo, so the texture repeats
-itself on the screen.
+The rotation is applied to the screen coordinates directly, which come from the top-left corner. The image therefore turns around the top-left corner of the screen, not around its center.
+
+The texture coordinates are then wrapped:
+
+- `u = xb & 0xff` wraps horizontally, which is why the texture must be 256 pixels wide.
+- `v = yb % height` wraps vertically, with a loop to handle negative values.
+
+The texel at `(u, v)` is copied to the screen pixel. The texture repeats on the screen in both directions.
 
 ## **License**
 

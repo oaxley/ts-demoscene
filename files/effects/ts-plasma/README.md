@@ -8,30 +8,34 @@
 
 ## **Palette**
 
-For this effect the palette of 256 colors is build around 2 sine functions.  
-Only the Red and Green components are used.
+The palette of 256 colors is built from 3 cosine functions, one per RGB channel.  
+Each index `i` is first mapped to a value `t` in the range [-AMPLITUDE, AMPLITUDE] (here [-15, 15]), then each channel is phase-shifted so the colors cycle smoothly.
 
-```javascript
-function createPalette() {
-  for (var i = 0; i < 256; i++) {
-    var r = Math.floor(128 + 128 * Math.sin((Math.PI * i) / 16.0));
-    var g = Math.floor(128 + 128 * Math.sin((Math.PI * i) / 128.0));
-    var b = 0;
-  }
+```typescript
+for (let i = 0; i < 256; i++) {
+  const t = map(i, 0, 255, -AMPLITUDE, AMPLITUDE);
+  const r = map(Math.cos(t + 0.2), -1, 1, 0, 255);
+  const g = map(Math.cos(t + 0.4), -1, 1, 0, 255);
+  const b = map(Math.cos(t + 0.8), -1, 1, 0, 255);
+  palette.setColor(i, new Color(COLOR_MODEL.RGBA, r, g, b));
 }
 ```
 
-This gives a glowing green-ish colors to the plasma.
-
 ## **Algorithm**
 
-A plasma is basically an intersection between multiple sine and cosine functions.  
-The more you add, the more complex the output will be.  
-To make the plasma moves, you can add a time component that will modify the sine functions.  
-So for each pixels on the screen, you compute multiple functions that will give you a final value.
+A plasma is an intersection of several sine and cosine functions evaluated at each pixel.  
+Here, the pixel coordinates are first centered and scaled, then shifted by a time component so the pattern moves:
 
-At the very end, you need to ensure that your value is between [-1, 1] so it can be mapped  
-back to [0, 255] to retrieve the corresponding color in the palette.
+- `ux` depends on the x coordinate (scaled by the aspect ratio) plus `time * 0.3`.
+- `uy` depends on the y coordinate plus `time * 0.3`.
+- Two phase terms are computed from `uy` and `ux`, with the time added to the phase offsets:
+  - `phaseV = 0.1 + 2.4 * time + cos(uy + sin(0.148 - time))`
+  - `phaseH = 0.9 - 0.7 * time + sin(ux + cos(0.628 + time))`
+- The distance from the center is `radial = sqrt(ux² + uy²)`.
+- The plasma value is the product of a cosine and a sine:
+  - `plasma = AMPLITUDE * cos(radial + phaseH) * sin(phaseV + phaseH)`
+
+The value lies in [-AMPLITUDE, AMPLITUDE]. It is mapped to a palette index with `index = 128 + 128 * (plasma / AMPLITUDE)`, clamped to [0, 255], and the corresponding palette color is written to the pixel.
 
 ## **License**
 

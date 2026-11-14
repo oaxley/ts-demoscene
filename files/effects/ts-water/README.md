@@ -8,21 +8,28 @@
 
 ## **Algorithm**
 
-The algorithm is very close to the flames effect, which is a kind of blur.
+The effect is a 2D wave simulation with two height buffers of integers, `state1` and `state2`. Each frame, one of them is the current buffer and the other holds the previous frame. The roles are swapped at the end of every update.
 
-For a point on the screen (x,y), we add the 4 surrounding values and we divide by 2.  
-This result in a value that is twice the average. Then we substract the previous value at the same spot.
+For each point (x, y) that is not on the border of the screen, the new height is computed from the previous frame's four neighbours:
 
-```javascript
-cur[x][y] = (old[x - 1][y] + old[x][y + 1] + old[x][y - 1] + old[x + 1][y]) / 2.0 - cur[x][y];
+```typescript
+cur[p] = ((old[p - 1] + old[p + 1] + old[p - width] + old[p + width]) >> 1) - cur[p];
 ```
 
-If the previous value was lower than the average, then the new value will makes the wave goes up.  
-Respectively, if the previous value was higher, the wave will goes down.
+The four neighbours are summed and halved, which gives twice their average. The current value at the point is subtracted from it. If the point was lower than its neighbours, the wave pushes it up, and if it was higher, the wave pulls it down. This is the same kind of averaging used in the flames effect, combined with the previous value to make it oscillate.
 
-As the time passed, a damping factor is applied to the effect so the wave dies progressively.
+Each frame, the height is damped by about 1/128 of its value (`cur -= cur >> 7`), so the waves die out over time.
 
-Every 10 Frames, we add a random rain droplet which animates the effect.
+To show the water, each pixel is drawn from the background picture (`ts-water.background.png`) at a shifted position. The shift is proportional to the wave height, so the picture looks refracted:
+
+- `r = 1024 - height`
+- the source coordinates are `width + (x - width) * r / 1024` and `height + (y - height) * r / 1024`, clamped to the screen.
+
+A flat surface (height 0) gives `r = 1024`, so the source coordinates equal `(x, y)` and the picture is shown undistorted. Where the surface is raised or lowered, the source is shifted, which produces the wave pattern.
+
+Every 10 frames, a random drop is added to the current buffer: a block of 15 points (5 columns by 3 rows) around a random position, each raised by a height between 100 and 300. This keeps the surface moving.
+
+Edge pixels are not updated, which stops the waves from wrapping around or leaving the buffer.
 
 ## **License**
 
