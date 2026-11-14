@@ -7,7 +7,9 @@
 
 ## **90's Demoscene effects**
 
-An attempt to recreate all the old demoscene effects from the 90s in Typescript with the HTML Canvas element.
+A repository of old school demoscene effects, using only the CPU (and a lot of tricks and linear algebra).  
+
+No GPU (or WebGL) was harmed during the development of this repository :).
 
 ![screenshot](effects.png)
 
