@@ -13,11 +13,16 @@ import { Color } from "library/color/color";
 import { COLOR_MODEL } from "library/color/basecolor";
 import { map } from "library/maths/utils";
 
+//----- constants
+const SPEED = 1500; // speed of the plasma animation (ms per cycle)
+const SCALE = 10.0; // coordinate scale: higher = smaller pattern (zoomed out)
+const AMPLITUDE = 15.0; // amplitude of the plasma value
+
 //----- class
 export class Plasma extends IAnimation {
     //----- members
     private palette_: Palette;
-    private cols_: Float64Array; // per-column values (scratch)
+    private cols_: Float64Array; // per-column x coordinates (scratch)
 
     //----- methods
     constructor(display: Display) {
@@ -35,9 +40,10 @@ export class Plasma extends IAnimation {
     private createPalette(): void {
         this.palette_ = new Palette();
         for (let i = 0; i < 256; i++) {
-            const r = map(Math.sin((Math.PI * i) / 16.0), -1, 1, 0, 255);
-            const g = map(Math.sin((Math.PI * i) / 128.0), -1, 1, 0, 255);
-            const b = 0;
+            const t = map(i, 0, 255, -AMPLITUDE, AMPLITUDE);
+            const r = map(Math.cos((t + 0.2)), -1, 1, 0, 255);
+            const g = map(Math.cos((t + 0.4)), -1, 1, 0, 255);
+            const b = map(Math.cos((t + 0.8)), -1, 1, 0, 255);
 
             this.palette_.setColor(i, new Color(COLOR_MODEL.RGBA, r, g, b));
         }
@@ -50,35 +56,36 @@ export class Plasma extends IAnimation {
         const data32 = this.display_.surface.data32;
         const lut = this.palette_.toUint32Array();
 
-        const time = timestamp / 500;
+        const time = timestamp / SPEED;
+        const aspect = w / h;
 
-        // values depending only on the time / on the column
-        const sx = 0.5 * Math.sin(time / 7);
-        const sy = 0.5 * Math.cos(time / 5);
+        // phase terms depending only on the time
+        const phaseVOffset = 0.1 + 2.4 * time;
+        const sinV = Math.sin(0.148 - time);
+        const cosH = Math.cos(0.628 + time);
+        const phaseHOffset = 0.9 - 0.7 * time;
+
         const cols = this.cols_;
         for (let x = 0; x < w; x++) {
-            const dx = -0.5 + x / w;
-            cols[x] = Math.sin(dx * 10 + time);
+            cols[x] = (x / w - 0.5) * aspect * SCALE + time * 0.3;
         }
 
         let addr = 0;
         for (let y = 0; y < h; y++) {
-            const dy = -0.5 + y / h;
-            const cy = dy + sy;
-            const cy2 = cy * cy;
-            const dy2 = dy * dy;
+            const uy = (y / h - 0.5) * SCALE + time * 0.3;
+            const phaseV = phaseVOffset + Math.cos(uy + sinV);
+            const uy2 = uy * uy;
 
             for (let x = 0; x < w; x++) {
-                const dx = -0.5 + x / w;
-                const cx = dx + sx;
+                const ux = cols[x];
+                const phaseH = phaseHOffset + Math.sin(ux + cosH);
+                const radial = Math.sqrt(ux * ux + uy2);
 
-                let v = cols[x];
-                v += Math.sin(Math.sqrt(75 * (cx * cx + cy2) + 1 + time));
-                v += Math.cos(Math.sqrt(dx * dx + dy2) - time);
-                v /= 3;
+                const plasma = AMPLITUDE * Math.cos(radial + phaseH) * Math.sin(phaseV + phaseH);
 
-                let index = Math.floor(128 + 128 * v);
+                let index = Math.floor(128 + 128 * (plasma / AMPLITUDE));
                 if (index > 255) index = 255;
+                if (index < 0) index = 0;
 
                 data32[addr++] = lut[index];
             }
