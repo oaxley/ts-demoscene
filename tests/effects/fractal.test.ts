@@ -7,6 +7,9 @@
 
 //----- imports
 import { describe, test, expect } from "vitest";
+import fs from "node:fs";
+import path from "node:path";
+import { PNG } from "pngjs";
 
 import {
     Complex,
@@ -18,6 +21,7 @@ import {
     viewAt,
     fixedPoint,
 } from "../../scripts/fractal/mandel";
+import { KEYFRAMES, keyframeUrl } from "../../files/effects/ts-fractal/src/keyframes";
 
 //----- helpers
 const dist = (a: Complex, b: Complex): number => Math.hypot(a.re - b.re, a.im - b.im);
@@ -70,5 +74,35 @@ describe("ts-fractal mandel", () => {
         const p = fixedPoint(path);
         const image = mul(s, p);
         expect(dist({ re: image.re + n.re, im: image.im + n.im }, p)).toBeLessThan(1e-15);
+    });
+});
+
+describe("ts-fractal keyframes", () => {
+    const ASSETS = path.resolve(import.meta.dirname, "../../files/effects/ts-fractal/assets");
+    const pad2 = (i: number): string => String(i).padStart(2, "0");
+
+    test("every keyframe image exists with the declared size", () => {
+        expect(KEYFRAMES.count).toBeGreaterThan(10);
+        for (let i = 0; i < KEYFRAMES.count; i++) {
+            const png = PNG.sync.read(fs.readFileSync(path.join(ASSETS, `kf-${pad2(i)}.png`)));
+            expect([png.width, png.height]).toEqual([KEYFRAMES.width, KEYFRAMES.height]);
+        }
+        expect(fs.existsSync(path.join(ASSETS, `kf-${pad2(KEYFRAMES.count)}.png`))).toBe(false);
+    });
+
+    test("keyframe URL", () => {
+        expect(keyframeUrl(3)).toBe("/images/assets/ts-fractal.kf-03.png");
+    });
+
+    test("zoom step metadata", () => {
+        expect(KEYFRAMES.ratio).toBeGreaterThanOrEqual(1.8);
+        expect(KEYFRAMES.ratio).toBeLessThanOrEqual(2.2);
+        expect(Math.abs(KEYFRAMES.stepAngle)).toBeLessThan(0.3);
+        expect(KEYFRAMES.pivot.x).toBeGreaterThanOrEqual(0);
+        expect(KEYFRAMES.pivot.x).toBeLessThan(KEYFRAMES.width);
+        expect(KEYFRAMES.pivot.y).toBeGreaterThanOrEqual(0);
+        expect(KEYFRAMES.pivot.y).toBeLessThan(KEYFRAMES.height);
+        expect(KEYFRAMES.colourOffset).toBeGreaterThanOrEqual(0);
+        expect(KEYFRAMES.colourOffset).toBeLessThan(255);
     });
 });
